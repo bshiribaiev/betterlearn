@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Subjects{% endblock %}
+
+{% block content %}
+    <h2>Subjects</h2>
+
+    <!-- Form to select and delete subjects -->
+    <form action="{{ url_for('delete_subject') }}" method="post" id="deleteSubjectForm">
+        <ul class="list-group mb-4" style="list-style-type: none; padding-left: 0;">
+            {% for subject in subjects %}
+                <li class="list-group-item d-flex align-items-center" style="border: none;">
+                    <!-- Checkbox to select subject for deletion -->
+                    <input type="checkbox" name="selected_subjects" value="{{ subject.id }}" style="margin-right: 10px;">
+                    <a href="{{ url_for('topics', subject_id=subject.id) }}" class="text-decoration-none">{{ subject.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Row for Delete and Add buttons -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-primary" onclick="toggleAddSubjectForm()">Add Subject</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+    </form>
+
+    <!-- Hidden form for adding a new subject -->
+    <form action="{{ url_for('add_subject') }}" method="post" id="addSubjectForm" style="display: none; margin-top: 1rem;">
+        <div class="form-group">
+            <label for="subject_name">New Subject:</label>
+            <input type="text" name="subject_name" id="subject_name" class="form-control" placeholder="Enter subject name" required>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Add</button>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Function to toggle the display of the Add Subject form
+    function toggleAddSubjectForm() {
+        var form = document.getElementById("addSubjectForm");
+        form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+    }
+</script>
+{% endblock %}

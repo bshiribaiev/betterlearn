@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Topics in {{ subject.name }}{% endblock %}
+
+{% block content %}
+    <h2>Topics in {{ subject.name }}</h2>
+
+    {% if topics %}
+        <!-- Form to select and delete topics -->
+        <form action="{{ url_for('delete_topics') }}" method="post" id="deleteForm">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Select</th>
+                        <th scope="col">Topic Name</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Current Review Date</th>
+                        <th scope="col">Next Review Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for topic in topics %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_topics" value="{{ topic.id }}" id="topic-{{ topic.id }}" style="width: 20px; height: 20px;">
+                            </td>
+                            <td>
+                                <a href="{{ url_for('view_topic', topic_id=topic.id) }}" class="text-decoration-none">{{ topic.name }}</a>
+                            </td>
+                            <td>
+                                <select name="status" data-topic-id="{{ topic.id }}" class="form-select status-select">
+                                    <option value="excellent" {% if topic.status == 'excellent' %}selected{% endif %}>Excellent</option>
+                                    <option value="good" {% if topic.status == 'good' %}selected{% endif %}>Good</option>
+                                    <option value="need to study" {% if topic.status == 'need to study' %}selected{% endif %}>Need to Study</option>
+                                    <option value="bad" {% if topic.status == 'bad' %}selected{% endif %}>Bad</option>
+                                </select>
+                            </td>
+                            <td>
+                                {{ topic.last_reviewed.strftime('%Y-%m-%d') if topic.last_reviewed else 'N/A' }}
+                            </td>
+                            <td>
+                                {{ topic.next_review.strftime('%Y-%m-%d') if topic.next_review else 'N/A' }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Delete Selected Topics button -->
+            <button type="submit" class="btn btn-danger mt-4">Delete Selected Topics</button>
+        </form>
+    {% else %}
+        <p>No topics available for this subject. Click "Add Topic" to create a new one.</p>
+    {% endif %}
+
+    <!-- "Add Topic" button and form -->
+    <div class="mt-4">
+        <button type="button" class="btn btn-primary" onclick="toggleAddTopicForm()">Add Topic</button>
+    </div>
+
+    <!-- Hidden form for adding a new topic -->
+    <form action="{{ url_for('add_topic', subject_id=subject.id) }}" method="post" id="addTopicForm" style="display: none; margin-top: 1rem;">
+        <div class="form-group">
+            <label for="topic_name">New Topic:</label>
+            <input type="text" name="topic_name" id="topic_name" class="form-control" placeholder="Enter topic name" required>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Add Topic</button>
+    </form>    
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Function to toggle the display of the Add Topic form
+    function toggleAddTopicForm() {
+        var form = document.getElementById("addTopicForm");
+        form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+    }
+</script>
+{% endblock %}
