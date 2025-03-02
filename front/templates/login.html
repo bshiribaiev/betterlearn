@@ -19,7 +19,7 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('login') }}">
+    <form method="POST" action="{{ url_for('auth.login') }}">
         <label for="email">Email:</label>
         <input type="email" name="email" id="email" required>
         <label for="password">Password:</label>
@@ -27,6 +27,6 @@
         <button type="submit">Login</button>
     </form>
 
-    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <h1>Test Yourself: {{ item.question }}</h1>
 
 {% if session.get('attempts', 0) < 3 %}
-    <form action="{{ url_for('review_items', item_id=item.id) }}" method="POST">
+    <form action="{{ url_for('authreview_items', item_id=item.id) }}" method="POST">
         <label for="user_answer">Your Answer:</label>
         <input type="text" name="user_answer" required>
         <button type="submit">Submit</button>
@@ -11,7 +11,7 @@
     <p>You have {{ 3 - session.get('attempts', 0) }} attempts left.</p>
 {% else %}
     <p>Answer: {{ item.answer }}</p>
-    <form action="{{ url_for('reset_attempts', item_id=item.id) }}" method="POST">
+    <form action="{{ url_for('auth.reset_attempts', item_id=item.id) }}" method="POST">
         <button type="submit">Reset and Try Another Question</button>
     </form>
 {% endif %}
@@ -29,7 +29,7 @@
     <p>Next review scheduled for: {{ item.next_review.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 {% endif %}
 
-<form action="{{ url_for('process_review', item_id=item.id) }}" method="POST">
+<form action="{{ url_for('auth.process_review', item_id=item.id) }}" method="POST">
     <button type="submit" name="success" value="true">I remembered this</button>
     <button type="submit" name="success" value="false">I forgot this</button>
 </form>

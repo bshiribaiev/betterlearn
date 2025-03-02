@@ -12,7 +12,7 @@
                 <li class="list-group-item d-flex align-items-center" style="border: none;">
                     <!-- Checkbox to select subject for deletion -->
                     <input type="checkbox" name="selected_subjects" value="{{ subject.id }}" style="margin-right: 10px;">
-                    <a href="{{ url_for('topics', subject_id=subject.id) }}" class="text-decoration-none">{{ subject.name }}</a>
+                    <a href="{{ url_for('auth.topics', subject_id=subject.id) }}" class="text-decoration-none">{{ subject.name }}</a>
                 </li>
             {% endfor %}
         </ul>
