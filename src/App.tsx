@@ -37,6 +37,8 @@ function App() {
         </form>
       </div>
 
+      <p>Results: {results.length}</p>
+
     </>
   )
 }
