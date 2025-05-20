@@ -19,12 +19,12 @@ function App() {
     })
 
     const data = await res.json()
-
     setResults(data)
   }
 
   return (
     <>
+      {/* Generating a flashcard */}
       <div className="topicIn">
         <form onSubmit={handleSubmit}> 
           <input
@@ -37,7 +37,18 @@ function App() {
         </form>
       </div>
 
-      <p>Results: {results.length}</p>
+      {/* Showing the flashcards */}
+      <div className="cards">
+        <h1>Your cards</h1>
+        {results.map((card, index) => (
+          <div key={index}> 
+            <h3>{card.question}</h3>
+            <p>{card.answer}</p>
+
+          </div>
+        ))}
+
+      </div>
 
     </>
   )
