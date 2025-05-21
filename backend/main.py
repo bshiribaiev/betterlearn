@@ -1,11 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
+from dotenv import load_dotenv
 import os
 import json
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+load_dotenv()
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-pro')
 
 app = FastAPI()
 
@@ -24,22 +27,40 @@ class Prompt(BaseModel):
 
 # Prompt gemini to generate the questions    
 def promptGemini(prompt: Prompt):
-    model = genai.GenerativeModel("models/gemini-pro")
-    prompt_text = f"""Generate 3 questions about the topic: {prompt.topic}.
+    prompt_text = f"""
+    Generate 3 questions about the topic: {prompt.topic}.
     Each flashcard should have a question and an answer formatted in JSON:
     [
         {{"question": f"What is {prompt.topic}?", "answer": "Fake answer"}}, ...
     ]
+    Respond ONLY with valid JSON
     """
-    response = model.generate_content(prompt_text)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt_text,
+    )
 
     return response
 
-@app.post("/generate")    
-def flashcards(response):
+# Load the Gemini response to the flashcard
+@app.post("/generate")
+async def flashcards(prompt: Prompt = Body(...)):
+    response = promptGemini(prompt)
+
     try:
+        print("Gemini raw response:", response)
+
+        print("Response.text (if exists):", getattr(response, 'text', 'No .text'))
+
         flashcards = json.loads(response.text)
+    except Exception as e:
+        print('error: ', e)
+        flashcards = [{"question": "Parsing failed", "answer": "response.text"}]
+    return flashcards
+
+    '''
     except json.JSONDecodeError:
         flashcards = [{"question": "Parsing failed", "answer": "response.text"}]
     return flashcards
 
+'''
