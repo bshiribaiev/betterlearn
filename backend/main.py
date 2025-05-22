@@ -30,13 +30,21 @@ class Prompt(BaseModel):
 # Prompt gemini to generate the questions    
 def promptGemini(prompt: Prompt):
     prompt_text = f"""
-    Generate 3 questions about the topic: {prompt.topic}.
-    Each flashcard should have a question and an answer formatted in JSON:
+    You are an AI that generates study flashcards in JSON format.
+
+    Generate 3 flashcards on the topic: "{prompt.topic}".
+
+    Each flashcard should be a JSON object with:
+    - "question": a concise question string
+    - "answer": a clear, accurate answer string
+
+    Return the flashcards as a JSON array — and only return the array. No commentary, no explanations.
+
+    Example format:
     [
-        {{"question": f"What is {prompt.topic}?", "answer": "Fake answer"}}, ...
+    {{ "question": "What is photosynthesis?", "answer": "A process used by plants to convert light into energy." }},
+    ...
     ]
-    Do not include any explanations, markdown formatting, or additional text.
-    Respond ONLY with valid JSON
     """
     response = model.generate_content([prompt_text])
 
@@ -49,6 +57,32 @@ def extract_json(text):
     if json_match:
         return json_match.group(0)
     return text
+
+# Validating gemini's output
+def flashcard_validation(text):
+    valid_cards = []
+    try:
+        parsed = json.loads(text)
+        if not isinstance(parsed, list):
+            return None
+        
+    except json.JSONDecodeError as e:
+        print("Failed to parse JSON: ", e)
+        return None
+    
+    for item in parsed:
+        if not isinstance(item, dict):
+            continue
+        if "question" not in item or "answer" not in item:
+            continue
+        if not isinstance(item["question"], str) or not item["question"].strip():
+            continue
+        if not isinstance(item["answer"], str) or not item["answer"].strip():
+            continue
+
+        valid_cards.append(item)
+    
+    return valid_cards if valid_cards else None
 
 # Load the Gemini response to the flashcard
 @app.post("/generate")
