@@ -1,3 +1,5 @@
+import Flashcard from "./Flashcard";
+
 type Flashcard = {
     question: string;
     answer: string;
@@ -7,18 +9,20 @@ type FlashcardListProps = {
     cards: Flashcard[];
 };
 
-
-function cardList(props: FlashcardListProps) {
+function FlashcardList(props: FlashcardListProps) {
     return (
         <div> 
             {props.cards.map(card => (
-                <div key = {card.question}>
-                    <h3>{card.question}</h3>
-                    <p>{card.question}</p>
+                <div> 
+                <Flashcard 
+                    key={card.question}
+                    question={card.question}
+                    answer={card.answer} 
+                /> 
                 </div>
             ))}
         </div>
-    )
+    );
 }
 
-export default cardList
+export default FlashcardList;

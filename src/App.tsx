@@ -1,55 +1,41 @@
 import { useState } from 'react'
+import TopicForm from './components/TopicForm'
+import FlashcardList from './components/FlashcardList'
 import './App.css'
 
+// Defining a type for a flashcard
+type Flashcard = {
+  question: string;
+  answer: string;
+}
+
 function App() {
-  const [userInput, setInput] = useState<string>("")
-  const [results, setResults] = useState<{question: string; answer: string}[]>([])
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
-  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent page reload
-    console.log("Loading: ", userInput);
+  const handleTopicSubmit = async (topic: string) => {
+    try {
+      const res = await fetch('http://localhost:8000/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({topic}),
+      });
 
-    // Send the userInput to the backend later
-    const res = await fetch("http://localhost:8000/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({topic: userInput})
-    })
-
-    const data = await res.json()
-    setResults(data)
-  }
+      const data = await res.json();
+      setFlashcards(data);
+    } catch (err) {
+      console.error("Failed to fetch flashcards", err);
+    }
+  };
 
   return (
     <>
-      {/* Generating a flashcard */}
-      <div className="topicIn">
-        <form onSubmit={handleSubmit}> 
-          <input
-            type = "text"
-            value = {userInput}
-            onChange = {(e) => setInput(e.target.value)}
-            placeholder='Enter a topic...'
-            />
-            <button type = "submit">Generate Flashcards</button>
-        </form>
+      <div>
+        <h1>Boost Your Learning</h1>
+        <TopicForm onSubmit={handleTopicSubmit} />
+        <FlashcardList cards={flashcards} />
       </div>
-
-      {/* Showing the flashcards */}
-      <div className="cards">
-        <h1>Your cards</h1>
-        {results.map((card, index) => (
-          <div key={index}> 
-            <h3>{card.question}</h3>
-            <p>{card.answer}</p>
-
-          </div>
-        ))}
-
-      </div>
-
     </>
   )
 }
