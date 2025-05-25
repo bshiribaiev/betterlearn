@@ -36,13 +36,41 @@ def promptGemini(prompt: Prompt):
 
     Each flashcard should be a JSON object with:
     - "question": a concise question string
-    - "answer": a clear, accurate answer string
 
-    Return the flashcards as a JSON array — and only return the array. No commentary, no explanations.
+    - "options": an array of 4 possible answers (strings)
+    - "correctAnswer": integer index (0-3) of the correct option
 
-    Example format:
+    Return the flashcards as a JSON array — and only return the array. 
+    No commentary, no explanations.
+    
+    The correct answer should be randomly positioned among the options, 
+    not always first.
+
+    Example format 1:
     [
-    {{ "question": "What is photosynthesis?", "answer": "A process used by plants to convert light into energy." }},
+    {{  "question": "What is photosynthesis?", 
+        "options": [
+        "A process used by plants to convert light into energy.",
+        "A method plants use to absorb water through their roots.",
+        "The process by which animals convert food into energy.",
+        "The technique used by fungi to decompose organic material."
+        ],
+        "correctAnswer": 0
+    }},
+    ...
+    ]
+
+    Example format 2:
+    [
+    {{  "question": "What is photosynthesis?", 
+        "options": [
+        "A method plants use to absorb water through their roots.",
+        "The process by which animals convert food into energy.",
+        "A process used by plants to convert light into energy.",
+        "The technique used by fungi to decompose organic material."
+        ],
+        "correctAnswer": 2
+    }},
     ...
     ]
     """

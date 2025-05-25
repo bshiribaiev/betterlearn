@@ -1,9 +1,5 @@
 import {useState} from 'react'
-
-type FlashcardProps = {
-  question: string;
-  answer: string;
-};
+import type { FlashcardType } from '../types/types'
 
 function Flashcard(props: FlashcardProps) {
   const [showAnswer, setShowAnswer] = useState(false);

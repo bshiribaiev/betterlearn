@@ -1,13 +1,9 @@
 import { useState } from 'react'
 import TopicForm from './components/TopicForm'
 import FlashcardList from './components/FlashcardList'
+import type { FlashcardType } from './types/types'
 import './App.css'
 
-// Defining a type for a flashcard
-type Flashcard = {
-  question: string;
-  answer: string;
-}
 
 function App() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);

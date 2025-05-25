@@ -1,9 +1,5 @@
 import Flashcard from "./Flashcard";
-
-type Flashcard = {
-    question: string;
-    answer: string;
-};
+import type { FlashcardType } from '../types/types'
 
 type FlashcardListProps = {
     cards: Flashcard[];
