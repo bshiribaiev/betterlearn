@@ -2,9 +2,8 @@ import Flashcard from "./Flashcard";
 import type { FlashcardType } from '../types/types'
 
 type FlashcardListProps = {
-    cards: Flashcard[];
-};
-
+    cards: FlashcardType[];
+}
 function FlashcardList(props: FlashcardListProps) {
     return (
         <div> 
@@ -13,7 +12,8 @@ function FlashcardList(props: FlashcardListProps) {
                 <Flashcard 
                     key={card.question}
                     question={card.question}
-                    answer={card.answer} 
+                    options={card.options} 
+                    correctAnswer={card.correctAnswer}
                 /> 
                 </div>
             ))}

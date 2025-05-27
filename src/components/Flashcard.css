@@ -1,0 +1,12 @@
+.option {
+    display: block;
+    margin: 10px 0;
+}
+
+.option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.option label {
+    cursor: pointer;
+}

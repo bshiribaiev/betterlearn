@@ -101,11 +101,20 @@ def flashcard_validation(text):
     for item in parsed:
         if not isinstance(item, dict):
             continue
-        if "question" not in item or "answer" not in item:
+        if "question" not in item or "options" not in item or "correctAnswer" not in item:
             continue
         if not isinstance(item["question"], str) or not item["question"].strip():
             continue
-        if not isinstance(item["answer"], str) or not item["answer"].strip():
+        validOption = True
+        if not isinstance(item["options"], list) or len(item["options"]) != 4:
+            continue
+        for option in item["options"]:
+            if not isinstance(option, str) or not option.strip():
+                validOption = False
+                break
+        if not validOption:
+            continue
+        if not isinstance(item["correctAnswer"], int) or item["correctAnswer"] < 0 or item["correctAnswer"] > 3:
             continue
 
         valid_cards.append(item)

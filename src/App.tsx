@@ -6,7 +6,7 @@ import './App.css'
 
 
 function App() {
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [flashcards, setFlashcards] = useState<FlashcardType[]>([]);
 
   const handleTopicSubmit = async (topic: string) => {
     try {
