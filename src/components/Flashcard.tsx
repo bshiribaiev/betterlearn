@@ -3,16 +3,17 @@ import type { FlashcardType } from '../types/types'
 
 function Flashcard(props: FlashcardType) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  //const [submitted, setSubmitted] = useState(false);
 
   const handleOptionClick = (optionIndex: number) => {
     setSelectedOption(optionIndex);
+    props.onAnswerSelect(optionIndex);
   }
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  // const handleSubmit = () => {
+  //   setSubmitted(true);
 
-  }
+  // }
 
   return (
     <div> 
@@ -21,8 +22,8 @@ function Flashcard(props: FlashcardType) {
       <div> 
       <input
       type="radio"
-      id="option0"
-      name="flashcard-options"
+      id={`option0-${props.cardId}`}
+      name={`flashcard-options-${props.cardId}`}
       value="0"
       onChange={() => handleOptionClick(0)}
       />
@@ -32,38 +33,38 @@ function Flashcard(props: FlashcardType) {
       <div> 
       <input
       type="radio"
-      id="option1"
-      name="flashcard-options"
+      id={`option1-${props.cardId}`}
+      name={`flashcard-options-${props.cardId}`}
       value="1"
       onChange={() => handleOptionClick(1)}
       />
-      <label htmlFor="option0">{props.options[1]}</label>
+      <label htmlFor="option1">{props.options[1]}</label>
       </div>
 
       <div> 
       <input
       type="radio"
-      id="option2"
-      name="flashcard-options"
+      id={`option2-${props.cardId}`}
+      name={`flashcard-options-${props.cardId}`}
       value="2"
       onChange={() => handleOptionClick(2)}
       />
-      <label htmlFor="option0">{props.options[2]}</label>
+      <label htmlFor="option2">{props.options[2]}</label>
       </div>
 
       <div> 
       <input
       type="radio"
-      id="option0"
-      name="flashcard-options"
+      id={`option3-${props.cardId}`}
+      name={`flashcard-options-${props.cardId}`}
       value="3"
       onChange={() => handleOptionClick(3)}
       />
-      <label htmlFor="option0">{props.options[3]}</label>
+      <label htmlFor="option3">{props.options[3]}</label>
     </div>
     </div>
 
-    <button onClick={handleSubmit} disabled={selectedOption === null}>
+    {/* <button onClick={handleSubmit} disabled={selectedOption === null}>
       Submit
     </button>
 
@@ -75,7 +76,7 @@ function Flashcard(props: FlashcardType) {
       }}>
         {selectedOption === props.correctAnswer ? 'Correct!' : 'Wrong!'}
      </div>
-    )}
+    )} */}
     </div>
   )
 }
