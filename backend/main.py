@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from dotenv import load_dotenv
+from database import save_flashcards
 import os
 import json
 import re
@@ -141,6 +142,8 @@ async def flashcards(prompt: Prompt = Body(...)):
                     "error": str(e),
                     "raw_response": response_text
                 })
+            
+        topic_id = save_flashcards(prompt.topic, flashcards)
         return flashcards    
     
     except Exception as e:
