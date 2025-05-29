@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from dotenv import load_dotenv
 from database import save_flashcards
+from database import record_review_session, get_db_connection
 import os
 import json
 import re
@@ -149,6 +150,32 @@ async def flashcards(prompt: Prompt = Body(...)):
     except Exception as e:
         print('error: ', e)
         flashcards = [{"question": "Parsing failed", "answer": "response.text"}]
+
+class ReviewResult(BaseModel):
+    topic_name: str
+    total_questions: int
+    correct_answers: int
+
+@app.post("/submit-review")
+async def submit_review(result: ReviewResult = Body(...)):
+    try:
+        # Find the topic by name
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM topics WHERE name = %s ORDER BY created_at DESC LIMIT 1", (result.topic_name,))
+        topic = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if topic:
+            record_review_session(topic['id'], result.total_questions, result.correct_answers)
+            return {"message": "Review recorded successfully"}
+        else:
+            return {"error": "Topic not found"}
+            
+    except Exception as e:
+        print('Error recording review:', e)
+        return {"error": str(e)}
 
 ''' 
 available_models = genai.list_models()

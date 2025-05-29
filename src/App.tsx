@@ -7,6 +7,7 @@ import './App.css'
 
 function App() {
   const [flashcards, setFlashcards] = useState<FlashcardType[]>([]);
+  const [currentTopic, setCurrentTopic] = useState<string>(''); // Add this
 
   const handleTopicSubmit = async (topic: string) => {
     try {
@@ -20,6 +21,7 @@ function App() {
 
       const data = await res.json();
       setFlashcards(data);
+      setCurrentTopic(topic); // Add this
     } catch (err) {
       console.error("Failed to fetch flashcards", err);
     }
@@ -30,7 +32,7 @@ function App() {
       <div>
         <h1>Boost Your Learning</h1>
         <TopicForm onSubmit={handleTopicSubmit} />
-        <FlashcardList cards={flashcards} />
+        <FlashcardList cards={flashcards} topicName={currentTopic} />
       </div>
     </>
   )

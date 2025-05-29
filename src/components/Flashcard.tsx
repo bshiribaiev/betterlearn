@@ -10,10 +10,10 @@ function Flashcard(props: FlashcardType) {
     props.onAnswerSelect(optionIndex);
   }
 
-  // const handleSubmit = () => {
-  //   setSubmitted(true);
-
-  // }
+  console.log('Flashcard props:', {
+    disabled: props.disabled,
+    cardId: props.cardId
+  });
 
   return (
     <div> 
@@ -22,6 +22,7 @@ function Flashcard(props: FlashcardType) {
       <div> 
       <input
       type="radio"
+      disabled={props.disabled}
       id={`option0-${props.cardId}`}
       name={`flashcard-options-${props.cardId}`}
       value="0"
@@ -33,6 +34,7 @@ function Flashcard(props: FlashcardType) {
       <div> 
       <input
       type="radio"
+      disabled={props.disabled}
       id={`option1-${props.cardId}`}
       name={`flashcard-options-${props.cardId}`}
       value="1"
@@ -44,6 +46,7 @@ function Flashcard(props: FlashcardType) {
       <div> 
       <input
       type="radio"
+      disabled={props.disabled}
       id={`option2-${props.cardId}`}
       name={`flashcard-options-${props.cardId}`}
       value="2"
@@ -55,6 +58,7 @@ function Flashcard(props: FlashcardType) {
       <div> 
       <input
       type="radio"
+      disabled={props.disabled}
       id={`option3-${props.cardId}`}
       name={`flashcard-options-${props.cardId}`}
       value="3"

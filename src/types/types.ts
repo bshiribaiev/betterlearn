@@ -4,4 +4,5 @@ export type FlashcardType = {
     correctAnswer: number;
     onAnswerSelect: (selectedOption: number) => void;
     cardId: number;
+    disabled: boolean;
   }

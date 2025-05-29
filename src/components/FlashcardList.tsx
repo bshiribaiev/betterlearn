@@ -1,13 +1,15 @@
 import Flashcard from "./Flashcard";
 import type { FlashcardType } from '../types/types'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type FlashcardListProps = {
     cards: FlashcardType[];
+    topicName: string;
 }
 function FlashcardList(props: FlashcardListProps) {
     const [selections, setSelections] = useState<(number | null)[]> ([]);
     const [submitted, setSubmitted] = useState(false);
+    console.log('FlashcardList submitted state:', submitted);
 
     const handleAnswerSelect = (cardIndex: number, selectedOption: number) => {
         const newSelections = [...selections];
@@ -18,26 +20,59 @@ function FlashcardList(props: FlashcardListProps) {
         setSelections(newSelections);
     }
 
+    const handleSubmit = async () => {
+        setSubmitted(true);
+        
+        // Calculate how many they got correct
+        const correctCount = selections.reduce((count, selection, index) => {
+            if (selection !== null && selection === props.cards[index].correctAnswer) {
+                return count + 1;
+            }
+            return count;
+        }, 0);
+        
+        // Send results to backend
+        try {
+            const response = await fetch('http://localhost:8000/submit-review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    topic_name: props.topicName,
+                    total_questions: props.cards.length,
+                    correct_answers: correctCount
+                }),
+            });
+            
+            const result = await response.json();
+            console.log('Review recorded:', result);
+        } catch (error) {
+            console.error('Failed to record review:', error);
+        }
+    };
+
     return (
         <div> 
             {props.cards.map((card, index: number) => (
                 <div key={card.question}> 
                 <Flashcard 
-                    question={card.question}
-                    options={card.options} 
-                    correctAnswer={card.correctAnswer}
-                    onAnswerSelect={(selectedOption) => handleAnswerSelect(index, selectedOption)}
-                    cardId={index}
-                /> 
+                question={card.question}
+                options={card.options} 
+                correctAnswer={card.correctAnswer}
+                onAnswerSelect={(selectedOption) => handleAnswerSelect(index, selectedOption)}
+                cardId={index}
+                disabled={submitted} 
+/>  
                 </div>
             ))}
 
-            <button 
-                onClick={() => setSubmitted(true)} 
+                <button 
+                onClick={handleSubmit}  // Change from () => setSubmitted(true) to handleSubmit
                 disabled={selections.some(selection => selection === null)}
-            >
-                Submit
-            </button>
+                >
+                Submit 
+                </button>
             
             {submitted && (
                 <div style={{ marginTop: '20px' }}>
