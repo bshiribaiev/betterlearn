@@ -107,14 +107,20 @@ def get_all_topics_with_status():
     cursor = conn.cursor()
     
     cursor.execute(
-        """SELECT id, name, status, next_review_at, current_interval,
+        """SELECT id, name, status, next_review_at, current_interval, total_reviews,
                   CASE 
                       WHEN next_review_at IS NULL THEN 'new'
                       WHEN next_review_at <= CURRENT_TIMESTAMP THEN 'due'
                       ELSE 'scheduled'
-                  END as review_status
+                  END as review_status,
+                  CASE 
+                      WHEN next_review_at IS NULL THEN 0
+                      ELSE EXTRACT(EPOCH FROM (next_review_at - CURRENT_TIMESTAMP)) / 86400
+                  END as days_until_review
            FROM topics 
-           ORDER BY created_at DESC"""
+           ORDER BY 
+               CASE WHEN next_review_at <= CURRENT_TIMESTAMP THEN 0 ELSE 1 END,
+               next_review_at ASC"""
     )
     
     topics = cursor.fetchall()

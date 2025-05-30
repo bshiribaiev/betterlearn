@@ -9,7 +9,11 @@ type FlashcardListProps = {
 function FlashcardList(props: FlashcardListProps) {
     const [selections, setSelections] = useState<(number | null)[]> ([]);
     const [submitted, setSubmitted] = useState(false);
-    console.log('FlashcardList submitted state:', submitted);
+
+    useEffect(() => {
+        setSubmitted(false);
+        setSelections([]); // Also reset selections
+    }, [props.cards]);
 
     const handleAnswerSelect = (cardIndex: number, selectedOption: number) => {
         const newSelections = [...selections];

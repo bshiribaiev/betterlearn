@@ -3,11 +3,14 @@ import TopicForm from './components/TopicForm'
 import FlashcardList from './components/FlashcardList'
 import type { FlashcardType } from './types/types'
 import './App.css'
+import TopicsDashboard from './components/TopicsDashboard'
+import Navbar from './components/Navbar'
 
 
 function App() {
   const [flashcards, setFlashcards] = useState<FlashcardType[]>([]);
-  const [currentTopic, setCurrentTopic] = useState<string>(''); // Add this
+  const [currentTopic, setCurrentTopic] = useState<string>('');
+  const [currentView, setCurrentView] = useState('dashboard');
 
   const handleTopicSubmit = async (topic: string) => {
     try {
@@ -29,11 +32,22 @@ function App() {
 
   return (
     <>
-      <div>
-        <h1>Boost Your Learning</h1>
-        <TopicForm onSubmit={handleTopicSubmit} />
-        <FlashcardList cards={flashcards} topicName={currentTopic} />
-      </div>
+      <Navbar 
+      currentView={currentView} 
+      onViewChange={setCurrentView} 
+    />
+    
+    <div style={{ paddingTop: '80px', padding: '80px 20px 20px 20px' }}>
+      <h1>Boost Your Learning</h1>
+      
+      {currentView === 'dashboard' && <TopicsDashboard />}
+      {currentView === 'generate' && (
+        <>
+          <TopicForm onSubmit={handleTopicSubmit} />
+          <FlashcardList cards={flashcards} topicName={currentTopic} />
+        </>
+      )}
+    </div>
     </>
   )
 }

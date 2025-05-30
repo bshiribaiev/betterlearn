@@ -5,6 +5,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from database import save_flashcards
 from database import record_review_session, get_db_connection
+from database import get_all_topics_with_status
 import os
 import json
 import re
@@ -175,6 +176,15 @@ async def submit_review(result: ReviewResult = Body(...)):
             
     except Exception as e:
         print('Error recording review:', e)
+        return {"error": str(e)}
+
+@app.get("/topics")
+async def get_topics():
+    try:
+        topics = get_all_topics_with_status()
+        return topics
+    except Exception as e:
+        print('Error fetching topics:', e)
         return {"error": str(e)}
 
 ''' 
