@@ -11,9 +11,11 @@ type Topic = {
   days_until_review: number;
 };
 
-function TopicsDashboard() {
+const TopicsDashboard = ({ onStartReview }: { onStartReview?: (topicName: string) => 
+    void }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     fetchTopics();
@@ -40,6 +42,9 @@ function TopicsDashboard() {
       default: return 'gray';
     }
   };
+  const isTopicDue = (topic: Topic) => {
+    return topic.review_status === 'due' || topic.days_until_review <= 1;
+  };
 
   if (loading) return <div>Loading topics...</div>;
 
@@ -51,7 +56,8 @@ function TopicsDashboard() {
           border: '1px solid #ccc',
           margin: '10px 0',
           padding: '15px',
-          borderRadius: '5px'
+          borderRadius: '5px',
+          backgroundColor: isTopicDue(topic) ? '#fff3cd' : 'white' // Highlight due topics
         }}>
           <h3>{topic.name}</h3>
           <p style={{ color: getStatusColor(topic.status), fontWeight: 'bold' }}>
@@ -59,13 +65,30 @@ function TopicsDashboard() {
           </p>
           <p>Reviews completed: {topic.total_reviews}</p>
           <p>
-            {topic.review_status === 'new' 
+          {topic.review_status === 'new' 
               ? 'Never reviewed' 
               : topic.days_until_review < 1 
-                ? 'Due for review!' 
+                ? '🔥 Due for review!' 
                 : `Next review in ${Math.ceil(topic.days_until_review)} days`
             }
           </p>
+          
+          {(isTopicDue(topic) || topic.review_status === 'new') && (
+            <button 
+              onClick={() => onStartReview && onStartReview(topic.name)}
+              style={{
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginTop: '10px'
+            }}
+            >
+              {topic.review_status === 'new' ? 'Start Learning' : 'Review Now'}
+            </button>
+          )}
         </div>
       ))}
     </div>
