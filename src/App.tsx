@@ -30,26 +30,43 @@ function App() {
     }
   };
 
+  const handleStartReview = async (topicName: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/review/${topicName}`);
+      const data = await response.json();
+      
+      if (data.error) {
+        console.error('Error loading flashcards:', data.error);
+        return;
+      }
+      
+      setFlashcards(data);
+      setCurrentTopic(topicName);
+      setCurrentView('generate'); // Switch to flashcard view
+    } catch (error) {
+      console.error('Failed to load flashcards for review:', error);
+    }
+  };
+
   return (
     <>
-      <Navbar 
-      currentView={currentView} 
-      onViewChange={setCurrentView} 
-    />
-    
-    <div style={{ paddingTop: '80px', padding: '80px 20px 20px 20px' }}>
-      <h1>Boost Your Learning</h1>
+      <Navbar currentView={currentView} onViewChange={setCurrentView} />
       
-      {currentView === 'dashboard' && <TopicsDashboard />}
-      {currentView === 'generate' && (
-        <>
-          <TopicForm onSubmit={handleTopicSubmit} />
-          <FlashcardList cards={flashcards} topicName={currentTopic} />
-        </>
-      )}
-    </div>
+      <div style={{ paddingTop: '80px', padding: '80px 20px 20px 20px' }}>
+        <h1>Boost Your Learning</h1>
+        
+        {currentView === 'dashboard' && (
+          <TopicsDashboard onStartReview={handleStartReview} />
+        )}
+        {currentView === 'generate' && (
+          <>
+            <TopicForm onSubmit={handleTopicSubmit} />
+            <FlashcardList cards={flashcards} topicName={currentTopic} />
+          </>
+        )}
+      </div>
     </>
-  )
+  );
 }
 
 export default App

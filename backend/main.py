@@ -5,7 +5,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from database import save_flashcards
 from database import record_review_session, get_db_connection
-from database import get_all_topics_with_status
+from database import get_all_topics_with_status, get_flashcards_by_topic_name
 import os
 import json
 import re
@@ -185,6 +185,17 @@ async def get_topics():
         return topics
     except Exception as e:
         print('Error fetching topics:', e)
+        return {"error": str(e)}
+
+@app.get("/review/{topic_name}")
+async def get_topic_flashcards(topic_name: str):
+    try:
+        flashcards = get_flashcards_by_topic_name(topic_name)
+        if not flashcards:
+            return {"error": "No flashcards found for this topic"}
+        return flashcards
+    except Exception as e:
+        print('Error fetching flashcards:', e)
         return {"error": str(e)}
 
 ''' 

@@ -128,3 +128,32 @@ def get_all_topics_with_status():
     conn.close()
     
     return topics
+
+def get_flashcards_by_topic_name(topic_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        """SELECT f.question, f.options, f.correct_answer 
+           FROM flashcards f 
+           JOIN topics t ON f.topic_id = t.id 
+           WHERE t.name = %s 
+           ORDER BY f.created_at DESC 
+           LIMIT 3""",  # Get the most recent 3 flashcards for this topic
+        (topic_name,)
+    )
+    
+    flashcards = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    # Convert to the format your frontend expects
+    result = []
+    for card in flashcards:
+        result.append({
+            'question': card['question'],
+            'options': card['options'],
+            'correctAnswer': card['correct_answer']
+        })
+    
+    return result

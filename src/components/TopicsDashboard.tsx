@@ -11,8 +11,11 @@ type Topic = {
   days_until_review: number;
 };
 
-const TopicsDashboard = ({ onStartReview }: { onStartReview?: (topicName: string) => 
-    void }) => {
+type TopicsDashboardProps = {
+    onStartReview?: (topicName: string) => void;
+  };
+
+function TopicsDashboard(props: TopicsDashboardProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -68,31 +71,31 @@ const TopicsDashboard = ({ onStartReview }: { onStartReview?: (topicName: string
           {topic.review_status === 'new' 
               ? 'Never reviewed' 
               : topic.days_until_review < 1 
-                ? '🔥 Due for review!' 
+                ? 'Due for review!' 
                 : `Next review in ${Math.ceil(topic.days_until_review)} days`
             }
           </p>
           
           {(isTopicDue(topic) || topic.review_status === 'new') && (
             <button 
-              onClick={() => onStartReview && onStartReview(topic.name)}
-              style={{
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginTop: '10px'
+            onClick={() => props.onStartReview && props.onStartReview(topic.name)}
+            style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '10px'
             }}
-            >
-              {topic.review_status === 'new' ? 'Start Learning' : 'Review Now'}
-            </button>
-          )}
-        </div>
-      ))}
-    </div>
-  );
+          >
+            {topic.review_status === 'new' ? 'Start Learning' : 'Review Now'}
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+);
 }
 
 export default TopicsDashboard;
