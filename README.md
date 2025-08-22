@@ -7,7 +7,7 @@ BetterLearn is a learning app designed to help people learn efficiently using sp
 ## Currrent State:
 ![Demo](./walkthrough.gif)
 
-## Problem: Why We Forget and How to Fix It
+## Problem: How do we learn? 
 
 ### The Science Behind BetterLearn
 
