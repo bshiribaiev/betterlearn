@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BetterLearn — Learn faster with AI flashcards</title>
+  <meta name="description" content="Learn more in less time." />
+  <link rel="icon" href="./logo.svg" />
+  <link rel="preload" href="../walkthrough.gif" as="image" />
+  <meta property="og:title" content="BetterLearn — Learn faster with AI flashcards" />
+  <meta property="og:description" content="AI-personalized flashcards and study plans powered by Google Gemini. CUNY Startups Accelerator · 4th at Demo Day." />
+  <meta property="og:image" content="../walkthrough.gif" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="brand" href="#top">
+        <span class="brand__name">betterlearn</span>
+      </a>
+      <nav class="nav__links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+      </nav>
+      <a class="btn btn--primary nav__cta" href="https://your-app-url.com" target="_blank" rel="noopener">Try the app</a>
+      <button class="nav__menu" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <div class="container hero__inner">
+        <div class="hero__copy">
+          <h1>Learn smarter with AI‑personalized flashcards</h1>
+          <p>Study less, learn more.</p>
+          <div class="hero__ctas">
+            <a class="btn btn--primary" href="https://your-app-url.com" target="_blank" rel="noopener">Try the app</a>
+            <a class="btn btn--ghost" href="#waitlist">Join waitlist</a>
+          </div>
+          <div class="hero__proof">
+          </div>
+        </div>
+        <div class="hero__media">
+          <img src="../walkthrough.gif" alt="BetterLearn product walkthrough" />
+        </div>
+      </div>
+    </section>
+
+    <section class="logos">
+      <div class="container logos__inner">
+        <span class="logos__label">Backed by CUNY Startups</span>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="container">
+        <h2>Everything you need to master your courses</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Gemini‑personalized</h3>
+            <p>Flashcards tailored to your syllabus, past performance, and weak areas.</p>
+          </div>
+          <div class="card">
+            <h3>One‑click generation</h3>
+            <p>Paste notes, slides, or links—BetterLearn creates high‑quality cards instantly.</p>
+          </div>
+          <div class="card">
+            <h3>Spaced repetition</h3>
+            <p>Evidence‑based scheduling and streaks to maximize long‑term retention.</p>
+          </div>
+          <div class="card">
+            <h3>Progress analytics</h3>
+            <p>Topic mastery, time on task, and recommended next steps.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="container">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><strong>Import</strong> your notes, PDFs, or links.</li>
+          <li><strong>Generate</strong> AI‑personalized flashcards and a study plan.</li>
+          <li><strong>Review</strong> with spaced repetition and track progress.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container cta__inner">
+        <h2>Start learning smarter today</h2>
+        <p>Join students already boosting their grades with BetterLearn.</p>
+        <a class="btn btn--primary btn--lg" href="https://your-app-url.com" target="_blank" rel="noopener">Open app</a>
+      </div>
+    </section>
+
+    <section class="waitlist" id="waitlist">
+      <div class="container">
+        <h2>Join the waitlist</h2>
+        <form class="form" action="https://formspree.io/f/your-form-id" method="POST">
+          <div class="form__row">
+            <input type="email" name="email" placeholder="Your email" required />
+            <button class="btn btn--primary" type="submit">Notify me</button>
+          </div>
+          <label class="form__checkbox">
+            <input type="checkbox" required />
+            I agree to receive product emails from BetterLearn.
+          </label>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="brand">
+        <span class="brand__name">betterlearn</span>
+      </div>
+      <p class="footer__copy">© <span id="year"></span> BetterLearn. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const menuBtn = document.querySelector('.nav__menu');
+    const links = document.querySelector('.nav__links');
+    menuBtn.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  </script>
+</body>
+</html>
