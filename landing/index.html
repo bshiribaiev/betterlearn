@@ -149,7 +149,7 @@
       const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
       if (!isLocal) {
         // TODO: replace with your deployed API URL
-        wlForm.action = "https://betterlearn.app/waitlist";
+        wlForm.action = "https://betterlearn-api.up.railway.app/waitlist";
       }
 
       // Set redirect to current page (no query/hash) so redirect stays on same domain
