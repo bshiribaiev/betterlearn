@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Body, HTTPException
+from fastapi import FastAPI, Body, HTTPException, Form, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
@@ -6,6 +7,7 @@ from dotenv import load_dotenv
 from database import save_flashcards
 from database import record_review_session, get_db_connection
 from database import get_all_topics_with_status, get_flashcards_by_topic_name
+from database import save_waitlist_email
 import os
 import json
 import re
@@ -197,6 +199,11 @@ async def get_topic_flashcards(topic_name: str):
     except Exception as e:
         print('Error fetching flashcards:', e)
         return {"error": str(e)}
+
+@app.post("/waitlist")
+async def join_waitlist(email: str = Form(...), request: Request = None):
+    save_waitlist_email(email, request.headers.get("origin"))
+    return RedirectResponse(url="/", status_code=303)
 
 ''' 
 available_models = genai.list_models()

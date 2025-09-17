@@ -1,4 +1,5 @@
 import psycopg2
+import os
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
@@ -7,9 +8,10 @@ load_dotenv()
 def get_db_connection():
     return psycopg2.connect(
         host="localhost",
+        port=5433,
         database="betterlearn",
-        user="shiribaiev",  
-        password="",  
+        user="shiribaiev",
+        password=os.getenv("PGPASSWORD", ""),
         cursor_factory=RealDictCursor
     )
 
@@ -52,6 +54,17 @@ def save_flashcards(topic_name, flashcards_data):
     conn.close()
     
     return topic_id
+
+def save_waitlist_email(email, source=None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO waitlist_signups (email, source) VALUES (%s, %s) ON CONFLICT (email) DO NOTHING",
+        (email, source)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def record_review_session(topic_id, total_questions, correct_answers):
     conn = get_db_connection()
