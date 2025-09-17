@@ -222,8 +222,10 @@ async def get_topic_flashcards(topic_name: str):
 
 @app.post("/waitlist")
 async def join_waitlist(email: str = Form(...), redirect: Optional[str] = Form(None), request: Request = None):
-    save_waitlist_email(email, request.headers.get("origin"))
-    # Determine target URL robustly
+    try:
+        save_waitlist_email(email, request.headers.get("origin"))
+    except Exception as e:
+        print("waitlist save error:", e) 
 
     def _clean(v: Optional[str]) -> Optional[str]:
         if not v:

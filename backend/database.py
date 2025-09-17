@@ -6,11 +6,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_db_connection():
+    url = os.getenv("DATABASE_URL")
+    if url:
+        # Many managed providers require SSL
+        return psycopg2.connect(url, cursor_factory=RealDictCursor, sslmode=os.getenv("PGSSLMODE", "require"))
     return psycopg2.connect(
-        host="localhost",
-        port=5433,
-        database="betterlearn",
-        user="shiribaiev",
+        host=os.getenv("PGHOST", "localhost"),
+        port=int(os.getenv("PGPORT", "5433")),
+        database=os.getenv("PGDATABASE", "betterlearn"),
+        user=os.getenv("PGUSER", "shiribaiev"),
         password=os.getenv("PGPASSWORD", ""),
         cursor_factory=RealDictCursor
     )
