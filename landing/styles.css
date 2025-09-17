@@ -54,7 +54,7 @@
   
   /* Logos */
   .logos { padding: 12px 0 36px; text-align: center; }
-  .logos__inner { display: flex; align-items: center; justify-content: center; gap: 20px; opacity: .9; }
+  .logos__inner { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; opacity: .9; }
   .logos__label { color: var(--muted); margin-right: 10px; }
   .logos__item { height: 26px; filter: grayscale(100%) contrast(1.1) brightness(.9); opacity: .8; }
   
@@ -63,7 +63,7 @@
   .features h2, .how h2, .faq h2 { font-size: 1.7rem; margin: 0 0 18px; }
   .features h2 { text-align: center; }
   .how h2 { text-align: center; }
-  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
   .card { background: linear-gradient(180deg, var(--surface), var(--card)); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
   .card h3 { margin: 0 0 8px; font-size: 1.1rem; }
   .card p { margin: 0; color: var(--muted); }
@@ -107,6 +107,36 @@
   @media (max-width: 720px) {
     .nav__links { display: none; }
     .nav__menu { display: inline-block; }
-    .nav__links.open { display: flex; position: absolute; top: 56px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+    /* Hide the big navbar CTA on small screens; use hero CTA instead */
+    .nav__cta { display: none; }
+    /* Mobile dropdown menu */
+    .nav__links.open {
+      display: flex;
+      position: fixed;
+      right: 12px;
+      top: 56px;
+      left: auto;
+      transform: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow);
+      z-index: 20;
+      gap: 10px;
+      flex-direction: column;
+      align-items: stretch;
+      min-width: 180px;
+    }
+    .nav__links.open a { display: block; padding: 6px 4px; }
     .form__row { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+    .hero { padding: 56px 0 32px; }
+    .cta__inner { padding: 20px; }
+    .hero__ctas .btn, .cta__inner .btn, .form button[type="submit"] { width: 100%; }
+  }
+  @media (max-width: 480px) {
+    .btn { padding: 12px 16px; font-size: 1rem; }
+    .card { padding: 14px; }
+    .steps li { padding: 14px; }
   }
