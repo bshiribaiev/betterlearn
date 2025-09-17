@@ -96,7 +96,7 @@
         <h2>Join the waitlist</h2>
         <div id="waitlist-status" class="status" aria-live="polite" style="display:none;"></div>
         <form id="waitlist-form" class="form" action="http://localhost:8000/waitlist" method="POST">
-          <input type="hidden" name="redirect" value="http://127.0.0.1:5500/landing/index.html" />
+          <input id="redirect-input" type="hidden" name="redirect" value="" />
           <div class="form__row">
             <input type="email" name="email" placeholder="Your email" required />
             <button class="btn btn--primary" type="submit">Notify me</button>
@@ -145,6 +145,15 @@
     // Prevent double submissions: disable submit button on submit
     const wlForm = document.getElementById('waitlist-form');
     if (wlForm) {
+      // Set redirect to current page (no query/hash) so redirect stays on same domain
+      const redir = document.getElementById('redirect-input');
+      if (redir) {
+        const u = new URL(window.location.href);
+        u.search = '';
+        u.hash = '';
+        redir.value = u.toString();
+      }
+
       wlForm.addEventListener('submit', () => {
         const btn = wlForm.querySelector('button[type="submit"]');
         if (btn) {
