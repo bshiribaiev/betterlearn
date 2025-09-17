@@ -21,7 +21,7 @@
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
       </nav>
-      <a class="btn btn--primary nav__cta" href="https://your-app-url.com" target="_blank" rel="noopener">Join waitlist</a>
+      <a class="btn btn--primary nav__cta" href="#waitlist">Join waitlist</a>
       <button class="nav__menu" aria-label="Open menu" aria-expanded="false">☰</button>
     </div>
   </header>
@@ -33,7 +33,7 @@
           <h1>Study less, learn more</h1>
           <p>Learn smarter with AI‑personalized flashcards.</p>
           <div class="hero__ctas">
-            <a class="btn btn--primary" href="https://your-app-url.com" target="_blank" rel="noopener">Join waitlist</a>
+            <a class="btn btn--primary" href="#waitlist">Join waitlist</a>
 
           </div>
           <div class="hero__proof">
@@ -87,14 +87,16 @@
       <div class="container cta__inner">
         <h2>Start learning smarter today</h2>
         <p>Join students already boosting their grades with BetterLearn.</p>
-        <a class="btn btn--primary btn--lg" href="https://your-app-url.com" target="_blank" rel="noopener">Join waitlist</a>
+        <a class="btn btn--primary btn--lg" href="#waitlist">Join waitlist</a>
     </div>
   </section>
 
     <section class="waitlist" id="waitlist">
       <div class="container">
         <h2>Join the waitlist</h2>
-        <form class="form" action="http://localhost:8000/waitlist" method="POST">
+        <div id="waitlist-status" class="status" aria-live="polite" style="display:none;"></div>
+        <form id="waitlist-form" class="form" action="http://localhost:8000/waitlist" method="POST">
+          <input type="hidden" name="redirect" value="http://127.0.0.1:5500/landing/index.html" />
           <div class="form__row">
             <input type="email" name="email" placeholder="Your email" required />
             <button class="btn btn--primary" type="submit">Notify me</button>
@@ -125,6 +127,32 @@
       const open = links.classList.toggle('open');
       menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
+
+    // Show success message if redirected with ?thanks=1
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('thanks') === '1') {
+      const s = document.getElementById('waitlist-status');
+      if (s) {
+        s.style.display = 'block';
+        s.textContent = 'Thanks — you’re on the waitlist!';
+      }
+      // Clean the query param without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.delete('thanks');
+      window.history.replaceState({}, '', url.toString());
+    }
+
+    // Prevent double submissions: disable submit button on submit
+    const wlForm = document.getElementById('waitlist-form');
+    if (wlForm) {
+      wlForm.addEventListener('submit', () => {
+        const btn = wlForm.querySelector('button[type="submit"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Submitting...';
+        }
+      });
+    }
   </script>
 </body>
 </html>

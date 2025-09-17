@@ -8,6 +8,8 @@ from database import save_flashcards
 from database import record_review_session, get_db_connection
 from database import get_all_topics_with_status, get_flashcards_by_topic_name
 from database import save_waitlist_email
+from urllib.parse import urlparse, urlunparse, urlencode, parse_qsl
+from typing import Optional
 import os
 import json
 import re
@@ -29,10 +31,14 @@ app.add_middleware(
 )
 
 # FastAPI uses pydantic models to shape the data that it expects
+
+
 class Prompt(BaseModel):
     topic: str
 
-# Prompt gemini to generate the questions    
+# Prompt gemini to generate the questions
+
+
 def promptGemini(prompt: Prompt):
     prompt_text = f"""
     You are an AI that generates study flashcards in JSON format.
@@ -84,6 +90,8 @@ def promptGemini(prompt: Prompt):
     return response
 
 # Extract JSON from a response that might contain extra text
+
+
 def extract_json(text):
     # Try to find JSON array using regex
     json_match = re.search(r'\[\s*{.*}\s*\]', text, re.DOTALL)
@@ -92,17 +100,19 @@ def extract_json(text):
     return text
 
 # Validating gemini's output
+
+
 def flashcard_validation(text):
     valid_cards = []
     try:
         parsed = json.loads(text)
         if not isinstance(parsed, list):
             return None
-        
+
     except json.JSONDecodeError as e:
         print("Failed to parse JSON: ", e)
         return None
-    
+
     for item in parsed:
         if not isinstance(item, dict):
             continue
@@ -123,10 +133,12 @@ def flashcard_validation(text):
             continue
 
         valid_cards.append(item)
-    
+
     return valid_cards if valid_cards else None
 
 # Load the Gemini response to the flashcard
+
+
 @app.post("/generate")
 async def flashcards(prompt: Prompt = Body(...)):
     try:
@@ -146,18 +158,21 @@ async def flashcards(prompt: Prompt = Body(...)):
                     "error": str(e),
                     "raw_response": response_text
                 })
-            
+
         topic_id = save_flashcards(prompt.topic, flashcards)
-        return flashcards    
-    
+        return flashcards
+
     except Exception as e:
         print('error: ', e)
-        flashcards = [{"question": "Parsing failed", "answer": "response.text"}]
+        flashcards = [
+            {"question": "Parsing failed", "answer": "response.text"}]
+
 
 class ReviewResult(BaseModel):
     topic_name: str
     total_questions: int
     correct_answers: int
+
 
 @app.post("/submit-review")
 async def submit_review(result: ReviewResult = Body(...)):
@@ -165,20 +180,23 @@ async def submit_review(result: ReviewResult = Body(...)):
         # Find the topic by name
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM topics WHERE name = %s ORDER BY created_at DESC LIMIT 1", (result.topic_name,))
+        cursor.execute(
+            "SELECT id FROM topics WHERE name = %s ORDER BY created_at DESC LIMIT 1", (result.topic_name,))
         topic = cursor.fetchone()
         cursor.close()
         conn.close()
-        
+
         if topic:
-            record_review_session(topic['id'], result.total_questions, result.correct_answers)
+            record_review_session(
+                topic['id'], result.total_questions, result.correct_answers)
             return {"message": "Review recorded successfully"}
         else:
             return {"error": "Topic not found"}
-            
+
     except Exception as e:
         print('Error recording review:', e)
         return {"error": str(e)}
+
 
 @app.get("/topics")
 async def get_topics():
@@ -188,6 +206,7 @@ async def get_topics():
     except Exception as e:
         print('Error fetching topics:', e)
         return {"error": str(e)}
+
 
 @app.get("/review/{topic_name}")
 async def get_topic_flashcards(topic_name: str):
@@ -200,10 +219,41 @@ async def get_topic_flashcards(topic_name: str):
         print('Error fetching flashcards:', e)
         return {"error": str(e)}
 
+
 @app.post("/waitlist")
-async def join_waitlist(email: str = Form(...), request: Request = None):
+async def join_waitlist(email: str = Form(...), redirect: Optional[str] = Form(None), request: Request = None):
     save_waitlist_email(email, request.headers.get("origin"))
-    return RedirectResponse(url="/", status_code=303)
+    # Determine target URL robustly
+
+    def _clean(v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip()
+        if v.lower() in {"null", "undefined", "about:blank"}:
+            return None
+        return v
+
+    cand_redirect = _clean(redirect)
+    cand_referer = _clean(request.headers.get("referer"))
+    cand_env = _clean(os.getenv("LANDING_URL"))
+    cand_origin = _clean(request.headers.get("origin"))
+
+    target = cand_redirect or cand_referer or cand_env
+    if not target:
+        if cand_origin and cand_origin.startswith("http"):
+            target = cand_origin.rstrip("/") + "/landing/index.html"
+        else:
+            # final local fallback for dev
+            target = "http://127.0.0.1:5500/landing/index.html"
+
+    # Append thanks=1 and #waitlist
+    parts = urlparse(target)
+    query = dict(parse_qsl(parts.query))
+    query["thanks"] = "1"
+    new_query = urlencode(query)
+    new_parts = parts._replace(query=new_query, fragment="waitlist")
+    final_url = urlunparse(new_parts)
+    return RedirectResponse(url=final_url, status_code=303)
 
 ''' 
 available_models = genai.list_models()

@@ -13,6 +13,7 @@
   
   * { box-sizing: border-box; }
   html, body { padding: 0; margin: 0; }
+  html { scroll-behavior: smooth; }
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
     color: var(--text);
@@ -80,6 +81,7 @@
   
   /* Waitlist */
   .waitlist { padding: 10px 0 36px; }
+  .status { background: rgba(22,210,170,.12); border: 1px solid rgba(22,210,170,.35); color: #b7ffe9; padding: 10px 12px; border-radius: 10px; margin-bottom: 10px; font-weight: 600; }
   .form { display: grid; gap: 10px; }
   .form__row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
   .form input[type="email"] { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: #0b122a; color: var(--text); }
