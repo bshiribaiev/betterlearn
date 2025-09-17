@@ -145,6 +145,13 @@
     // Prevent double submissions: disable submit button on submit
     const wlForm = document.getElementById('waitlist-form');
     if (wlForm) {
+      // Point to local API in dev, production API in prod
+      const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+      if (!isLocal) {
+        // TODO: replace with your deployed API URL
+        wlForm.action = "https://betterlearn.app/waitlist";
+      }
+
       // Set redirect to current page (no query/hash) so redirect stays on same domain
       const redir = document.getElementById('redirect-input');
       if (redir) {
