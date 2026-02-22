@@ -27,3 +27,8 @@ dist-ssr
 venv
 .claude
 claude.md
+
+# Java/Maven
+backend/target/
+*.class
+*.jar
