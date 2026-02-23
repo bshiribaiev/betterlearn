@@ -9,21 +9,21 @@
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1.5">Problem URL</label>
       <input formControlName="url" type="url"
-             class="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+             class="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors"
              placeholder="https://leetcode.com/problems/two-sum/" />
     </div>
 
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1.5">Title (auto-parsed if empty)</label>
       <input formControlName="title" type="text"
-             class="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+             class="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors"
              placeholder="Two Sum" />
     </div>
 
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1.5">Notes (optional)</label>
       <textarea formControlName="notes" rows="3"
-                class="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none"
+                class="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors resize-none"
                 placeholder="Key insight, approach used..."></textarea>
     </div>
 
@@ -33,7 +33,7 @@
         Cancel
       </button>
       <button type="submit" [disabled]="form.invalid"
-              class="flex-1 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-colors">
+              class="flex-1 py-2.5 text-sm font-medium text-white bg-sky-500 rounded-xl hover:bg-sky-600 disabled:opacity-40 transition-colors">
         Add Problem
       </button>
     </div>

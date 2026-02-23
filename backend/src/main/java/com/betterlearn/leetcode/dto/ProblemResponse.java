@@ -14,13 +14,15 @@ public record ProblemResponse(
         int intervalDays,
         double easinessFactor,
         int repetition,
-        String status
+        String status,
+        String confidence
 ) {
     public static ProblemResponse from(LeetcodeProblem p) {
         return new ProblemResponse(
                 p.getId(), p.getUrl(), p.getTitle(), p.getNotes(),
                 p.getFirstAttempted(), p.getNextReview(), p.getIntervalDays(),
-                p.getEasinessFactor(), p.getRepetition(), p.getStatus()
+                p.getEasinessFactor(), p.getRepetition(), p.getStatus(),
+                p.getConfidence()
         );
     }
 }

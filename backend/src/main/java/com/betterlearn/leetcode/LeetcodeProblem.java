@@ -39,10 +39,13 @@ public class LeetcodeProblem {
     private int intervalDays = 0;
 
     @Column(name = "next_review", nullable = false)
-    private LocalDate nextReview = LocalDate.now();
+    private LocalDate nextReview = LocalDate.now().plusDays(1);
 
     @Column(nullable = false, length = 20)
     private String status = "new";
+
+    @Column(nullable = false, length = 10)
+    private String confidence = "none";
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -52,11 +55,12 @@ public class LeetcodeProblem {
 
     protected LeetcodeProblem() {}
 
-    public LeetcodeProblem(User user, String url, String title, String notes) {
+    public LeetcodeProblem(User user, String url, String title, String notes, String confidence) {
         this.user = user;
         this.url = url;
         this.title = title;
         this.notes = notes;
+        this.confidence = confidence;
     }
 
     @PreUpdate
@@ -80,6 +84,9 @@ public class LeetcodeProblem {
 
     public void setTitle(String title) { this.title = title; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getConfidence() { return confidence; }
+    public void setConfidence(String confidence) { this.confidence = confidence; }
 
     public void applySmResult(double ef, int rep, int interval, LocalDate next, String status) {
         this.easinessFactor = ef;

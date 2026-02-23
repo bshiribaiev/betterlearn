@@ -9,12 +9,14 @@ export interface Problem {
   easinessFactor: number;
   repetition: number;
   status: 'new' | 'learning' | 'review' | 'mastered';
+  confidence: 'none' | 'low' | 'average' | 'high';
 }
 
 export interface ProblemCreate {
   url: string;
   title?: string;
   notes?: string;
+  confidence?: string;
 }
 
 export interface ReviewEntry {

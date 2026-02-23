@@ -54,7 +54,8 @@ public class LeetcodeService {
                 ? request.title()
                 : parseTitleFromUrl(request.url());
 
-        LeetcodeProblem problem = new LeetcodeProblem(user, request.url(), title, request.notes());
+        String confidence = request.confidence() != null ? request.confidence() : "none";
+        LeetcodeProblem problem = new LeetcodeProblem(user, request.url(), title, request.notes(), confidence);
         return ProblemResponse.from(problemRepo.save(problem));
     }
 
@@ -92,6 +93,7 @@ public class LeetcodeService {
                 result.nextReview(),
                 result.status()
         );
+        problem.setConfidence(deriveConfidence(quality));
 
         reviewRepo.save(new LeetcodeReview(problem, quality));
         return ProblemResponse.from(problemRepo.save(problem));
@@ -114,9 +116,31 @@ public class LeetcodeService {
         return problem;
     }
 
+    static String deriveConfidence(int quality) {
+        if (quality <= 2) return "low";
+        if (quality <= 3) return "average";
+        return "high";
+    }
+
     static String parseTitleFromUrl(String url) {
         String path = url.replaceAll("\\?.*", "").replaceAll("/$", "");
+
+        // Extract slug from /problems/<slug> pattern
+        int problemsIdx = path.indexOf("/problems/");
+        if (problemsIdx >= 0) {
+            String afterProblems = path.substring(problemsIdx + "/problems/".length());
+            String slug = afterProblems.contains("/")
+                    ? afterProblems.substring(0, afterProblems.indexOf('/'))
+                    : afterProblems;
+            return slugToTitle(slug);
+        }
+
+        // Fallback: use last path segment
         String slug = path.substring(path.lastIndexOf('/') + 1);
+        return slugToTitle(slug);
+    }
+
+    private static String slugToTitle(String slug) {
         String[] words = slug.split("-");
         StringBuilder title = new StringBuilder();
         for (String word : words) {
@@ -126,6 +150,7 @@ public class LeetcodeService {
                      .append(' ');
             }
         }
-        return title.toString().trim();
+        String result = title.toString().trim();
+        return result.isEmpty() ? slug : result;
     }
 }
