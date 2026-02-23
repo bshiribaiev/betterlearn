@@ -38,6 +38,7 @@ export class ConceptListComponent implements OnInit {
   showTermForm = false;
   termName = '';
   termError = '';
+  termConfidence: 'low' | 'medium' | 'high' = 'low';
 
   @HostListener('document:click')
   closeMenus() {
@@ -165,6 +166,7 @@ export class ConceptListComponent implements OnInit {
     this.showTermForm = !this.showTermForm;
     this.termName = '';
     this.termError = '';
+    this.termConfidence = 'low';
   }
 
   submitTerm(event: Event) {
@@ -172,11 +174,21 @@ export class ConceptListComponent implements OnInit {
     if (!this.termName.trim()) return;
     this.termError = '';
 
+    const quality = { low: 1, medium: 3, high: 5 }[this.termConfidence];
     this.vocabService.create(this.topicId, { word: this.termName.trim() }).subscribe({
-      next: () => {
-        this.showTermForm = false;
-        this.termName = '';
-        if (this.wordList) this.wordList.loadWords();
+      next: (word) => {
+        this.vocabService.submitReview(word.id, quality).subscribe({
+          next: () => {
+            this.showTermForm = false;
+            this.termName = '';
+            if (this.wordList) this.wordList.loadWords();
+          },
+          error: () => {
+            this.showTermForm = false;
+            this.termName = '';
+            if (this.wordList) this.wordList.loadWords();
+          }
+        });
       },
       error: (err) => this.termError = err.error?.detail || 'Failed to add term'
     });
