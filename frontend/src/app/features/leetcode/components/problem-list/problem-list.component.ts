@@ -15,6 +15,7 @@ export class ProblemListComponent implements OnInit {
   private leetcodeService = inject(LeetcodeService);
 
   problems: Problem[] = [];
+  activeTab: 'due' | 'all' = 'due';
   showAddForm = false;
   reviewingProblem: Problem | null = null;
   confidenceMenuProblem: Problem | null = null;
@@ -47,6 +48,15 @@ export class ProblemListComponent implements OnInit {
     });
   }
 
+  get filteredProblems(): Problem[] {
+    if (this.activeTab === 'due') return this.problems.filter(p => this.isDue(p));
+    return this.problems;
+  }
+
+  get dueCount(): number {
+    return this.problems.filter(p => this.isDue(p)).length;
+  }
+
   isDue(problem: Problem): boolean {
     return this.daysUntilReview(problem) <= 0;
   }
@@ -72,7 +82,8 @@ export class ProblemListComponent implements OnInit {
     const days = this.daysUntilReview(problem);
     if (days < 0) return 'text-red-500';
     if (days === 0) return 'text-blue-600';
-    if (days <= 3) return 'text-orange-500';
+    if (days === 1) return 'text-orange-500';
+    if (days <= 3) return 'text-violet-500';
     return 'text-gray-500';
   }
 
@@ -89,7 +100,7 @@ export class ProblemListComponent implements OnInit {
     return {
       'none': 'text-gray-400',
       'low': 'text-red-500',
-      'average': 'text-orange-500',
+      'average': 'text-amber-500',
       'high': 'text-emerald-500'
     }[problem.confidence] ?? 'text-gray-400';
   }

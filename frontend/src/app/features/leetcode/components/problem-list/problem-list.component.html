@@ -1,10 +1,7 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
   <!-- Header -->
   <div class="flex items-center justify-between mb-8">
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-900">LeetCode Tracker</h1>
-      <p class="mt-1 text-sm text-gray-500">{{ problems.length }} problems</p>
-    </div>
+    <h1 class="text-2xl font-semibold text-gray-900">LeetCode Tracker</h1>
     <div class="relative">
       <button (click)="toggleAddForm($event)"
               class="inline-flex items-center gap-2 px-4 py-2.5 bg-sky-500 text-white text-sm font-medium rounded-xl hover:bg-sky-600 transition-colors shadow-sm">
@@ -32,7 +29,7 @@
                   Low
                 </button>
                 <button type="button" (click)="addConfidence = 'average'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'average' ? 'bg-orange-50 border-orange-300 text-orange-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
+                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'average' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
                   Average
                 </button>
                 <button type="button" (click)="addConfidence = 'high'"
@@ -63,15 +60,30 @@
     </div>
   }
 
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6">
+    <button (click)="activeTab = 'due'"
+            [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
+      Due
+      @if (dueCount > 0) {
+        <span class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{{ dueCount }}</span>
+      }
+    </button>
+    <button (click)="activeTab = 'all'"
+            [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'all' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
+      All
+    </button>
+  </div>
+
   <!-- Table -->
-  @if (problems.length === 0) {
+  @if (filteredProblems.length === 0) {
     <div class="text-center py-16">
-      <p class="text-gray-400 text-sm">No problems yet. Add your first one to start tracking.</p>
+      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No problems yet. Add your first one to start tracking.' }}</p>
     </div>
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-400 uppercase tracking-wider border-b border-gray-100">
+      <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
         <span>Problem</span>
         <span>Confidence</span>
         <span>Next Review</span>
@@ -79,7 +91,7 @@
       </div>
 
       <!-- Rows -->
-      @for (problem of problems; track problem.id) {
+      @for (problem of filteredProblems; track problem.id) {
         <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
           <!-- Problem name + link icon -->
           <div class="min-w-0 flex items-center gap-2">
