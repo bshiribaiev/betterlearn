@@ -17,10 +17,9 @@ export class ReviewDialogComponent {
   submitting = false;
 
   buttons = [
-    { label: 'Again', quality: 1, color: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-100', desc: 'Forgot completely' },
-    { label: 'Hard', quality: 2, color: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-100', desc: 'Struggled a lot' },
-    { label: 'Good', quality: 3, color: 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100', desc: 'Solved with effort' },
-    { label: 'Easy', quality: 5, color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100', desc: 'No hesitation' },
+    { label: 'Low', quality: 1, color: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-100' },
+    { label: 'Medium', quality: 3, color: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-100' },
+    { label: 'High', quality: 5, color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100' },
   ];
 
   submit(quality: number) {

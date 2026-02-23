@@ -31,10 +31,9 @@ export class ProblemListComponent implements OnInit {
   private deleteTimer: any = null;
 
   ratingOptions = [
-    { label: 'Again', quality: 1, color: 'text-red-500', desc: 'Forgot' },
-    { label: 'Hard', quality: 2, color: 'text-orange-500', desc: 'Struggled' },
-    { label: 'Good', quality: 3, color: 'text-blue-500', desc: 'Got it' },
-    { label: 'Easy', quality: 5, color: 'text-emerald-500', desc: 'No effort' },
+    { label: 'Low', quality: 1, color: 'text-red-500' },
+    { label: 'Medium', quality: 3, color: 'text-amber-500' },
+    { label: 'High', quality: 5, color: 'text-emerald-500' },
   ];
 
   @HostListener('document:click')
@@ -87,7 +86,7 @@ export class ProblemListComponent implements OnInit {
     if (problem.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(problem);
     if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-blue-600';
+    if (days === 0) return 'text-sky-500';
     if (days === 1) return 'text-orange-500';
     if (days <= 3) return 'text-violet-500';
     return 'text-gray-500';
@@ -97,7 +96,7 @@ export class ProblemListComponent implements OnInit {
     return {
       'none': 'New',
       'low': 'Low',
-      'average': 'Average',
+      'average': 'Medium',
       'high': 'High'
     }[problem.confidence] ?? 'New';
   }
@@ -171,11 +170,11 @@ export class ProblemListComponent implements OnInit {
   }
 
   qualityLabel(quality: number): string {
-    return { 1: 'Again', 2: 'Hard', 3: 'Good', 5: 'Easy' }[quality] ?? `Q${quality}`;
+    return { 1: 'Low', 3: 'Medium', 5: 'High' }[quality] ?? `Q${quality}`;
   }
 
   qualityColor(quality: number): string {
-    return { 1: 'text-red-500', 2: 'text-orange-500', 3: 'text-blue-500', 5: 'text-emerald-500' }[quality] ?? 'text-gray-500';
+    return { 1: 'text-red-500', 3: 'text-amber-500', 5: 'text-emerald-500' }[quality] ?? 'text-gray-500';
   }
 
   openAndReview(problem: Problem) {

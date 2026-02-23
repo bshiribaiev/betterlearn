@@ -53,52 +53,51 @@
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_100px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <div class="grid grid-cols-[1fr_140px_80px] sm:grid-cols-[1fr_100px_140px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Word</span>
-        <span class="hidden sm:inline">Status</span>
+        <span class="hidden sm:inline">Confidence</span>
         <span>Next Review</span>
         <span></span>
       </div>
 
       <!-- Rows -->
       @for (word of filteredWords; track word.id) {
-        <div [class]="'grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_100px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+        <div [class]="'grid grid-cols-[1fr_140px_80px] sm:grid-cols-[1fr_100px_140px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last && revealedWordId !== word.id ? '' : 'border-b border-gray-200')">
           <!-- Word -->
           <div class="min-w-0">
-            <button (click)="toggleExpand(word, $event)"
+            <button (click)="toggleReveal(word)"
                     class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
               {{ word.word }}
             </button>
           </div>
 
-          <!-- Status -->
-          <span [class]="'text-sm font-medium hidden sm:inline ' + statusColor(word)">
-            {{ statusLabel(word) }}
-          </span>
-
-          <!-- Next review -->
-          <div class="relative">
-            <button (click)="toggleRatingMenu(word)"
-                    [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + nextReviewColor(word)">
-              {{ nextReviewLabel(word) }}
+          <!-- Confidence (clickable) -->
+          <div class="relative hidden sm:block">
+            <button (click)="toggleRatingMenu(word, $event)"
+                    [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + statusColor(word)">
+              {{ statusLabel(word) }}
             </button>
 
-            @if (ratingMenuWord?.id === word.id) {
-              <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[140px]">
-                @for (btn of ratingOptions; track btn.quality) {
-                  <button (click)="quickRate(word, btn.quality)"
-                          [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ' + btn.color">
-                    <span>{{ btn.label }}</span>
-                    <span class="text-[10px] text-gray-300">{{ btn.desc }}</span>
+            @if (ratingMenuWordId === word.id) {
+              <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[120px]">
+                @for (opt of ratingOptions; track opt.quality) {
+                  <button (click)="quickRate(word, opt.quality)"
+                          [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ' + opt.menuColor">
+                    {{ opt.label }}
                   </button>
                 }
               </div>
             }
           </div>
 
+          <!-- Next review -->
+          <span [class]="'text-sm font-medium ' + nextReviewColor(word)">
+            {{ nextReviewLabel(word) }}
+          </span>
+
           <!-- Delete button -->
           <div class="justify-self-end">
-            <button (click)="deleteWord(word)"
+            <button (click)="deleteWord(word, $event)"
                     class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -107,35 +106,34 @@
           </div>
         </div>
 
-        <!-- Expanded detail panel -->
-        @if (expandedWordId === word.id) {
-          <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Word</label>
-                <input [(ngModel)]="editWord" (blur)="saveEdit(word)"
-                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Definition</label>
-                <input [(ngModel)]="editDefinition" (blur)="saveEdit(word)"
-                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-gray-400 mb-2">Review History</label>
-              @if (reviewHistory.length === 0) {
-                <p class="text-xs text-gray-400">No reviews yet.</p>
-              } @else {
-                <div class="flex flex-wrap gap-2">
-                  @for (entry of reviewHistory; track entry.id) {
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs">
-                      <span [class]="'font-medium ' + qualityColor(entry.quality)">{{ qualityLabel(entry.quality) }}</span>
-                      <span class="text-gray-300">{{ entry.reviewedAt | date:'MMM d' }}</span>
-                    </div>
-                  }
-                </div>
+        <!-- Reveal panel: definition + rating -->
+        @if (revealedWordId === word.id) {
+          <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200" (click)="$event.stopPropagation()">
+            @if (editingDefinition) {
+              <input type="text" [(ngModel)]="editDefinitionValue" placeholder="Definition or synonym..."
+                     (keydown.enter)="saveDefinition(word)"
+                     class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 mb-4" />
+            } @else if (word.definition) {
+              <p class="text-sm text-gray-600 mb-4">
+                {{ word.definition }}
+                <button (click)="startEditDefinition(word)" class="ml-2 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
+                  <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                  </svg>
+                </button>
+              </p>
+            } @else {
+              <button (click)="startEditDefinition(word)"
+                      class="text-sm text-gray-400 hover:text-sky-500 transition-colors cursor-pointer mb-4 block">
+                + Add definition
+              </button>
+            }
+            <div class="flex gap-2">
+              @for (opt of ratingOptions; track opt.quality) {
+                <button (click)="rate(word, opt.quality)"
+                        [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ' + opt.color">
+                  {{ opt.label }}
+                </button>
               }
             </div>
           </div>

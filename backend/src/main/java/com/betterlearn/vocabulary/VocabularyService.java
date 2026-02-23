@@ -86,11 +86,17 @@ public class VocabularyService {
                 result.repetition(),
                 result.intervalDays(),
                 result.nextReview(),
-                result.status()
+                deriveStatus(quality)
         );
 
         reviewRepo.save(new VocabularyReview(word, quality));
         return WordResponse.from(wordRepo.save(word));
+    }
+
+    static String deriveStatus(int quality) {
+        if (quality <= 2) return "learning";
+        if (quality <= 3) return "review";
+        return "mastered";
     }
 
     public List<ReviewResponse> getHistory(Long userId, Long wordId) {

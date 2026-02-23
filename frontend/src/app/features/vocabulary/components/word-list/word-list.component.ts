@@ -2,7 +2,7 @@ import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VocabularyService } from '../../services/vocabulary.service';
-import { Word, ReviewEntry } from '../../models/vocabulary.model';
+import { Word } from '../../models/vocabulary.model';
 
 @Component({
   selector: 'app-word-list',
@@ -17,27 +17,25 @@ export class WordListComponent implements OnInit {
   loading = true;
   activeTab: 'due' | 'all' = 'due';
   showAddForm = false;
-  ratingMenuWord: Word | null = null;
   addWord = '';
   addError = '';
-  expandedWordId: number | null = null;
-  reviewHistory: ReviewEntry[] = [];
-  editWord = '';
-  editDefinition = '';
+  revealedWordId: number | null = null;
+  editingDefinition = false;
+  editDefinitionValue = '';
   deletedWord: Word | null = null;
   private deleteTimer: any = null;
 
   ratingOptions = [
-    { label: 'Again', quality: 1, color: 'text-red-500', desc: 'Forgot' },
-    { label: 'Hard', quality: 2, color: 'text-orange-500', desc: 'Struggled' },
-    { label: 'Good', quality: 3, color: 'text-blue-500', desc: 'Remembered' },
-    { label: 'Easy', quality: 5, color: 'text-emerald-500', desc: 'No effort' },
+    { label: 'Low', quality: 1, color: 'bg-red-50 text-red-500 hover:bg-red-100', menuColor: 'text-red-500' },
+    { label: 'Medium', quality: 3, color: 'bg-amber-50 text-amber-500 hover:bg-amber-100', menuColor: 'text-amber-500' },
+    { label: 'High', quality: 5, color: 'bg-emerald-50 text-emerald-500 hover:bg-emerald-100', menuColor: 'text-emerald-500' },
   ];
+  ratingMenuWordId: number | null = null;
 
   @HostListener('document:click')
   closeMenus() {
-    this.ratingMenuWord = null;
     this.showAddForm = false;
+    this.ratingMenuWordId = null;
   }
 
   ngOnInit() {
@@ -54,10 +52,6 @@ export class WordListComponent implements OnInit {
   get filteredWords(): Word[] {
     if (this.activeTab === 'due') return this.words.filter(w => this.isDue(w));
     return this.words;
-  }
-
-  get dueCount(): number {
-    return this.words.filter(w => this.isDue(w)).length;
   }
 
   isDue(word: Word): boolean {
@@ -84,38 +78,71 @@ export class WordListComponent implements OnInit {
     if (word.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(word);
     if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-blue-600';
+    if (days === 0) return 'text-sky-500';
     if (days === 1) return 'text-orange-500';
     if (days <= 3) return 'text-violet-500';
     return 'text-gray-500';
   }
 
   statusLabel(word: Word): string {
-    return { 'new': 'New', 'learning': 'Learning', 'review': 'Review', 'mastered': 'Mastered' }[word.status] ?? 'New';
+    return { 'new': 'New', 'learning': 'Low', 'review': 'Medium', 'mastered': 'High' }[word.status] ?? 'New';
   }
 
   statusColor(word: Word): string {
     return {
       'new': 'text-gray-400',
-      'learning': 'text-amber-500',
-      'review': 'text-blue-500',
+      'learning': 'text-red-500',
+      'review': 'text-amber-500',
       'mastered': 'text-emerald-500'
     }[word.status] ?? 'text-gray-400';
   }
 
-  toggleRatingMenu(word: Word) {
-    event?.stopPropagation();
-    this.ratingMenuWord = this.ratingMenuWord?.id === word.id ? null : word;
+  toggleRatingMenu(word: Word, event: Event) {
+    event.stopPropagation();
+    this.ratingMenuWordId = this.ratingMenuWordId === word.id ? null : word.id;
   }
 
   quickRate(word: Word, quality: number) {
-    this.ratingMenuWord = null;
+    this.ratingMenuWordId = null;
     this.vocabService.submitReview(word.id, quality).subscribe(() => {
       this.loadWords();
     });
   }
 
-  deleteWord(word: Word) {
+  toggleReveal(word: Word) {
+    if (this.revealedWordId === word.id) {
+      this.revealedWordId = null;
+      this.editingDefinition = false;
+    } else {
+      this.revealedWordId = word.id;
+      this.editingDefinition = false;
+    }
+  }
+
+  startEditDefinition(word: Word) {
+    this.editDefinitionValue = word.definition ?? '';
+    this.editingDefinition = true;
+  }
+
+  saveDefinition(word: Word) {
+    const value = this.editDefinitionValue.trim();
+    if (!value) return;
+    this.vocabService.update(word.id, { definition: value }).subscribe(updated => {
+      word.definition = updated.definition;
+      this.editingDefinition = false;
+    });
+  }
+
+  rate(word: Word, quality: number) {
+    this.revealedWordId = null;
+    this.editingDefinition = false;
+    this.vocabService.submitReview(word.id, quality).subscribe(updated => {
+      this.words = this.words.map(w => w.id === word.id ? updated : w);
+    });
+  }
+
+  deleteWord(word: Word, event: Event) {
+    event.stopPropagation();
     this.words = this.words.filter(w => w.id !== word.id);
     this.deletedWord = word;
     clearTimeout(this.deleteTimer);
@@ -134,40 +161,6 @@ export class WordListComponent implements OnInit {
     if (!this.deletedWord) return;
     this.vocabService.delete(this.deletedWord.id).subscribe();
     this.deletedWord = null;
-  }
-
-  toggleExpand(word: Word, event: Event) {
-    event.stopPropagation();
-    if (this.expandedWordId === word.id) {
-      this.expandedWordId = null;
-      return;
-    }
-    this.expandedWordId = word.id;
-    this.editWord = word.word;
-    this.editDefinition = word.definition ?? '';
-    this.reviewHistory = [];
-    this.vocabService.getHistory(word.id).subscribe(history => {
-      this.reviewHistory = history;
-    });
-  }
-
-  saveEdit(word: Word) {
-    const updates: { word?: string; definition?: string } = {};
-    if (this.editWord !== word.word) updates.word = this.editWord;
-    if (this.editDefinition !== word.definition) updates.definition = this.editDefinition;
-    if (!Object.keys(updates).length) return;
-
-    this.vocabService.update(word.id, updates).subscribe(() => {
-      this.loadWords();
-    });
-  }
-
-  qualityLabel(quality: number): string {
-    return { 1: 'Again', 2: 'Hard', 3: 'Good', 5: 'Easy' }[quality] ?? `Q${quality}`;
-  }
-
-  qualityColor(quality: number): string {
-    return { 1: 'text-red-500', 2: 'text-orange-500', 3: 'text-blue-500', 5: 'text-emerald-500' }[quality] ?? 'text-gray-500';
   }
 
   toggleAddForm(event: Event) {

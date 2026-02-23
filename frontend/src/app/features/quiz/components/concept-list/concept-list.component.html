@@ -1,19 +1,17 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
-  <div class="flex items-center gap-3 mb-8">
-    <a routerLink="/quiz" class="text-gray-400 hover:text-gray-600 transition-colors">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-    </a>
-    <h1 class="text-2xl font-semibold text-gray-900">{{ topicName || 'Concepts' }}</h1>
-  </div>
+  <h1 class="text-2xl font-semibold text-gray-900 mb-8">{{ topicName || 'Concepts' }}</h1>
 
   @if (loading) {
     <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
   } @else {
   <!-- Tabs + Add button -->
   <div class="flex items-center justify-between mb-6">
-    <div class="flex gap-1">
+    <div class="flex items-center gap-3">
+      <a routerLink="/quiz" class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
       <button (click)="activeTab = 'due'"
               [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
         Due
@@ -62,7 +60,7 @@
       <!-- Table header -->
       <div class="grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Concept</span>
-        <span class="hidden sm:inline">Status</span>
+        <span class="hidden sm:inline">Confidence</span>
         <span>Next Review</span>
         <span></span>
       </div>

@@ -57,7 +57,7 @@
                 </button>
                 <button type="button" (click)="addConfidence = 'average'"
                         [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'average' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Average
+                  Medium
                 </button>
                 <button type="button" (click)="addConfidence = 'high'"
                         [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'high' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
@@ -118,9 +118,8 @@
               <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[140px]">
                 @for (btn of ratingOptions; track btn.quality) {
                   <button (click)="quickRate(problem, btn.quality)"
-                          [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ' + btn.color">
-                    <span>{{ btn.label }}</span>
-                    <span class="text-[10px] text-gray-300">{{ btn.desc }}</span>
+                          [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ' + btn.color">
+                    {{ btn.label }}
                   </button>
                 }
               </div>

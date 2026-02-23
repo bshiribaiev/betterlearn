@@ -16,9 +16,8 @@
     <div class="flex gap-3">
       @for (btn of buttons; track btn.quality) {
         <button (click)="submit(btn.quality)" [disabled]="submitting"
-                [class]="'flex-1 flex flex-col items-center gap-1 py-5 rounded-xl border transition-all disabled:opacity-40 cursor-pointer ' + btn.color">
+                [class]="'flex-1 flex items-center justify-center py-5 rounded-xl border transition-all disabled:opacity-40 cursor-pointer ' + btn.color">
           <span class="text-base font-semibold">{{ btn.label }}</span>
-          <span class="text-xs opacity-50 font-medium">{{ btn.desc }}</span>
         </button>
       }
     </div>

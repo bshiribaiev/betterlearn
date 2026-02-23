@@ -73,21 +73,21 @@ export class TopicListComponent implements OnInit {
     if (topic.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(topic);
     if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-blue-600';
+    if (days === 0) return 'text-sky-500';
     if (days === 1) return 'text-orange-500';
     if (days <= 3) return 'text-violet-500';
     return 'text-gray-500';
   }
 
   statusLabel(topic: QuizTopic): string {
-    return { 'new': 'New', 'learning': 'Learning', 'review': 'Review', 'mastered': 'Mastered' }[topic.status] ?? 'New';
+    return { 'new': 'New', 'learning': 'Low', 'review': 'Medium', 'mastered': 'High' }[topic.status] ?? 'New';
   }
 
   statusColor(topic: QuizTopic): string {
     return {
       'new': 'text-gray-400',
-      'learning': 'text-amber-500',
-      'review': 'text-blue-500',
+      'learning': 'text-red-500',
+      'review': 'text-amber-500',
       'mastered': 'text-emerald-500'
     }[topic.status] ?? 'text-gray-400';
   }

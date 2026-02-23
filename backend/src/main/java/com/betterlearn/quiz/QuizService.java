@@ -101,6 +101,7 @@ public class QuizService {
 
     // --- Generate & Submit (per concept) ---
 
+    @Transactional(readOnly = true)
     public QuizGenerateResponse generateForConcept(Long userId, Long conceptId, int count) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         String promptTopic = concept.getTopic().getName() + " — " + concept.getName();
@@ -155,6 +156,7 @@ public class QuizService {
         return SessionResponse.from(session);
     }
 
+    @Transactional(readOnly = true)
     public List<SessionResponse> getConceptSessions(Long userId, Long conceptId) {
         findOwnedConcept(userId, conceptId);
         return sessionRepo.findByConceptIdOrderByTakenAtDesc(conceptId).stream()
