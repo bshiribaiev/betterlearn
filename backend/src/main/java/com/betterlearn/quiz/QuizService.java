@@ -15,22 +15,27 @@ import java.util.List;
 public class QuizService {
 
     private final QuizTopicRepository topicRepo;
+    private final QuizConceptRepository conceptRepo;
     private final QuizSessionRepository sessionRepo;
     private final UserRepository userRepo;
     private final Sm2Service sm2Service;
     private final GeminiService geminiService;
     private final ObjectMapper objectMapper;
 
-    public QuizService(QuizTopicRepository topicRepo, QuizSessionRepository sessionRepo,
-                       UserRepository userRepo, Sm2Service sm2Service,
-                       GeminiService geminiService, ObjectMapper objectMapper) {
+    public QuizService(QuizTopicRepository topicRepo, QuizConceptRepository conceptRepo,
+                       QuizSessionRepository sessionRepo, UserRepository userRepo,
+                       Sm2Service sm2Service, GeminiService geminiService,
+                       ObjectMapper objectMapper) {
         this.topicRepo = topicRepo;
+        this.conceptRepo = conceptRepo;
         this.sessionRepo = sessionRepo;
         this.userRepo = userRepo;
         this.sm2Service = sm2Service;
         this.geminiService = geminiService;
         this.objectMapper = objectMapper;
     }
+
+    // --- Topic CRUD ---
 
     public List<TopicResponse> findAll(Long userId) {
         return topicRepo.findAllByUserId(userId).stream()
@@ -56,20 +61,57 @@ public class QuizService {
     }
 
     @Transactional
-    public void delete(Long userId, Long topicId) {
+    public void deleteTopic(Long userId, Long topicId) {
         QuizTopic topic = findOwnedTopic(userId, topicId);
         topicRepo.delete(topic);
     }
 
-    public QuizGenerateResponse generate(Long userId, Long topicId, int count) {
+    // --- Concept CRUD ---
+
+    public List<ConceptResponse> findConceptsByTopic(Long userId, Long topicId) {
+        findOwnedTopic(userId, topicId);
+        return conceptRepo.findByTopicId(topicId).stream()
+                .map(ConceptResponse::from)
+                .toList();
+    }
+
+    public List<ConceptResponse> findDueConcepts(Long userId) {
+        return conceptRepo.findDueByUserId(userId).stream()
+                .map(ConceptResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public ConceptResponse createConcept(Long userId, Long topicId, ConceptCreateRequest request) {
         QuizTopic topic = findOwnedTopic(userId, topicId);
-        List<QuizQuestionDto> questions = geminiService.generateQuestions(topic.getName(), count);
+
+        if (conceptRepo.existsByTopicIdAndName(topicId, request.name())) {
+            throw new IllegalArgumentException("Concept already exists: " + request.name());
+        }
+
+        QuizConcept concept = new QuizConcept(topic, request.name());
+        return ConceptResponse.from(conceptRepo.save(concept));
+    }
+
+    @Transactional
+    public void deleteConcept(Long userId, Long conceptId) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        conceptRepo.delete(concept);
+    }
+
+    // --- Generate & Submit (per concept) ---
+
+    public QuizGenerateResponse generateForConcept(Long userId, Long conceptId, int count) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        String promptTopic = concept.getTopic().getName() + " — " + concept.getName();
+        List<QuizQuestionDto> questions = geminiService.generateQuestions(promptTopic, count);
         return new QuizGenerateResponse(questions);
     }
 
     @Transactional
-    public SessionResponse submit(Long userId, Long topicId, QuizSubmitRequest request) {
-        QuizTopic topic = findOwnedTopic(userId, topicId);
+    public SessionResponse submitForConcept(Long userId, Long conceptId, QuizSubmitRequest request) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        QuizTopic topic = concept.getTopic();
 
         List<QuizQuestionDto> questions = request.questions();
         List<Integer> answers = request.answers();
@@ -88,34 +130,39 @@ public class QuizService {
         int total = questions.size();
         int quality = scoreToQuality(correct, total);
 
-        Sm2Result result = sm2Service.calculate(
-                topic.getEasinessFactor(),
-                topic.getRepetition(),
-                topic.getIntervalDays(),
-                quality
+        // Update concept SM-2
+        Sm2Result conceptResult = sm2Service.calculate(
+                concept.getEasinessFactor(), concept.getRepetition(),
+                concept.getIntervalDays(), quality
         );
-        topic.applySmResult(
-                result.easinessFactor(),
-                result.repetition(),
-                result.intervalDays(),
-                result.nextReview(),
-                result.status()
+        concept.applySmResult(conceptResult.easinessFactor(), conceptResult.repetition(),
+                conceptResult.intervalDays(), conceptResult.nextReview(), conceptResult.status());
+
+        // Update topic SM-2 with same quality
+        Sm2Result topicResult = sm2Service.calculate(
+                topic.getEasinessFactor(), topic.getRepetition(),
+                topic.getIntervalDays(), quality
         );
+        topic.applySmResult(topicResult.easinessFactor(), topicResult.repetition(),
+                topicResult.intervalDays(), topicResult.nextReview(), topicResult.status());
 
         String questionsJson = serializeQuestions(questions);
-        QuizSession session = new QuizSession(topic, total, correct, quality, questionsJson);
+        QuizSession session = new QuizSession(topic, concept, total, correct, quality, questionsJson);
         sessionRepo.save(session);
+        conceptRepo.save(concept);
         topicRepo.save(topic);
 
         return SessionResponse.from(session);
     }
 
-    public List<SessionResponse> getSessions(Long userId, Long topicId) {
-        findOwnedTopic(userId, topicId);
-        return sessionRepo.findByTopicIdOrderByTakenAtDesc(topicId).stream()
+    public List<SessionResponse> getConceptSessions(Long userId, Long conceptId) {
+        findOwnedConcept(userId, conceptId);
+        return sessionRepo.findByConceptIdOrderByTakenAtDesc(conceptId).stream()
                 .map(SessionResponse::from)
                 .toList();
     }
+
+    // --- Ownership checks ---
 
     private QuizTopic findOwnedTopic(Long userId, Long topicId) {
         QuizTopic topic = topicRepo.findById(topicId)
@@ -126,6 +173,18 @@ public class QuizService {
         }
         return topic;
     }
+
+    private QuizConcept findOwnedConcept(Long userId, Long conceptId) {
+        QuizConcept concept = conceptRepo.findById(conceptId)
+                .orElseThrow(() -> new IllegalArgumentException("Concept not found"));
+
+        if (!concept.getTopic().getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Concept not found");
+        }
+        return concept;
+    }
+
+    // --- Helpers ---
 
     static int scoreToQuality(int correct, int total) {
         if (total == 0) return 0;

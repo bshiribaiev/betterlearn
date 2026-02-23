@@ -9,6 +9,18 @@ export interface QuizTopic {
   totalReviews: number;
 }
 
+export interface QuizConcept {
+  id: number;
+  topicId: number;
+  name: string;
+  nextReview: string;
+  intervalDays: number;
+  easinessFactor: number;
+  repetition: number;
+  status: 'new' | 'learning' | 'review' | 'mastered';
+  totalReviews: number;
+}
+
 export interface QuizQuestion {
   question: string;
   options: string[];

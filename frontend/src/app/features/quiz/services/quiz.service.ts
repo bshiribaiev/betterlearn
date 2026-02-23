@@ -1,41 +1,56 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { QuizTopic, QuizQuestion, QuizSession } from '../models/quiz.model';
+import { QuizTopic, QuizConcept, QuizQuestion, QuizSession } from '../models/quiz.model';
 
 @Injectable({ providedIn: 'root' })
 export class QuizService {
   private http = inject(HttpClient);
-  private base = '/api/quiz/topics';
 
-  findAll() {
-    return this.http.get<QuizTopic[]>(this.base);
+  // --- Topics ---
+
+  findAllTopics() {
+    return this.http.get<QuizTopic[]>('/api/quiz/topics');
   }
 
-  findDue() {
-    return this.http.get<QuizTopic[]>(`${this.base}/due`);
+  findDueTopics() {
+    return this.http.get<QuizTopic[]>('/api/quiz/topics/due');
   }
 
-  create(name: string) {
-    return this.http.post<QuizTopic>(this.base, { name });
+  createTopic(name: string) {
+    return this.http.post<QuizTopic>('/api/quiz/topics', { name });
   }
 
-  delete(id: number) {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  deleteTopic(id: number) {
+    return this.http.delete<void>(`/api/quiz/topics/${id}`);
   }
 
-  generate(topicId: number, count = 5) {
+  // --- Concepts ---
+
+  findConcepts(topicId: number) {
+    return this.http.get<QuizConcept[]>(`/api/quiz/topics/${topicId}/concepts`);
+  }
+
+  createConcept(topicId: number, name: string) {
+    return this.http.post<QuizConcept>(`/api/quiz/topics/${topicId}/concepts`, { name });
+  }
+
+  deleteConcept(id: number) {
+    return this.http.delete<void>(`/api/quiz/concepts/${id}`);
+  }
+
+  generate(conceptId: number, count = 5) {
     return this.http.post<{ questions: QuizQuestion[] }>(
-      `${this.base}/${topicId}/generate?count=${count}`, {}
+      `/api/quiz/concepts/${conceptId}/generate?count=${count}`, {}
     );
   }
 
-  submit(topicId: number, questions: QuizQuestion[], answers: number[]) {
+  submit(conceptId: number, questions: QuizQuestion[], answers: number[]) {
     return this.http.post<QuizSession>(
-      `${this.base}/${topicId}/submit`, { questions, answers }
+      `/api/quiz/concepts/${conceptId}/submit`, { questions, answers }
     );
   }
 
-  getSessions(topicId: number) {
-    return this.http.get<QuizSession[]>(`${this.base}/${topicId}/sessions`);
+  getSessions(conceptId: number) {
+    return this.http.get<QuizSession[]>(`/api/quiz/concepts/${conceptId}/sessions`);
   }
 }

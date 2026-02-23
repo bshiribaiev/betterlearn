@@ -50,7 +50,7 @@ public class VocabularyService {
         }
 
         User user = userRepo.getReferenceById(userId);
-        VocabularyWord word = new VocabularyWord(user, request.word().trim(), request.definition().trim());
+        VocabularyWord word = new VocabularyWord(user, request.word().trim(), null);
         return WordResponse.from(wordRepo.save(word));
     }
 

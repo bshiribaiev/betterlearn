@@ -13,6 +13,7 @@ export class QuizResultsComponent implements OnInit {
   private router = inject(Router);
 
   topicName = '';
+  conceptName = '';
   questions: QuizQuestion[] = [];
   answers: number[] = [];
   session: QuizSession | null = null;
@@ -27,6 +28,12 @@ export class QuizResultsComponent implements OnInit {
     this.answers = state.answers;
     this.session = state.session;
     this.topicName = state.topicName || '';
+    this.conceptName = state.conceptName || '';
+  }
+
+  get subtitle(): string {
+    const parts = [this.topicName, this.conceptName].filter(Boolean);
+    return parts.join(' — ');
   }
 
   get scorePercent(): number {

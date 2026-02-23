@@ -3,8 +3,8 @@
     <!-- Score header -->
     <div class="text-center mb-8">
       <h1 class="text-2xl font-semibold text-gray-900 mb-2">Quiz Results</h1>
-      @if (topicName) {
-        <p class="text-sm text-gray-400 mb-4">{{ topicName }}</p>
+      @if (subtitle) {
+        <p class="text-sm text-gray-400 mb-4">{{ subtitle }}</p>
       }
       <p [class]="'text-5xl font-bold ' + scoreColor()">{{ scorePercent }}%</p>
       <p class="text-sm text-gray-400 mt-2">{{ session.correctAnswers }} of {{ session.totalQuestions }} correct</p>

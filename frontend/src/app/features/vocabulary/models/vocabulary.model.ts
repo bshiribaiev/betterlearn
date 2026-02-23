@@ -1,7 +1,7 @@
 export interface Word {
   id: number;
   word: string;
-  definition: string;
+  definition: string | null;
   nextReview: string;
   intervalDays: number;
   easinessFactor: number;
@@ -11,7 +11,6 @@ export interface Word {
 
 export interface WordCreate {
   word: string;
-  definition: string;
 }
 
 export interface ReviewEntry {

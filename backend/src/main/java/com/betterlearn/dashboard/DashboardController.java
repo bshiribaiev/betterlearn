@@ -3,9 +3,9 @@ package com.betterlearn.dashboard;
 import com.betterlearn.leetcode.LeetcodeRepository;
 import com.betterlearn.leetcode.LeetcodeService;
 import com.betterlearn.leetcode.dto.ProblemResponse;
+import com.betterlearn.quiz.QuizConceptRepository;
 import com.betterlearn.quiz.QuizService;
-import com.betterlearn.quiz.QuizTopicRepository;
-import com.betterlearn.quiz.dto.TopicResponse;
+import com.betterlearn.quiz.dto.ConceptResponse;
 import com.betterlearn.vocabulary.VocabularyRepository;
 import com.betterlearn.vocabulary.VocabularyService;
 import com.betterlearn.vocabulary.dto.WordResponse;
@@ -24,19 +24,19 @@ public class DashboardController {
     private final QuizService quizService;
     private final VocabularyService vocabularyService;
     private final LeetcodeRepository leetcodeRepository;
-    private final QuizTopicRepository quizTopicRepository;
+    private final QuizConceptRepository quizConceptRepository;
     private final VocabularyRepository vocabularyRepository;
 
     public DashboardController(LeetcodeService leetcodeService, QuizService quizService,
                                VocabularyService vocabularyService,
                                LeetcodeRepository leetcodeRepository,
-                               QuizTopicRepository quizTopicRepository,
+                               QuizConceptRepository quizConceptRepository,
                                VocabularyRepository vocabularyRepository) {
         this.leetcodeService = leetcodeService;
         this.quizService = quizService;
         this.vocabularyService = vocabularyService;
         this.leetcodeRepository = leetcodeRepository;
-        this.quizTopicRepository = quizTopicRepository;
+        this.quizConceptRepository = quizConceptRepository;
         this.vocabularyRepository = vocabularyRepository;
     }
 
@@ -45,14 +45,14 @@ public class DashboardController {
         List<ProblemResponse> due = leetcodeService.findDue(userId);
         List<ProblemResponse> all = leetcodeService.findAll(userId);
         int masteredProblems = (int) leetcodeRepository.countByUserIdAndStatus(userId, "mastered");
-        List<TopicResponse> quizDue = quizService.findDue(userId);
-        List<TopicResponse> quizAll = quizService.findAll(userId);
-        int masteredTopics = (int) quizTopicRepository.countByUserIdAndStatus(userId, "mastered");
+        List<ConceptResponse> conceptsDue = quizService.findDueConcepts(userId);
+        long conceptsTotal = quizConceptRepository.countByTopicUserId(userId);
+        int masteredConcepts = (int) quizConceptRepository.countByTopicUserIdAndStatus(userId, "mastered");
         List<WordResponse> vocabDue = vocabularyService.findDue(userId);
         List<WordResponse> vocabAll = vocabularyService.findAll(userId);
         int masteredWords = (int) vocabularyRepository.countByUserIdAndStatus(userId, "mastered");
         return new DashboardResponse(due.size(), all.size(), masteredProblems, due,
-                quizDue.size(), quizAll.size(), masteredTopics, quizDue,
+                conceptsDue.size(), (int) conceptsTotal, masteredConcepts, conceptsDue,
                 vocabDue.size(), vocabAll.size(), masteredWords, vocabDue);
     }
 }

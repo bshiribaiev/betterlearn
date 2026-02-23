@@ -19,7 +19,6 @@ export class WordListComponent implements OnInit {
   showAddForm = false;
   ratingMenuWord: Word | null = null;
   addWord = '';
-  addDefinition = '';
   addError = '';
   expandedWordId: number | null = null;
   reviewHistory: ReviewEntry[] = [];
@@ -145,7 +144,7 @@ export class WordListComponent implements OnInit {
     }
     this.expandedWordId = word.id;
     this.editWord = word.word;
-    this.editDefinition = word.definition;
+    this.editDefinition = word.definition ?? '';
     this.reviewHistory = [];
     this.vocabService.getHistory(word.id).subscribe(history => {
       this.reviewHistory = history;
@@ -175,20 +174,18 @@ export class WordListComponent implements OnInit {
     event.stopPropagation();
     this.showAddForm = !this.showAddForm;
     this.addWord = '';
-    this.addDefinition = '';
     this.addError = '';
   }
 
   submitWord(event: Event) {
     event.preventDefault();
-    if (!this.addWord.trim() || !this.addDefinition.trim()) return;
+    if (!this.addWord.trim()) return;
     this.addError = '';
 
-    this.vocabService.create({ word: this.addWord.trim(), definition: this.addDefinition.trim() }).subscribe({
+    this.vocabService.create({ word: this.addWord.trim() }).subscribe({
       next: () => {
         this.showAddForm = false;
         this.addWord = '';
-        this.addDefinition = '';
         this.loadWords();
       },
       error: (err) => this.addError = err.error?.detail || 'Failed to add word'

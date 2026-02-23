@@ -1,0 +1,21 @@
+package com.betterlearn.quiz;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> {
+
+    @Query("SELECT c FROM QuizConcept c WHERE c.topic.id = :topicId ORDER BY CASE WHEN c.nextReview <= CURRENT_DATE THEN 0 ELSE 1 END, c.nextReview ASC")
+    List<QuizConcept> findByTopicId(Long topicId);
+
+    @Query("SELECT c FROM QuizConcept c WHERE c.topic.user.id = :userId AND c.nextReview <= CURRENT_DATE ORDER BY c.nextReview ASC")
+    List<QuizConcept> findDueByUserId(Long userId);
+
+    boolean existsByTopicIdAndName(Long topicId, String name);
+
+    long countByTopicUserId(Long userId);
+
+    long countByTopicUserIdAndStatus(Long userId, String status);
+}

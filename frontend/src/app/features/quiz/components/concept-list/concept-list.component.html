@@ -1,5 +1,12 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
-  <h1 class="text-2xl font-semibold text-gray-900 mb-8">Vocabulary</h1>
+  <div class="flex items-center gap-3 mb-8">
+    <a routerLink="/quiz" class="text-gray-400 hover:text-gray-600 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-semibold text-gray-900">{{ topicName || 'Concepts' }}</h1>
+  </div>
 
   @if (loading) {
     <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
@@ -22,7 +29,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
-        Add Word
+        Add Concept
       </button>
 
       @if (showAddForm) {
@@ -31,13 +38,13 @@
           @if (addError) {
             <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
           }
-          <form (submit)="submitWord($event)" class="space-y-3">
-            <input type="text" placeholder="Word or phrase..."
-                   [(ngModel)]="addWord" name="word"
+          <form (submit)="submitConcept($event)" class="space-y-3">
+            <input type="text" placeholder="Concept name (e.g. Load Balancing)..."
+                   [(ngModel)]="addName" name="name"
                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
             <button type="submit"
                     class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
-              Add Word
+              Add Concept
             </button>
           </form>
         </div>
@@ -46,59 +53,49 @@
   </div>
 
   <!-- Table -->
-  @if (filteredWords.length === 0) {
+  @if (filteredConcepts.length === 0) {
     <div class="text-center py-16">
-      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No words yet. Add your first one to start learning.' }}</p>
+      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No concepts yet. Add your first one to start studying.' }}</p>
     </div>
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_100px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-        <span>Word</span>
+      <div class="grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+        <span>Concept</span>
         <span class="hidden sm:inline">Status</span>
         <span>Next Review</span>
         <span></span>
       </div>
 
       <!-- Rows -->
-      @for (word of filteredWords; track word.id) {
-        <div [class]="'grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_100px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
-          <!-- Word -->
+      @for (concept of filteredConcepts; track concept.id) {
+        <div [class]="'grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+          <!-- Concept name -->
           <div class="min-w-0">
-            <button (click)="toggleExpand(word, $event)"
+            <button (click)="toggleExpand(concept, $event)"
                     class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
-              {{ word.word }}
+              {{ concept.name }}
             </button>
           </div>
 
           <!-- Status -->
-          <span [class]="'text-sm font-medium hidden sm:inline ' + statusColor(word)">
-            {{ statusLabel(word) }}
+          <span [class]="'text-sm font-medium hidden sm:inline ' + statusColor(concept)">
+            {{ statusLabel(concept) }}
           </span>
 
           <!-- Next review -->
-          <div class="relative">
-            <button (click)="toggleRatingMenu(word)"
-                    [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + nextReviewColor(word)">
-              {{ nextReviewLabel(word) }}
+          <span [class]="'text-sm font-medium ' + nextReviewColor(concept)">
+            {{ nextReviewLabel(concept) }}
+          </span>
+
+          <!-- Actions -->
+          <div class="justify-self-end flex items-center gap-2">
+            <button (click)="generateQuiz(concept, $event)"
+                    [disabled]="generatingConceptId === concept.id"
+                    [class]="'px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingConceptId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md')">
+              {{ generatingConceptId === concept.id ? 'Generating...' : 'Quiz' }}
             </button>
-
-            @if (ratingMenuWord?.id === word.id) {
-              <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[140px]">
-                @for (btn of ratingOptions; track btn.quality) {
-                  <button (click)="quickRate(word, btn.quality)"
-                          [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ' + btn.color">
-                    <span>{{ btn.label }}</span>
-                    <span class="text-[10px] text-gray-300">{{ btn.desc }}</span>
-                  </button>
-                }
-              </div>
-            }
-          </div>
-
-          <!-- Delete button -->
-          <div class="justify-self-end">
-            <button (click)="deleteWord(word)"
+            <button (click)="deleteConcept(concept, $event)"
                     class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -108,31 +105,24 @@
         </div>
 
         <!-- Expanded detail panel -->
-        @if (expandedWordId === word.id) {
+        @if (expandedConceptId === concept.id) {
           <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Word</label>
-                <input [(ngModel)]="editWord" (blur)="saveEdit(word)"
-                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Definition</label>
-                <input [(ngModel)]="editDefinition" (blur)="saveEdit(word)"
-                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
-              </div>
+            <div class="flex gap-6 mb-4 text-xs text-gray-500">
+              <span>EF: {{ concept.easinessFactor | number:'1.2-2' }}</span>
+              <span>Interval: {{ concept.intervalDays }}d</span>
+              <span>Reviews: {{ concept.totalReviews }}</span>
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-400 mb-2">Review History</label>
-              @if (reviewHistory.length === 0) {
-                <p class="text-xs text-gray-400">No reviews yet.</p>
+              <label class="block text-xs font-medium text-gray-400 mb-2">Session History</label>
+              @if (sessionHistory.length === 0) {
+                <p class="text-xs text-gray-400">No sessions yet.</p>
               } @else {
                 <div class="flex flex-wrap gap-2">
-                  @for (entry of reviewHistory; track entry.id) {
+                  @for (session of sessionHistory; track session.id) {
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs">
-                      <span [class]="'font-medium ' + qualityColor(entry.quality)">{{ qualityLabel(entry.quality) }}</span>
-                      <span class="text-gray-300">{{ entry.reviewedAt | date:'MMM d' }}</span>
+                      <span [class]="'font-medium ' + qualityColor(session.quality)">{{ session.correctAnswers }}/{{ session.totalQuestions }}</span>
+                      <span class="text-gray-300">{{ session.takenAt | date:'MMM d' }}</span>
                     </div>
                   }
                 </div>
@@ -147,9 +137,9 @@
 </div>
 
 <!-- Undo delete toast -->
-@if (deletedWord) {
+@if (deletedConcept) {
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-lg">
-    <span>Deleted "{{ deletedWord.word }}"</span>
+    <span>Deleted "{{ deletedConcept.name }}"</span>
     <button (click)="undoDelete()"
             class="font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
       Undo

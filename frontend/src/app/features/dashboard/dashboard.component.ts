@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
-import { QuizTopic } from '../quiz/models/quiz.model';
+import { QuizConcept } from '../quiz/models/quiz.model';
 import { Word } from '../vocabulary/models/vocabulary.model';
 
 interface DashboardData {
@@ -11,10 +11,10 @@ interface DashboardData {
   totalCount: number;
   masteredProblems: number;
   dueProblems: Problem[];
-  quizDueCount: number;
-  quizTotalCount: number;
-  masteredTopics: number;
-  dueTopics: QuizTopic[];
+  conceptsDueCount: number;
+  conceptsTotalCount: number;
+  masteredConcepts: number;
+  dueConcepts: QuizConcept[];
   vocabDueCount: number;
   vocabTotalCount: number;
   masteredWords: number;
@@ -40,7 +40,7 @@ interface DashboardData {
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
           <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Concepts Due</p>
-          <p class="text-2xl font-semibold" [class]="data?.quizDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.quizDueCount ?? '-' }}</p>
+          <p class="text-2xl font-semibold" [class]="data?.conceptsDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.conceptsDueCount ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
           <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Vocab Due</p>
@@ -74,15 +74,15 @@ interface DashboardData {
         </div>
       }
 
-      <!-- Due topics -->
-      @if (data && data.dueTopics.length > 0) {
+      <!-- Due concepts -->
+      @if (data && data.dueConcepts.length > 0) {
         <div class="mb-8">
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Concepts — Needs Review</h2>
           <div class="space-y-2">
-            @for (topic of data.dueTopics; track topic.id) {
+            @for (concept of data.dueConcepts; track concept.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
-                <span class="text-sm font-medium text-gray-900 truncate">{{ topic.name }}</span>
-                <a routerLink="/quiz"
+                <span class="text-sm font-medium text-gray-900 truncate">{{ concept.name }}</span>
+                <a [routerLink]="['/quiz', concept.topicId, 'concepts']"
                    class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Study
                 </a>
@@ -110,7 +110,7 @@ interface DashboardData {
         </div>
       }
 
-      @if (data && data.dueProblems.length === 0 && data.dueTopics.length === 0 && data.dueWords.length === 0) {
+      @if (data && data.dueProblems.length === 0 && data.dueConcepts.length === 0 && data.dueWords.length === 0) {
         <div class="text-center py-12">
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>

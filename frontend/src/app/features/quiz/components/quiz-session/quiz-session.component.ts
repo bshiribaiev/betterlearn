@@ -15,14 +15,15 @@ export class QuizSessionComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private quizService = inject(QuizService);
 
-  topicId = 0;
+  conceptId = 0;
   topicName = '';
+  conceptName = '';
   questions: QuizQuestion[] = [];
   answers: number[] = [];
   submitting = false;
 
   ngOnInit() {
-    this.topicId = Number(this.route.snapshot.paramMap.get('topicId'));
+    this.conceptId = Number(this.route.snapshot.paramMap.get('conceptId'));
     const state = history.state;
     if (!state?.questions?.length) {
       this.router.navigate(['/quiz']);
@@ -30,6 +31,7 @@ export class QuizSessionComponent implements OnInit {
     }
     this.questions = state.questions;
     this.topicName = state.topicName || '';
+    this.conceptName = state.conceptName || '';
     this.answers = new Array(this.questions.length).fill(-1);
   }
 
@@ -45,18 +47,24 @@ export class QuizSessionComponent implements OnInit {
     return this.questions.length > 0 && this.answeredCount === this.questions.length;
   }
 
+  get subtitle(): string {
+    const parts = [this.topicName, this.conceptName].filter(Boolean);
+    return parts.join(' — ');
+  }
+
   submitQuiz() {
     if (!this.allAnswered || this.submitting) return;
     this.submitting = true;
 
-    this.quizService.submit(this.topicId, this.questions, this.answers).subscribe({
+    this.quizService.submit(this.conceptId, this.questions, this.answers).subscribe({
       next: (session) => {
-        this.router.navigate(['/quiz', this.topicId, 'results'], {
+        this.router.navigate(['/quiz', 'concepts', this.conceptId, 'results'], {
           state: {
             questions: this.questions,
             answers: this.answers,
             session,
-            topicName: this.topicName
+            topicName: this.topicName,
+            conceptName: this.conceptName
           }
         });
       },

@@ -1,28 +1,24 @@
-package com.betterlearn.vocabulary;
+package com.betterlearn.quiz;
 
-import com.betterlearn.user.User;
 import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "vocabulary_words")
-public class VocabularyWord {
+@Table(name = "quiz_concepts")
+public class QuizConcept {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "topic_id", nullable = false)
+    private QuizTopic topic;
 
-    @Column(nullable = false, length = 200)
-    private String word;
-
-    @Column(columnDefinition = "TEXT")
-    private String definition;
+    @Column(nullable = false, length = 300)
+    private String name;
 
     @Column(name = "easiness_factor", nullable = false)
     private double easinessFactor = 2.5;
@@ -39,18 +35,20 @@ public class VocabularyWord {
     @Column(nullable = false, length = 20)
     private String status = "new";
 
+    @Column(name = "total_reviews", nullable = false)
+    private int totalReviews = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
-    protected VocabularyWord() {}
+    protected QuizConcept() {}
 
-    public VocabularyWord(User user, String word, String definition) {
-        this.user = user;
-        this.word = word;
-        this.definition = definition;
+    public QuizConcept(QuizTopic topic, String name) {
+        this.topic = topic;
+        this.name = name;
     }
 
     @PreUpdate
@@ -58,24 +56,22 @@ public class VocabularyWord {
         this.updatedAt = Instant.now();
     }
 
-    public Long getId() { return id; }
-    public User getUser() { return user; }
-    public String getWord() { return word; }
-    public String getDefinition() { return definition; }
-    public double getEasinessFactor() { return easinessFactor; }
-    public int getRepetition() { return repetition; }
-    public int getIntervalDays() { return intervalDays; }
-    public LocalDate getNextReview() { return nextReview; }
-    public String getStatus() { return status; }
-
-    public void setWord(String word) { this.word = word; }
-    public void setDefinition(String definition) { this.definition = definition; }
-
     public void applySmResult(double ef, int rep, int interval, LocalDate next, String status) {
         this.easinessFactor = ef;
         this.repetition = rep;
         this.intervalDays = interval;
         this.nextReview = next;
         this.status = status;
+        this.totalReviews++;
     }
+
+    public Long getId() { return id; }
+    public QuizTopic getTopic() { return topic; }
+    public String getName() { return name; }
+    public double getEasinessFactor() { return easinessFactor; }
+    public int getRepetition() { return repetition; }
+    public int getIntervalDays() { return intervalDays; }
+    public LocalDate getNextReview() { return nextReview; }
+    public String getStatus() { return status; }
+    public int getTotalReviews() { return totalReviews; }
 }

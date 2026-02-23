@@ -16,6 +16,10 @@ public class QuizSession {
     @JoinColumn(name = "topic_id", nullable = false)
     private QuizTopic topic;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "concept_id")
+    private QuizConcept concept;
+
     @Column(name = "total_questions", nullable = false)
     private int totalQuestions;
 
@@ -33,9 +37,10 @@ public class QuizSession {
 
     protected QuizSession() {}
 
-    public QuizSession(QuizTopic topic, int totalQuestions, int correctAnswers,
-                       int quality, String questionsJson) {
+    public QuizSession(QuizTopic topic, QuizConcept concept, int totalQuestions,
+                       int correctAnswers, int quality, String questionsJson) {
         this.topic = topic;
+        this.concept = concept;
         this.totalQuestions = totalQuestions;
         this.correctAnswers = correctAnswers;
         this.quality = quality;
@@ -44,6 +49,7 @@ public class QuizSession {
 
     public Long getId() { return id; }
     public QuizTopic getTopic() { return topic; }
+    public QuizConcept getConcept() { return concept; }
     public int getTotalQuestions() { return totalQuestions; }
     public int getCorrectAnswers() { return correctAnswers; }
     public int getQuality() { return quality; }

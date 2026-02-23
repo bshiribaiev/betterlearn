@@ -7,4 +7,6 @@ import java.util.List;
 public interface QuizSessionRepository extends JpaRepository<QuizSession, Long> {
 
     List<QuizSession> findByTopicIdOrderByTakenAtDesc(Long topicId);
+
+    List<QuizSession> findByConceptIdOrderByTakenAtDesc(Long conceptId);
 }

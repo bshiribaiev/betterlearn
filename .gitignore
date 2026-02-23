@@ -32,3 +32,5 @@ claude.md
 backend/target/
 *.class
 *.jar
+.DS_Store
+claude.md

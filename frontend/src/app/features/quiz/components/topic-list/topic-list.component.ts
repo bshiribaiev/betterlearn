@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
-import { QuizTopic, QuizSession } from '../../models/quiz.model';
+import { QuizTopic } from '../../models/quiz.model';
 
 @Component({
   selector: 'app-topic-list',
@@ -21,9 +21,6 @@ export class TopicListComponent implements OnInit {
   showAddForm = false;
   addName = '';
   addError = '';
-  expandedTopicId: number | null = null;
-  sessionHistory: QuizSession[] = [];
-  generatingTopicId: number | null = null;
   deletedTopic: QuizTopic | null = null;
   private deleteTimer: any = null;
 
@@ -37,7 +34,7 @@ export class TopicListComponent implements OnInit {
   }
 
   loadTopics() {
-    this.quizService.findAll().subscribe(topics => {
+    this.quizService.findAllTopics().subscribe(topics => {
       this.topics = topics;
       this.loading = false;
     });
@@ -95,30 +92,9 @@ export class TopicListComponent implements OnInit {
     }[topic.status] ?? 'text-gray-400';
   }
 
-  toggleExpand(topic: QuizTopic, event: Event) {
-    event.stopPropagation();
-    if (this.expandedTopicId === topic.id) {
-      this.expandedTopicId = null;
-      return;
-    }
-    this.expandedTopicId = topic.id;
-    this.sessionHistory = [];
-    this.quizService.getSessions(topic.id).subscribe(sessions => {
-      this.sessionHistory = sessions;
-    });
-  }
-
-  generateQuiz(topic: QuizTopic, event: Event) {
-    event.stopPropagation();
-    this.generatingTopicId = topic.id;
-    this.quizService.generate(topic.id).subscribe({
-      next: (res) => {
-        this.generatingTopicId = null;
-        this.router.navigate(['/quiz', topic.id, 'session'], {
-          state: { questions: res.questions, topicName: topic.name }
-        });
-      },
-      error: () => this.generatingTopicId = null
+  openTopic(topic: QuizTopic) {
+    this.router.navigate(['/quiz', topic.id, 'concepts'], {
+      state: { topicName: topic.name }
     });
   }
 
@@ -140,7 +116,7 @@ export class TopicListComponent implements OnInit {
 
   private confirmDelete() {
     if (!this.deletedTopic) return;
-    this.quizService.delete(this.deletedTopic.id).subscribe();
+    this.quizService.deleteTopic(this.deletedTopic.id).subscribe();
     this.deletedTopic = null;
   }
 
@@ -156,7 +132,7 @@ export class TopicListComponent implements OnInit {
     if (!this.addName.trim()) return;
     this.addError = '';
 
-    this.quizService.create(this.addName.trim()).subscribe({
+    this.quizService.createTopic(this.addName.trim()).subscribe({
       next: () => {
         this.showAddForm = false;
         this.addName = '';
@@ -164,16 +140,5 @@ export class TopicListComponent implements OnInit {
       },
       error: (err) => this.addError = err.error?.detail || 'Failed to add topic'
     });
-  }
-
-  qualityLabel(quality: number): string {
-    return { 0: 'Fail', 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Great', 5: 'Perfect' }[quality] ?? `Q${quality}`;
-  }
-
-  qualityColor(quality: number): string {
-    if (quality <= 1) return 'text-red-500';
-    if (quality <= 2) return 'text-orange-500';
-    if (quality <= 3) return 'text-blue-500';
-    return 'text-emerald-500';
   }
 }
