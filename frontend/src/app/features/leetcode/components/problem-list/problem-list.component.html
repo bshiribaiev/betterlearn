@@ -1,0 +1,119 @@
+<div class="max-w-5xl mx-auto px-6 py-8">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">LeetCode Tracker</h1>
+      <p class="mt-1 text-sm text-gray-500">
+        {{ problems.length }} problems tracked
+        @if (filteredProblems.length !== problems.length) {
+          <span> &middot; {{ filteredProblems.length }} shown</span>
+        }
+      </p>
+    </div>
+    <button (click)="showAddForm = true"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Problem
+    </button>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="flex gap-2 mb-6">
+    @for (s of ['', 'new', 'learning', 'review', 'mastered']; track s) {
+      <button (click)="filterStatus = s"
+              [class]="'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ' +
+                (filterStatus === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')">
+        {{ s || 'All' }}
+      </button>
+    }
+  </div>
+
+  <!-- Add form overlay -->
+  @if (showAddForm) {
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+         (click)="showAddForm = false">
+      <div (click)="$event.stopPropagation()">
+        <app-problem-form (saved)="onProblemAdded()" (cancelled)="showAddForm = false" />
+      </div>
+    </div>
+  }
+
+  <!-- Review dialog overlay -->
+  @if (reviewingProblem) {
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+         (click)="reviewingProblem = null">
+      <div (click)="$event.stopPropagation()">
+        <app-review-dialog [problem]="reviewingProblem"
+                           (reviewed)="onReviewSubmitted()"
+                           (cancelled)="reviewingProblem = null" />
+      </div>
+    </div>
+  }
+
+  <!-- Problem cards -->
+  @if (filteredProblems.length === 0) {
+    <div class="text-center py-16">
+      <p class="text-gray-400 text-sm">No problems yet. Add your first one to start tracking.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (problem of filteredProblems; track problem.id) {
+        <div class="group bg-white border border-gray-100 rounded-xl p-4 hover:border-blue-200 hover:shadow-sm transition-all">
+          <div class="flex items-center justify-between gap-4">
+            <!-- Left: title + url -->
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-3">
+                <span [class]="'inline-block px-2.5 py-0.5 text-xs font-medium rounded-full ' + statusColor(problem.status)">
+                  {{ problem.status }}
+                </span>
+                <h3 class="text-sm font-medium text-gray-900 truncate">{{ problem.title }}</h3>
+              </div>
+              <a [href]="problem.url" target="_blank" rel="noopener"
+                 class="mt-1 block text-xs text-gray-400 truncate hover:text-blue-500 transition-colors">
+                {{ problem.url }}
+              </a>
+            </div>
+
+            <!-- Center: review timing -->
+            <div class="flex-shrink-0 text-right">
+              <span [class]="'text-xs font-medium ' + (isDue(problem) ? 'text-blue-600' : 'text-gray-400')">
+                {{ reviewLabel(problem) }}
+              </span>
+              @if (problem.intervalDays > 0) {
+                <p class="text-[10px] text-gray-300 mt-0.5">{{ problem.intervalDays }}d interval</p>
+              }
+            </div>
+
+            <!-- Right: actions -->
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              @if (isDue(problem)) {
+                <button (click)="reviewingProblem = problem"
+                        class="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  Review
+                </button>
+              } @else {
+                <button (click)="reviewingProblem = problem"
+                        class="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  Review
+                </button>
+              }
+              <button (click)="deleteProblem(problem)"
+                      class="p-1.5 text-gray-300 hover:text-red-500 transition-colors rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Notes (if any) -->
+          @if (problem.notes) {
+            <p class="mt-2 text-xs text-gray-400 pl-[calc(0.625rem+0.75rem+theme(spacing.3))]">{{ problem.notes }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

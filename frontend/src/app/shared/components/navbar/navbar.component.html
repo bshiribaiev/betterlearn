@@ -1,14 +1,19 @@
 @if (isLoggedIn$ | async) {
-  <nav class="bg-white border-b px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-6">
-      <a routerLink="/" class="text-lg font-bold text-blue-600">BetterLearn</a>
-      <a routerLink="/" routerLinkActive="text-blue-600" [routerLinkActiveOptions]="{exact: true}"
-         class="text-gray-600 hover:text-gray-900">Dashboard</a>
-      <a routerLink="/leetcode" routerLinkActive="text-blue-600"
-         class="text-gray-600 hover:text-gray-900">LeetCode</a>
-      <a routerLink="/quiz" routerLinkActive="text-blue-600"
-         class="text-gray-600 hover:text-gray-900">Quiz</a>
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <a routerLink="/" class="text-lg font-semibold text-gray-900 tracking-tight">BetterLearn</a>
+      <div class="flex items-center gap-1">
+        <a routerLink="/" routerLinkActive="bg-blue-50 text-blue-600" [routerLinkActiveOptions]="{exact: true}"
+           class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors">Dashboard</a>
+        <a routerLink="/leetcode" routerLinkActive="bg-blue-50 text-blue-600"
+           class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors">LeetCode</a>
+        <a routerLink="/quiz" routerLinkActive="bg-blue-50 text-blue-600"
+           class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors">Quiz</a>
+      </div>
     </div>
-    <button (click)="logout()" class="text-sm text-gray-500 hover:text-gray-700">Logout</button>
+    <button (click)="logout()"
+            class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+      Logout
+    </button>
   </nav>
 }
