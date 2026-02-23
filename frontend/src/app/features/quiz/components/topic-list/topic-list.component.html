@@ -62,7 +62,7 @@
 
       <!-- Rows -->
       @for (topic of filteredTopics; track topic.id) {
-        <div class="grid grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
+        <div [class]="'grid grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Topic name -->
           <div class="min-w-0">
             <button (click)="toggleExpand(topic, $event)"
