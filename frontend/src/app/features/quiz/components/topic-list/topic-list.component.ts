@@ -16,6 +16,7 @@ export class TopicListComponent implements OnInit {
   private router = inject(Router);
 
   topics: QuizTopic[] = [];
+  loading = true;
   activeTab: 'due' | 'all' = 'due';
   showAddForm = false;
   addName = '';
@@ -38,6 +39,7 @@ export class TopicListComponent implements OnInit {
   loadTopics() {
     this.quizService.findAll().subscribe(topics => {
       this.topics = topics;
+      this.loading = false;
     });
   }
 

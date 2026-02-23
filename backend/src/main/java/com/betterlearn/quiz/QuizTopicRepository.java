@@ -14,4 +14,6 @@ public interface QuizTopicRepository extends JpaRepository<QuizTopic, Long> {
     List<QuizTopic> findDueByUserId(Long userId);
 
     boolean existsByUserIdAndName(Long userId, String name);
+
+    long countByUserIdAndStatus(Long userId, String status);
 }

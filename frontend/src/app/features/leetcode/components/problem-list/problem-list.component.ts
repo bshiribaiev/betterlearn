@@ -15,6 +15,7 @@ export class ProblemListComponent implements OnInit {
   private leetcodeService = inject(LeetcodeService);
 
   problems: Problem[] = [];
+  loading = true;
   activeTab: 'due' | 'all' = 'due';
   showAddForm = false;
   reviewingProblem: Problem | null = null;
@@ -49,6 +50,7 @@ export class ProblemListComponent implements OnInit {
   loadProblems() {
     this.leetcodeService.findAll().subscribe(problems => {
       this.problems = problems;
+      this.loading = false;
     });
   }
 

@@ -14,4 +14,6 @@ public interface LeetcodeRepository extends JpaRepository<LeetcodeProblem, Long>
     List<LeetcodeProblem> findDueByUserId(Long userId);
 
     boolean existsByUserIdAndUrl(Long userId, String url);
+
+    long countByUserIdAndStatus(Long userId, String status);
 }

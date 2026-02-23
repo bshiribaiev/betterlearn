@@ -8,9 +8,11 @@ import { QuizTopic } from '../quiz/models/quiz.model';
 interface DashboardData {
   dueCount: number;
   totalCount: number;
+  masteredProblems: number;
   dueProblems: Problem[];
   quizDueCount: number;
   quizTotalCount: number;
+  masteredTopics: number;
   dueTopics: QuizTopic[];
 }
 
@@ -22,23 +24,26 @@ interface DashboardData {
     <div class="max-w-5xl mx-auto px-6 py-8">
       <h1 class="text-2xl font-semibold text-gray-900 mb-8">Dashboard</h1>
 
+      @if (loading) {
+        <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
+      } @else {
       <!-- Stats -->
-      <div class="grid grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div class="bg-white border border-gray-100 rounded-xl p-5">
           <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">LeetCode Due</p>
           <p class="text-2xl font-semibold" [class]="data?.dueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.dueCount ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Total Problems</p>
-          <p class="text-2xl font-semibold text-gray-900">{{ data?.totalCount ?? '-' }}</p>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Mastered Problems</p>
+          <p class="text-2xl font-semibold text-emerald-500">{{ data?.masteredProblems ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
           <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Quiz Due</p>
           <p class="text-2xl font-semibold" [class]="data?.quizDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.quizDueCount ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Total Topics</p>
-          <p class="text-2xl font-semibold text-gray-900">{{ data?.quizTotalCount ?? '-' }}</p>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Mastered Topics</p>
+          <p class="text-2xl font-semibold text-emerald-500">{{ data?.masteredTopics ?? '-' }}</p>
         </div>
       </div>
 
@@ -91,16 +96,19 @@ interface DashboardData {
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>
       }
+      }
     </div>
   `
 })
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
   data: DashboardData | null = null;
+  loading = true;
 
   ngOnInit() {
     this.http.get<DashboardData>('/api/dashboard').subscribe(data => {
       this.data = data;
+      this.loading = false;
     });
   }
 }

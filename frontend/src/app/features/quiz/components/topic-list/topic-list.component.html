@@ -1,6 +1,9 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
   <h1 class="text-2xl font-semibold text-gray-900 mb-8">Quiz Topics</h1>
 
+  @if (loading) {
+    <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
+  } @else {
   <!-- Tabs + Add button -->
   <div class="flex items-center justify-between mb-6">
     <div class="flex gap-1">
@@ -53,16 +56,16 @@
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <div class="grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Topic</span>
-        <span>Status</span>
+        <span class="hidden sm:inline">Status</span>
         <span>Next Review</span>
         <span></span>
       </div>
 
       <!-- Rows -->
       @for (topic of filteredTopics; track topic.id) {
-        <div [class]="'grid grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+        <div [class]="'grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Topic name -->
           <div class="min-w-0">
             <button (click)="toggleExpand(topic, $event)"
@@ -72,7 +75,7 @@
           </div>
 
           <!-- Status -->
-          <span [class]="'text-sm font-medium ' + statusColor(topic)">
+          <span [class]="'text-sm font-medium hidden sm:inline ' + statusColor(topic)">
             {{ statusLabel(topic) }}
           </span>
 
@@ -125,6 +128,7 @@
         }
       }
     </div>
+  }
   }
 </div>
 
