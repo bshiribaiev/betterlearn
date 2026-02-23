@@ -1,6 +1,6 @@
 package com.betterlearn.vocabulary;
 
-import com.betterlearn.user.User;
+import com.betterlearn.quiz.QuizTopic;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -15,8 +15,8 @@ public class VocabularyWord {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "topic_id", nullable = false)
+    private QuizTopic topic;
 
     @Column(nullable = false, length = 200)
     private String word;
@@ -47,8 +47,8 @@ public class VocabularyWord {
 
     protected VocabularyWord() {}
 
-    public VocabularyWord(User user, String word, String definition) {
-        this.user = user;
+    public VocabularyWord(QuizTopic topic, String word, String definition) {
+        this.topic = topic;
         this.word = word;
         this.definition = definition;
     }
@@ -59,7 +59,7 @@ public class VocabularyWord {
     }
 
     public Long getId() { return id; }
-    public User getUser() { return user; }
+    public QuizTopic getTopic() { return topic; }
     public String getWord() { return word; }
     public String getDefinition() { return definition; }
     public double getEasinessFactor() { return easinessFactor; }

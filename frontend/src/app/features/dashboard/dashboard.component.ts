@@ -11,13 +11,10 @@ interface DashboardData {
   totalCount: number;
   masteredProblems: number;
   dueProblems: Problem[];
-  conceptsDueCount: number;
-  conceptsTotalCount: number;
-  masteredConcepts: number;
+  topicsDueCount: number;
+  topicsTotalCount: number;
+  masteredTopicItems: number;
   dueConcepts: QuizConcept[];
-  vocabDueCount: number;
-  vocabTotalCount: number;
-  masteredWords: number;
   dueWords: Word[];
 }
 
@@ -33,18 +30,14 @@ interface DashboardData {
         <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
       } @else {
       <!-- Stats -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+      <div class="grid grid-cols-2 gap-4 mb-8">
         <div class="bg-white border border-gray-100 rounded-xl p-5">
           <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">LeetCode Due</p>
           <p class="text-2xl font-semibold" [class]="data?.dueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.dueCount ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Concepts Due</p>
-          <p class="text-2xl font-semibold" [class]="data?.conceptsDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.conceptsDueCount ?? '-' }}</p>
-        </div>
-        <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Vocab Due</p>
-          <p class="text-2xl font-semibold" [class]="data?.vocabDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.vocabDueCount ?? '-' }}</p>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Topics Due</p>
+          <p class="text-2xl font-semibold" [class]="data?.topicsDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.topicsDueCount ?? '-' }}</p>
         </div>
       </div>
 
@@ -95,12 +88,12 @@ interface DashboardData {
       <!-- Due words -->
       @if (data && data.dueWords.length > 0) {
         <div class="mb-8">
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Vocab — Needs Review</h2>
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Terms — Needs Review</h2>
           <div class="space-y-2">
             @for (word of data.dueWords; track word.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
                 <span class="text-sm font-medium text-gray-900 truncate">{{ word.word }}</span>
-                <a routerLink="/vocabulary"
+                <a [routerLink]="['/quiz', word.topicId, 'concepts']"
                    class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Review
                 </a>

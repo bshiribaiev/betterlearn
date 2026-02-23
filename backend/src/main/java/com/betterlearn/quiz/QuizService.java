@@ -166,7 +166,7 @@ public class QuizService {
 
     // --- Ownership checks ---
 
-    private QuizTopic findOwnedTopic(Long userId, Long topicId) {
+    public QuizTopic findOwnedTopic(Long userId, Long topicId) {
         QuizTopic topic = topicRepo.findById(topicId)
                 .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
 

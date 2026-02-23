@@ -6,7 +6,6 @@ import com.betterlearn.leetcode.dto.ProblemResponse;
 import com.betterlearn.quiz.QuizConceptRepository;
 import com.betterlearn.quiz.QuizService;
 import com.betterlearn.quiz.dto.ConceptResponse;
-import com.betterlearn.vocabulary.VocabularyRepository;
 import com.betterlearn.vocabulary.VocabularyService;
 import com.betterlearn.vocabulary.dto.WordResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,34 +24,39 @@ public class DashboardController {
     private final VocabularyService vocabularyService;
     private final LeetcodeRepository leetcodeRepository;
     private final QuizConceptRepository quizConceptRepository;
-    private final VocabularyRepository vocabularyRepository;
 
     public DashboardController(LeetcodeService leetcodeService, QuizService quizService,
                                VocabularyService vocabularyService,
                                LeetcodeRepository leetcodeRepository,
-                               QuizConceptRepository quizConceptRepository,
-                               VocabularyRepository vocabularyRepository) {
+                               QuizConceptRepository quizConceptRepository) {
         this.leetcodeService = leetcodeService;
         this.quizService = quizService;
         this.vocabularyService = vocabularyService;
         this.leetcodeRepository = leetcodeRepository;
         this.quizConceptRepository = quizConceptRepository;
-        this.vocabularyRepository = vocabularyRepository;
     }
 
     @GetMapping
     public DashboardResponse getDashboard(@RequestAttribute Long userId) {
+        // LeetCode
         List<ProblemResponse> due = leetcodeService.findDue(userId);
         List<ProblemResponse> all = leetcodeService.findAll(userId);
         int masteredProblems = (int) leetcodeRepository.countByUserIdAndStatus(userId, "mastered");
+
+        // Topics: concepts + vocab combined
         List<ConceptResponse> conceptsDue = quizService.findDueConcepts(userId);
+        List<WordResponse> wordsDue = vocabularyService.findDueForUser(userId);
         long conceptsTotal = quizConceptRepository.countByTopicUserId(userId);
+        long wordsTotal = vocabularyService.countForUser(userId);
         int masteredConcepts = (int) quizConceptRepository.countByTopicUserIdAndStatus(userId, "mastered");
-        List<WordResponse> vocabDue = vocabularyService.findDue(userId);
-        List<WordResponse> vocabAll = vocabularyService.findAll(userId);
-        int masteredWords = (int) vocabularyRepository.countByUserIdAndStatus(userId, "mastered");
+        int masteredWords = (int) vocabularyService.countByStatusForUser(userId, "mastered");
+
+        int topicsDueCount = conceptsDue.size() + wordsDue.size();
+        int topicsTotalCount = (int) (conceptsTotal + wordsTotal);
+        int masteredTopicItems = masteredConcepts + masteredWords;
+
         return new DashboardResponse(due.size(), all.size(), masteredProblems, due,
-                conceptsDue.size(), (int) conceptsTotal, masteredConcepts, conceptsDue,
-                vocabDue.size(), vocabAll.size(), masteredWords, vocabDue);
+                topicsDueCount, topicsTotalCount, masteredTopicItems,
+                conceptsDue, wordsDue);
     }
 }

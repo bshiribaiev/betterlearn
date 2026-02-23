@@ -5,33 +5,28 @@ import { Word, WordCreate, ReviewEntry } from '../models/vocabulary.model';
 @Injectable({ providedIn: 'root' })
 export class VocabularyService {
   private http = inject(HttpClient);
-  private base = '/api/vocabulary';
 
-  findAll() {
-    return this.http.get<Word[]>(this.base);
+  findByTopic(topicId: number) {
+    return this.http.get<Word[]>(`/api/quiz/topics/${topicId}/words`);
   }
 
-  findDue() {
-    return this.http.get<Word[]>(`${this.base}/due`);
-  }
-
-  create(request: WordCreate) {
-    return this.http.post<Word>(this.base, request);
+  create(topicId: number, request: WordCreate) {
+    return this.http.post<Word>(`/api/quiz/topics/${topicId}/words`, request);
   }
 
   update(id: number, data: { word?: string; definition?: string }) {
-    return this.http.put<Word>(`${this.base}/${id}`, data);
+    return this.http.put<Word>(`/api/quiz/words/${id}`, data);
   }
 
   delete(id: number) {
-    return this.http.delete<void>(`${this.base}/${id}`);
+    return this.http.delete<void>(`/api/quiz/words/${id}`);
   }
 
   submitReview(id: number, quality: number) {
-    return this.http.post<Word>(`${this.base}/${id}/review`, { quality });
+    return this.http.post<Word>(`/api/quiz/words/${id}/review`, { quality });
   }
 
   getHistory(id: number) {
-    return this.http.get<ReviewEntry[]>(`${this.base}/${id}/history`);
+    return this.http.get<ReviewEntry[]>(`/api/quiz/words/${id}/history`);
   }
 }

@@ -11,12 +11,9 @@ public record DashboardResponse(
         int totalCount,
         int masteredProblems,
         List<ProblemResponse> dueProblems,
-        int conceptsDueCount,
-        int conceptsTotalCount,
-        int masteredConcepts,
+        int topicsDueCount,
+        int topicsTotalCount,
+        int masteredTopicItems,
         List<ConceptResponse> dueConcepts,
-        int vocabDueCount,
-        int vocabTotalCount,
-        int masteredWords,
         List<WordResponse> dueWords
 ) {}

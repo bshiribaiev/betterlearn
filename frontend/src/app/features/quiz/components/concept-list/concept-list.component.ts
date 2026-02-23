@@ -1,25 +1,31 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept, QuizSession } from '../../models/quiz.model';
+import { VocabularyService } from '../../../vocabulary/services/vocabulary.service';
+import { WordListComponent } from '../../../vocabulary/components/word-list/word-list.component';
 
 @Component({
   selector: 'app-concept-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, WordListComponent],
   templateUrl: './concept-list.component.html'
 })
 export class ConceptListComponent implements OnInit {
   private quizService = inject(QuizService);
+  private vocabService = inject(VocabularyService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  @ViewChild('wordList') wordList?: WordListComponent;
 
   topicId = 0;
   topicName = '';
   concepts: QuizConcept[] = [];
   loading = true;
+  activeSection: 'quizzes' | 'terms' = 'terms';
   activeTab: 'due' | 'all' = 'due';
   showAddForm = false;
   addName = '';
@@ -29,10 +35,14 @@ export class ConceptListComponent implements OnInit {
   generatingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
   private deleteTimer: any = null;
+  showTermForm = false;
+  termName = '';
+  termError = '';
 
   @HostListener('document:click')
   closeMenus() {
     this.showAddForm = false;
+    this.showTermForm = false;
   }
 
   ngOnInit() {
@@ -96,6 +106,11 @@ export class ConceptListComponent implements OnInit {
     }[concept.status] ?? 'text-gray-400';
   }
 
+  setTab(tab: 'due' | 'all') {
+    this.activeTab = tab;
+    if (this.wordList) this.wordList.activeTab = tab;
+  }
+
   toggleExpand(concept: QuizConcept, event: Event) {
     event.stopPropagation();
     if (this.expandedConceptId === concept.id) {
@@ -143,6 +158,28 @@ export class ConceptListComponent implements OnInit {
     if (!this.deletedConcept) return;
     this.quizService.deleteConcept(this.deletedConcept.id).subscribe();
     this.deletedConcept = null;
+  }
+
+  toggleTermAddForm(event: Event) {
+    event.stopPropagation();
+    this.showTermForm = !this.showTermForm;
+    this.termName = '';
+    this.termError = '';
+  }
+
+  submitTerm(event: Event) {
+    event.preventDefault();
+    if (!this.termName.trim()) return;
+    this.termError = '';
+
+    this.vocabService.create(this.topicId, { word: this.termName.trim() }).subscribe({
+      next: () => {
+        this.showTermForm = false;
+        this.termName = '';
+        if (this.wordList) this.wordList.loadWords();
+      },
+      error: (err) => this.termError = err.error?.detail || 'Failed to add term'
+    });
   }
 
   toggleAddForm(event: Event) {

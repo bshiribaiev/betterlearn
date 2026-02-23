@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VocabularyService } from '../../services/vocabulary.service';
@@ -12,6 +12,9 @@ import { Word } from '../../models/vocabulary.model';
 })
 export class WordListComponent implements OnInit {
   private vocabService = inject(VocabularyService);
+
+  @Input() topicId!: number;
+  @Input() showToolbar = true;
 
   words: Word[] = [];
   loading = true;
@@ -43,7 +46,7 @@ export class WordListComponent implements OnInit {
   }
 
   loadWords() {
-    this.vocabService.findAll().subscribe(words => {
+    this.vocabService.findByTopic(this.topicId).subscribe(words => {
       this.words = words;
       this.loading = false;
     });
@@ -175,7 +178,7 @@ export class WordListComponent implements OnInit {
     if (!this.addWord.trim()) return;
     this.addError = '';
 
-    this.vocabService.create({ word: this.addWord.trim() }).subscribe({
+    this.vocabService.create(this.topicId, { word: this.addWord.trim() }).subscribe({
       next: () => {
         this.showAddForm = false;
         this.addWord = '';

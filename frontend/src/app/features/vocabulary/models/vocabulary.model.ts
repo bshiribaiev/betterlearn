@@ -1,5 +1,6 @@
 export interface Word {
   id: number;
+  topicId: number;
   word: string;
   definition: string | null;
   nextReview: string;

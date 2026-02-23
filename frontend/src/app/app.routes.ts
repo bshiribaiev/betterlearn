@@ -8,8 +8,6 @@ import { TopicListComponent } from './features/quiz/components/topic-list/topic-
 import { ConceptListComponent } from './features/quiz/components/concept-list/concept-list.component';
 import { QuizSessionComponent } from './features/quiz/components/quiz-session/quiz-session.component';
 import { QuizResultsComponent } from './features/quiz/components/quiz-results/quiz-results.component';
-import { WordListComponent } from './features/vocabulary/components/word-list/word-list.component';
-
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
@@ -23,7 +21,6 @@ export const routes: Routes = [
       { path: 'quiz/:topicId/concepts', component: ConceptListComponent },
       { path: 'quiz/concepts/:conceptId/session', component: QuizSessionComponent },
       { path: 'quiz/concepts/:conceptId/results', component: QuizResultsComponent },
-      { path: 'vocabulary', component: WordListComponent },
     ]
   },
   { path: '**', redirectTo: '' }

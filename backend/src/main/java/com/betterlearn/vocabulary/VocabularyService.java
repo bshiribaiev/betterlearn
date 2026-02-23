@@ -1,9 +1,8 @@
 package com.betterlearn.vocabulary;
 
+import com.betterlearn.quiz.QuizTopic;
 import com.betterlearn.spacedrepetition.Sm2Result;
 import com.betterlearn.spacedrepetition.Sm2Service;
-import com.betterlearn.user.User;
-import com.betterlearn.user.UserRepository;
 import com.betterlearn.vocabulary.dto.ReviewResponse;
 import com.betterlearn.vocabulary.dto.WordCreateRequest;
 import com.betterlearn.vocabulary.dto.WordResponse;
@@ -18,49 +17,36 @@ public class VocabularyService {
 
     private final VocabularyRepository wordRepo;
     private final VocabularyReviewRepository reviewRepo;
-    private final UserRepository userRepo;
     private final Sm2Service sm2Service;
 
     public VocabularyService(VocabularyRepository wordRepo,
                              VocabularyReviewRepository reviewRepo,
-                             UserRepository userRepo,
                              Sm2Service sm2Service) {
         this.wordRepo = wordRepo;
         this.reviewRepo = reviewRepo;
-        this.userRepo = userRepo;
         this.sm2Service = sm2Service;
     }
 
-    public List<WordResponse> findAll(Long userId) {
-        return wordRepo.findAllByUserId(userId).stream()
-                .map(WordResponse::from)
-                .toList();
-    }
-
-    public List<WordResponse> findDue(Long userId) {
-        return wordRepo.findDueByUserId(userId).stream()
+    public List<WordResponse> findByTopic(Long topicId) {
+        return wordRepo.findAllByTopicId(topicId).stream()
                 .map(WordResponse::from)
                 .toList();
     }
 
     @Transactional
-    public WordResponse create(Long userId, WordCreateRequest request) {
-        if (wordRepo.existsByUserIdAndWord(userId, request.word().trim())) {
+    public WordResponse create(QuizTopic topic, WordCreateRequest request) {
+        if (wordRepo.existsByTopicIdAndWord(topic.getId(), request.word().trim())) {
             throw new IllegalArgumentException("Word already tracked: " + request.word());
         }
-
-        User user = userRepo.getReferenceById(userId);
-        VocabularyWord word = new VocabularyWord(user, request.word().trim(), null);
+        VocabularyWord word = new VocabularyWord(topic, request.word().trim(), null);
         return WordResponse.from(wordRepo.save(word));
     }
 
     @Transactional
     public WordResponse update(Long userId, Long wordId, WordUpdateRequest request) {
         VocabularyWord word = findOwnedWord(userId, wordId);
-
         if (request.word() != null) word.setWord(request.word());
         if (request.definition() != null) word.setDefinition(request.definition());
-
         return WordResponse.from(wordRepo.save(word));
     }
 
@@ -99,6 +85,7 @@ public class VocabularyService {
         return "mastered";
     }
 
+    @Transactional(readOnly = true)
     public List<ReviewResponse> getHistory(Long userId, Long wordId) {
         findOwnedWord(userId, wordId);
         return reviewRepo.findByWordIdOrderByReviewedAtDesc(wordId).stream()
@@ -106,11 +93,28 @@ public class VocabularyService {
                 .toList();
     }
 
+    // --- Dashboard queries ---
+
+    public List<WordResponse> findDueForUser(Long userId) {
+        return wordRepo.findDueByTopicUserId(userId).stream()
+                .map(WordResponse::from)
+                .toList();
+    }
+
+    public long countForUser(Long userId) {
+        return wordRepo.countByTopicUserId(userId);
+    }
+
+    public long countByStatusForUser(Long userId, String status) {
+        return wordRepo.countByTopicUserIdAndStatus(userId, status);
+    }
+
+    // --- Ownership ---
+
     private VocabularyWord findOwnedWord(Long userId, Long wordId) {
         VocabularyWord word = wordRepo.findById(wordId)
                 .orElseThrow(() -> new IllegalArgumentException("Word not found"));
-
-        if (!word.getUser().getId().equals(userId)) {
+        if (!word.getTopic().getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("Word not found");
         }
         return word;

@@ -1,6 +1,8 @@
 package com.betterlearn.quiz;
 
 import com.betterlearn.quiz.dto.*;
+import com.betterlearn.vocabulary.VocabularyService;
+import com.betterlearn.vocabulary.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +14,11 @@ import java.util.List;
 public class QuizController {
 
     private final QuizService quizService;
+    private final VocabularyService vocabularyService;
 
-    public QuizController(QuizService quizService) {
+    public QuizController(QuizService quizService, VocabularyService vocabularyService) {
         this.quizService = quizService;
+        this.vocabularyService = vocabularyService;
     }
 
     // --- Topics ---
@@ -82,5 +86,49 @@ public class QuizController {
     public List<SessionResponse> getConceptSessions(@RequestAttribute Long userId,
                                                      @PathVariable Long id) {
         return quizService.getConceptSessions(userId, id);
+    }
+
+    // --- Words (vocab under topic) ---
+
+    @GetMapping("/topics/{topicId}/words")
+    public List<WordResponse> findWords(@RequestAttribute Long userId,
+                                        @PathVariable Long topicId) {
+        quizService.findOwnedTopic(userId, topicId);
+        return vocabularyService.findByTopic(topicId);
+    }
+
+    @PostMapping("/topics/{topicId}/words")
+    @ResponseStatus(HttpStatus.CREATED)
+    public WordResponse createWord(@RequestAttribute Long userId,
+                                    @PathVariable Long topicId,
+                                    @Valid @RequestBody WordCreateRequest request) {
+        QuizTopic topic = quizService.findOwnedTopic(userId, topicId);
+        return vocabularyService.create(topic, request);
+    }
+
+    @PutMapping("/words/{id}")
+    public WordResponse updateWord(@RequestAttribute Long userId,
+                                    @PathVariable Long id,
+                                    @RequestBody WordUpdateRequest request) {
+        return vocabularyService.update(userId, id, request);
+    }
+
+    @DeleteMapping("/words/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteWord(@RequestAttribute Long userId, @PathVariable Long id) {
+        vocabularyService.delete(userId, id);
+    }
+
+    @PostMapping("/words/{id}/review")
+    public WordResponse submitWordReview(@RequestAttribute Long userId,
+                                          @PathVariable Long id,
+                                          @Valid @RequestBody ReviewRequest request) {
+        return vocabularyService.submitReview(userId, id, request.quality());
+    }
+
+    @GetMapping("/words/{id}/history")
+    public List<ReviewResponse> getWordHistory(@RequestAttribute Long userId,
+                                                @PathVariable Long id) {
+        return vocabularyService.getHistory(userId, id);
     }
 }
