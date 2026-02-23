@@ -7,6 +7,7 @@ import { ProblemListComponent } from './features/leetcode/components/problem-lis
 import { TopicListComponent } from './features/quiz/components/topic-list/topic-list.component';
 import { QuizSessionComponent } from './features/quiz/components/quiz-session/quiz-session.component';
 import { QuizResultsComponent } from './features/quiz/components/quiz-results/quiz-results.component';
+import { WordListComponent } from './features/vocabulary/components/word-list/word-list.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -20,6 +21,7 @@ export const routes: Routes = [
       { path: 'quiz', component: TopicListComponent },
       { path: 'quiz/:topicId/session', component: QuizSessionComponent },
       { path: 'quiz/:topicId/results', component: QuizResultsComponent },
+      { path: 'vocabulary', component: WordListComponent },
     ]
   },
   { path: '**', redirectTo: '' }

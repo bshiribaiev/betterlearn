@@ -1,18 +1,5 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
-  <!-- Header -->
-  <h1 class="text-2xl font-semibold text-gray-900 mb-8">LeetCode</h1>
-
-  <!-- Review dialog overlay (only for Review button) -->
-  @if (reviewingProblem) {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 flex items-center justify-center p-4"
-         (click)="reviewingProblem = null">
-      <div (click)="$event.stopPropagation()">
-        <app-review-dialog [problem]="reviewingProblem"
-                           (reviewed)="onReviewSubmitted()"
-                           (cancelled)="reviewingProblem = null" />
-      </div>
-    </div>
-  }
+  <h1 class="text-2xl font-semibold text-gray-900 mb-8">Vocabulary</h1>
 
   @if (loading) {
     <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
@@ -35,7 +22,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
-        Add Problem
+        Add Word
       </button>
 
       @if (showAddForm) {
@@ -44,30 +31,16 @@
           @if (addError) {
             <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
           }
-          <form (submit)="submitUrl($event)" class="space-y-3">
-            <input type="url" placeholder="Paste LeetCode URL..."
-                   [(ngModel)]="addUrl" name="url"
+          <form (submit)="submitWord($event)" class="space-y-3">
+            <input type="text" placeholder="Word or phrase..."
+                   [(ngModel)]="addWord" name="word"
                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
-            <div>
-              <label class="block text-xs font-medium text-gray-400 mb-1.5">Confidence</label>
-              <div class="flex gap-2">
-                <button type="button" (click)="addConfidence = 'low'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'low' ? 'bg-red-50 border-red-300 text-red-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Low
-                </button>
-                <button type="button" (click)="addConfidence = 'average'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'average' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Average
-                </button>
-                <button type="button" (click)="addConfidence = 'high'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'high' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  High
-                </button>
-              </div>
-            </div>
+            <input type="text" placeholder="Definition or synonym..."
+                   [(ngModel)]="addDefinition" name="definition"
+                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
             <button type="submit"
                     class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
-              Add Problem
+              Add Word
             </button>
           </form>
         </div>
@@ -76,48 +49,47 @@
   </div>
 
   <!-- Table -->
-  @if (filteredProblems.length === 0) {
+  @if (filteredWords.length === 0) {
     <div class="text-center py-16">
-      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No problems yet. Add your first one to start tracking.' }}</p>
+      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No words yet. Add your first one to start learning.' }}</p>
     </div>
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-        <span>Problem</span>
-        <span class="hidden sm:inline">Confidence</span>
+      <div class="grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_100px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+        <span>Word</span>
+        <span class="hidden sm:inline">Status</span>
         <span>Next Review</span>
         <span></span>
       </div>
 
       <!-- Rows -->
-      @for (problem of filteredProblems; track problem.id) {
-        <div [class]="'grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
-          <!-- Problem name + link icon -->
-          <div class="min-w-0 flex items-center gap-2">
-            <button (click)="toggleExpand(problem, $event)"
+      @for (word of filteredWords; track word.id) {
+        <div [class]="'grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_100px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+          <!-- Word -->
+          <div class="min-w-0">
+            <button (click)="toggleExpand(word, $event)"
                     class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
-              {{ problem.title }}
+              {{ word.word }}
             </button>
-            <a [href]="problem.url" target="_blank" rel="noopener"
-               class="flex-shrink-0 text-gray-300 hover:text-blue-500 transition-colors">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-              </svg>
-            </a>
           </div>
 
-          <!-- Confidence (inline popover) -->
-          <div class="relative hidden sm:block">
-            <button (click)="toggleConfidenceMenu(problem)"
-                    [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + confidenceColor(problem)">
-              {{ confidenceLabel(problem) }}
+          <!-- Status -->
+          <span [class]="'text-sm font-medium hidden sm:inline ' + statusColor(word)">
+            {{ statusLabel(word) }}
+          </span>
+
+          <!-- Next review -->
+          <div class="relative">
+            <button (click)="toggleRatingMenu(word)"
+                    [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + nextReviewColor(word)">
+              {{ nextReviewLabel(word) }}
             </button>
 
-            @if (confidenceMenuProblem?.id === problem.id) {
+            @if (ratingMenuWord?.id === word.id) {
               <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[140px]">
                 @for (btn of ratingOptions; track btn.quality) {
-                  <button (click)="quickRate(problem, btn.quality)"
+                  <button (click)="quickRate(word, btn.quality)"
                           [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ' + btn.color">
                     <span>{{ btn.label }}</span>
                     <span class="text-[10px] text-gray-300">{{ btn.desc }}</span>
@@ -127,18 +99,9 @@
             }
           </div>
 
-          <!-- Next review -->
-          <span [class]="'text-sm font-medium ' + nextReviewColor(problem)">
-            {{ nextReviewLabel(problem) }}
-          </span>
-
-          <!-- Review button — opens URL + shows dialog -->
-          <div class="justify-self-end flex items-center gap-2">
-            <button (click)="openAndReview(problem)"
-                    class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 hover:shadow-md transition-all cursor-pointer">
-              Review
-            </button>
-            <button (click)="deleteProblem(problem)"
+          <!-- Delete button -->
+          <div class="justify-self-end">
+            <button (click)="deleteWord(word)"
                     class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -148,18 +111,17 @@
         </div>
 
         <!-- Expanded detail panel -->
-        @if (expandedProblemId === problem.id) {
+        @if (expandedWordId === word.id) {
           <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200">
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Title</label>
-                <input [(ngModel)]="editTitle" (blur)="saveEdit(problem)"
+                <label class="block text-xs font-medium text-gray-400 mb-1">Word</label>
+                <input [(ngModel)]="editWord" (blur)="saveEdit(word)"
                        class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
-                <input [(ngModel)]="editNotes" (blur)="saveEdit(problem)"
-                       placeholder="Add notes..."
+                <label class="block text-xs font-medium text-gray-400 mb-1">Definition</label>
+                <input [(ngModel)]="editDefinition" (blur)="saveEdit(word)"
                        class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
               </div>
             </div>
@@ -188,9 +150,9 @@
 </div>
 
 <!-- Undo delete toast -->
-@if (deletedProblem) {
+@if (deletedWord) {
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-lg">
-    <span>Deleted "{{ deletedProblem.title }}"</span>
+    <span>Deleted "{{ deletedWord.word }}"</span>
     <button (click)="undoDelete()"
             class="font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
       Undo

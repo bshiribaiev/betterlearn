@@ -11,7 +11,7 @@
 
   <div class="space-y-6">
     @for (q of questions; track $index; let i = $index) {
-      <div class="bg-white border border-gray-100 rounded-xl p-5">
+      <div class="pb-6 border-b border-gray-100 last:border-b-0">
         <p class="text-sm font-medium text-gray-900 mb-4">
           <span class="text-gray-400 mr-2">{{ i + 1 }}.</span>{{ q.question }}
         </p>
