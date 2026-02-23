@@ -32,7 +32,7 @@ public class LeetcodeService {
     }
 
     public List<ProblemResponse> findAll(Long userId) {
-        return problemRepo.findByUserIdOrderByNextReviewAsc(userId).stream()
+        return problemRepo.findAllByUserId(userId).stream()
                 .map(ProblemResponse::from)
                 .toList();
     }

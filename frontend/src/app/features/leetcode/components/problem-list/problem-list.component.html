@@ -31,7 +31,7 @@
     </div>
     <div class="relative">
       <button (click)="toggleAddForm($event)"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-xl hover:bg-sky-600 transition-colors shadow-sm">
+              class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -83,7 +83,7 @@
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+      <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Problem</span>
         <span>Confidence</span>
         <span>Next Review</span>
@@ -92,10 +92,13 @@
 
       <!-- Rows -->
       @for (problem of filteredProblems; track problem.id) {
-        <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+        <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
           <!-- Problem name + link icon -->
           <div class="min-w-0 flex items-center gap-2">
-            <span class="text-sm font-medium text-gray-900 truncate">{{ problem.title }}</span>
+            <button (click)="toggleExpand(problem, $event)"
+                    class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
+              {{ problem.title }}
+            </button>
             <a [href]="problem.url" target="_blank" rel="noopener"
                class="flex-shrink-0 text-gray-300 hover:text-blue-500 transition-colors">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,6 +146,41 @@
             </button>
           </div>
         </div>
+
+        <!-- Expanded detail panel -->
+        @if (expandedProblemId === problem.id) {
+          <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Title</label>
+                <input [(ngModel)]="editTitle" (blur)="saveEdit(problem)"
+                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
+                <input [(ngModel)]="editNotes" (blur)="saveEdit(problem)"
+                       placeholder="Add notes..."
+                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-2">Review History</label>
+              @if (reviewHistory.length === 0) {
+                <p class="text-xs text-gray-400">No reviews yet.</p>
+              } @else {
+                <div class="flex flex-wrap gap-2">
+                  @for (entry of reviewHistory; track entry.id) {
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs">
+                      <span [class]="'font-medium ' + qualityColor(entry.quality)">{{ qualityLabel(entry.quality) }}</span>
+                      <span class="text-gray-300">{{ entry.reviewedAt | date:'MMM d' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
       }
     </div>
   }

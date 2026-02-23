@@ -2,7 +2,7 @@ import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeetcodeService } from '../../services/leetcode.service';
-import { Problem } from '../../models/problem.model';
+import { Problem, ReviewEntry } from '../../models/problem.model';
 import { ReviewDialogComponent } from '../review-dialog/review-dialog.component';
 
 @Component({
@@ -22,6 +22,10 @@ export class ProblemListComponent implements OnInit {
   addUrl = '';
   addConfidence = 'average';
   addError = '';
+  expandedProblemId: number | null = null;
+  reviewHistory: ReviewEntry[] = [];
+  editTitle = '';
+  editNotes = '';
   deletedProblem: Problem | null = null;
   private deleteTimer: any = null;
 
@@ -136,6 +140,40 @@ export class ProblemListComponent implements OnInit {
     if (!this.deletedProblem) return;
     this.leetcodeService.delete(this.deletedProblem.id).subscribe();
     this.deletedProblem = null;
+  }
+
+  toggleExpand(problem: Problem, event: Event) {
+    event.stopPropagation();
+    if (this.expandedProblemId === problem.id) {
+      this.expandedProblemId = null;
+      return;
+    }
+    this.expandedProblemId = problem.id;
+    this.editTitle = problem.title;
+    this.editNotes = problem.notes ?? '';
+    this.reviewHistory = [];
+    this.leetcodeService.getHistory(problem.id).subscribe(history => {
+      this.reviewHistory = history;
+    });
+  }
+
+  saveEdit(problem: Problem) {
+    const updates: { title?: string; notes?: string } = {};
+    if (this.editTitle !== problem.title) updates.title = this.editTitle;
+    if (this.editNotes !== (problem.notes ?? '')) updates.notes = this.editNotes;
+    if (!Object.keys(updates).length) return;
+
+    this.leetcodeService.update(problem.id, updates).subscribe(() => {
+      this.loadProblems();
+    });
+  }
+
+  qualityLabel(quality: number): string {
+    return { 1: 'Again', 2: 'Hard', 3: 'Good', 5: 'Easy' }[quality] ?? `Q${quality}`;
+  }
+
+  qualityColor(quality: number): string {
+    return { 1: 'text-red-500', 2: 'text-orange-500', 3: 'text-blue-500', 5: 'text-emerald-500' }[quality] ?? 'text-gray-500';
   }
 
   openAndReview(problem: Problem) {
