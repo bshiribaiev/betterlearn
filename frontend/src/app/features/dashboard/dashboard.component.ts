@@ -3,11 +3,15 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
+import { QuizTopic } from '../quiz/models/quiz.model';
 
 interface DashboardData {
   dueCount: number;
   totalCount: number;
   dueProblems: Problem[];
+  quizDueCount: number;
+  quizTotalCount: number;
+  dueTopics: QuizTopic[];
 }
 
 @Component({
@@ -19,9 +23,9 @@ interface DashboardData {
       <h1 class="text-2xl font-semibold text-gray-900 mb-8">Dashboard</h1>
 
       <!-- Stats -->
-      <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="grid grid-cols-4 gap-4 mb-8">
         <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Due Today</p>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">LeetCode Due</p>
           <p class="text-2xl font-semibold" [class]="data?.dueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.dueCount ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
@@ -29,15 +33,19 @@ interface DashboardData {
           <p class="text-2xl font-semibold text-gray-900">{{ data?.totalCount ?? '-' }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">All Caught Up</p>
-          <p class="text-2xl font-semibold text-emerald-500">{{ data && data.dueCount === 0 ? 'Yes' : 'No' }}</p>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Quiz Due</p>
+          <p class="text-2xl font-semibold" [class]="data?.quizDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.quizDueCount ?? '-' }}</p>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Total Topics</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ data?.quizTotalCount ?? '-' }}</p>
         </div>
       </div>
 
       <!-- Due problems -->
       @if (data && data.dueProblems.length > 0) {
-        <div>
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Needs Review</h2>
+        <div class="mb-8">
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode — Needs Review</h2>
           <div class="space-y-2">
             @for (problem of data.dueProblems; track problem.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
@@ -58,7 +66,27 @@ interface DashboardData {
             }
           </div>
         </div>
-      } @else if (data) {
+      }
+
+      <!-- Due topics -->
+      @if (data && data.dueTopics.length > 0) {
+        <div class="mb-8">
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Quiz — Needs Review</h2>
+          <div class="space-y-2">
+            @for (topic of data.dueTopics; track topic.id) {
+              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
+                <span class="text-sm font-medium text-gray-900 truncate">{{ topic.name }}</span>
+                <a routerLink="/quiz"
+                   class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
+                  Quiz
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (data && data.dueProblems.length === 0 && data.dueTopics.length === 0) {
         <div class="text-center py-12">
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>

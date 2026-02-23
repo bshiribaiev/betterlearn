@@ -1,0 +1,43 @@
+<div class="max-w-3xl mx-auto px-6 py-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">Quiz</h1>
+      @if (topicName) {
+        <p class="text-sm text-gray-400 mt-1">{{ topicName }}</p>
+      }
+    </div>
+    <span class="text-sm text-gray-400">{{ answeredCount }} / {{ questions.length }} answered</span>
+  </div>
+
+  <div class="space-y-6">
+    @for (q of questions; track $index; let i = $index) {
+      <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <p class="text-sm font-medium text-gray-900 mb-4">
+          <span class="text-gray-400 mr-2">{{ i + 1 }}.</span>{{ q.question }}
+        </p>
+        <div class="space-y-2">
+          @for (option of q.options; track $index; let j = $index) {
+            <button (click)="selectAnswer(i, j)"
+                    [class]="'w-full text-left px-4 py-3 text-sm rounded-lg border transition-all ' +
+                      (answers[i] === j
+                        ? 'bg-sky-50 border-sky-300 text-sky-700 font-medium'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50')">
+              <span class="text-gray-400 mr-2">{{ ['A', 'B', 'C', 'D'][j] }}.</span>{{ option }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="mt-8 flex justify-end">
+    <button (click)="submitQuiz()"
+            [disabled]="!allAnswered || submitting"
+            [class]="'px-6 py-2.5 text-sm font-medium rounded-lg transition-all ' +
+              (allAnswered && !submitting
+                ? 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed')">
+      {{ submitting ? 'Submitting...' : 'Submit Answers' }}
+    </button>
+  </div>
+</div>

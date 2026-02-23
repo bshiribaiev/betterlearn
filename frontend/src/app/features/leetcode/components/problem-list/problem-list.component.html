@@ -92,7 +92,7 @@
 
       <!-- Rows -->
       @for (problem of filteredProblems; track problem.id) {
-        <div class="grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
+        <div [class]="'grid grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Problem name + link icon -->
           <div class="min-w-0 flex items-center gap-2">
             <button (click)="toggleExpand(problem, $event)"

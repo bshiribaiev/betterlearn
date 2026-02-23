@@ -1,0 +1,49 @@
+<div class="max-w-3xl mx-auto px-6 py-8">
+  @if (session) {
+    <!-- Score header -->
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-semibold text-gray-900 mb-2">Quiz Results</h1>
+      @if (topicName) {
+        <p class="text-sm text-gray-400 mb-4">{{ topicName }}</p>
+      }
+      <p [class]="'text-5xl font-bold ' + scoreColor()">{{ scorePercent }}%</p>
+      <p class="text-sm text-gray-400 mt-2">{{ session.correctAnswers }} of {{ session.totalQuestions }} correct</p>
+    </div>
+
+    <!-- Questions review -->
+    <div class="space-y-4 mb-8">
+      @for (q of questions; track $index; let i = $index) {
+        <div [class]="'border rounded-xl p-5 ' + (isCorrect(i) ? 'border-emerald-200 bg-emerald-50/30' : 'border-red-200 bg-red-50/30')">
+          <div class="flex items-start gap-2 mb-3">
+            <span [class]="'flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white ' + (isCorrect(i) ? 'bg-emerald-500' : 'bg-red-500')">
+              {{ isCorrect(i) ? '&#10003;' : '&#10007;' }}
+            </span>
+            <p class="text-sm font-medium text-gray-900">{{ q.question }}</p>
+          </div>
+
+          <div class="ml-7 space-y-1.5">
+            @for (option of q.options; track $index; let j = $index) {
+              <div [class]="'text-sm px-3 py-1.5 rounded-lg ' +
+                (j === q.correctIndex ? 'bg-emerald-100 text-emerald-700 font-medium' :
+                 j === answers[i] && j !== q.correctIndex ? 'bg-red-100 text-red-700' :
+                 'text-gray-500')">
+                <span class="text-gray-400 mr-1.5">{{ ['A', 'B', 'C', 'D'][j] }}.</span>{{ option }}
+              </div>
+            }
+          </div>
+
+          @if (q.explanation) {
+            <p class="ml-7 mt-3 text-xs text-gray-500 italic">{{ q.explanation }}</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-center">
+      <a routerLink="/quiz"
+         class="px-6 py-2.5 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
+        Back to Topics
+      </a>
+    </div>
+  }
+</div>

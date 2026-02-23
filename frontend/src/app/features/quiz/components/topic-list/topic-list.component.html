@@ -1,0 +1,140 @@
+<div class="max-w-5xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-semibold text-gray-900 mb-8">Quiz Topics</h1>
+
+  <!-- Tabs + Add button -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex gap-1">
+      <button (click)="activeTab = 'due'"
+              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
+        Due
+        @if (dueCount > 0) {
+          <span class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{{ dueCount }}</span>
+        }
+      </button>
+      <button (click)="activeTab = 'all'"
+              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'all' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
+        All
+      </button>
+    </div>
+    <div class="relative">
+      <button (click)="toggleAddForm($event)"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Topic
+      </button>
+
+      @if (showAddForm) {
+        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
+             (click)="$event.stopPropagation()">
+          @if (addError) {
+            <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
+          }
+          <form (submit)="submitTopic($event)" class="space-y-3">
+            <input type="text" placeholder="Topic name (e.g. Load Balancing)..."
+                   [(ngModel)]="addName" name="name"
+                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
+            <button type="submit"
+                    class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
+              Add Topic
+            </button>
+          </form>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Table -->
+  @if (filteredTopics.length === 0) {
+    <div class="text-center py-16">
+      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No topics yet. Add your first one to start quizzing.' }}</p>
+    </div>
+  } @else {
+    <div>
+      <!-- Table header -->
+      <div class="grid grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+        <span>Topic</span>
+        <span>Status</span>
+        <span>Next Review</span>
+        <span></span>
+      </div>
+
+      <!-- Rows -->
+      @for (topic of filteredTopics; track topic.id) {
+        <div class="grid grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 border-b border-gray-200 hover:bg-gray-50/50 transition-colors">
+          <!-- Topic name -->
+          <div class="min-w-0">
+            <button (click)="toggleExpand(topic, $event)"
+                    class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
+              {{ topic.name }}
+            </button>
+          </div>
+
+          <!-- Status -->
+          <span [class]="'text-sm font-medium ' + statusColor(topic)">
+            {{ statusLabel(topic) }}
+          </span>
+
+          <!-- Next review -->
+          <span [class]="'text-sm font-medium ' + nextReviewColor(topic)">
+            {{ nextReviewLabel(topic) }}
+          </span>
+
+          <!-- Actions -->
+          <div class="justify-self-end flex items-center gap-2">
+            <button (click)="generateQuiz(topic, $event)"
+                    [disabled]="generatingTopicId === topic.id"
+                    [class]="'px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingTopicId === topic.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md')">
+              {{ generatingTopicId === topic.id ? 'Generating...' : 'Quiz' }}
+            </button>
+            <button (click)="deleteTopic(topic, $event)"
+                    class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Expanded detail panel -->
+        @if (expandedTopicId === topic.id) {
+          <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200">
+            <div class="flex gap-6 mb-4 text-xs text-gray-500">
+              <span>EF: {{ topic.easinessFactor | number:'1.2-2' }}</span>
+              <span>Interval: {{ topic.intervalDays }}d</span>
+              <span>Reviews: {{ topic.totalReviews }}</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-2">Session History</label>
+              @if (sessionHistory.length === 0) {
+                <p class="text-xs text-gray-400">No sessions yet.</p>
+              } @else {
+                <div class="flex flex-wrap gap-2">
+                  @for (session of sessionHistory; track session.id) {
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs">
+                      <span [class]="'font-medium ' + qualityColor(session.quality)">{{ session.correctAnswers }}/{{ session.totalQuestions }}</span>
+                      <span class="text-gray-300">{{ session.takenAt | date:'MMM d' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
+
+<!-- Undo delete toast -->
+@if (deletedTopic) {
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-lg">
+    <span>Deleted "{{ deletedTopic.name }}"</span>
+    <button (click)="undoDelete()"
+            class="font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
+      Undo
+    </button>
+  </div>
+}
