@@ -26,7 +26,7 @@ export class RegisterComponent {
     this.error = '';
 
     this.authService.register(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigate(['/']),
+      next: () => this.router.navigate(['/dashboard']),
       error: (err) => this.error = err.error?.detail || 'Registration failed'
     });
   }

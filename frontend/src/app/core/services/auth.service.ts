@@ -48,7 +48,7 @@ export class AuthService {
   logout() {
     localStorage.removeItem(this.tokenKey);
     this.loggedIn$.next(false);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   getToken(): string | null {
@@ -57,6 +57,10 @@ export class AuthService {
 
   private hasToken(): boolean {
     return !!localStorage.getItem(this.tokenKey);
+  }
+
+  storeTokenFromOAuth(token: string) {
+    this.storeToken(token);
   }
 
   private storeToken(token: string) {

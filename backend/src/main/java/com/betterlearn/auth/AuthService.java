@@ -41,6 +41,10 @@ public class AuthService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
+        if (user.getPassword() == null) {
+            throw new IllegalArgumentException("This account uses Google sign-in");
+        }
+
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
@@ -53,6 +57,16 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return toUserInfo(user);
+    }
+
+    public AuthResponse loginWithGoogle(String email, String displayName) {
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = User.googleUser(email, displayName);
+            return userRepository.save(newUser);
+        });
+
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
+        return new AuthResponse(token, toUserInfo(user));
     }
 
     private UserInfo toUserInfo(User user) {

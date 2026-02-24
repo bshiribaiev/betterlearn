@@ -25,7 +25,7 @@ export class LoginComponent {
     this.error = '';
 
     this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigate(['/']),
+      next: () => this.router.navigate(['/dashboard']),
       error: (err) => this.error = err.error?.detail || 'Login failed'
     });
   }
