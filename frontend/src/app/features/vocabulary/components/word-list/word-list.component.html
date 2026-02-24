@@ -2,7 +2,6 @@
   <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
 } @else {
 @if (showToolbar) {
-<!-- Tabs + Add button -->
 <div class="flex items-center justify-between mb-6">
   <div class="flex gap-1">
     <button (click)="activeTab = 'due'"
@@ -14,74 +13,98 @@
       All
     </button>
   </div>
-  <div class="relative">
-    <button (click)="toggleAddForm($event)"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      Add Term
-    </button>
-
-    @if (showAddForm) {
-      <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
-           (click)="$event.stopPropagation()">
-        @if (addError) {
-          <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
+  <div class="flex items-center gap-3">
+    @if (activeTab === 'due' && totalDueCount >= 2) {
+      <button (click)="startQuizAll($event)"
+              [disabled]="generatingQuizDate === '__all__'"
+              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-all ' + (generatingQuizDate === '__all__' ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md cursor-pointer')">
+        @if (generatingQuizDate === '__all__') {
+          <svg class="w-4 h-4 animate-spin inline-block mr-1" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Generating...
+        } @else {
+          Quiz All Due
         }
-        <form (submit)="submitWord($event)" class="space-y-3">
-          <input type="text" placeholder="Word or phrase..."
-                 [(ngModel)]="addWord" name="word"
-                 class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
-          <button type="submit"
-                  class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
-            Add Term
-          </button>
-        </form>
-      </div>
+      </button>
     }
+    <div class="relative">
+      <button (click)="toggleAddForm($event)"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Term
+      </button>
+
+      @if (showAddForm) {
+        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
+             (click)="$event.stopPropagation()">
+          @if (addError) {
+            <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
+          }
+          <form (submit)="submitWord($event)" class="space-y-3">
+            <input type="text" placeholder="Word or phrase..."
+                   [(ngModel)]="addWord" name="word"
+                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
+            <button type="submit"
+                    class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
+              Add Term
+            </button>
+          </form>
+        </div>
+      }
+    </div>
   </div>
 </div>
 }
 
-<!-- Table -->
-@if (filteredWords.length === 0) {
+@if (filteredGroups.length === 0) {
   <div class="text-center py-16">
-    <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No terms yet. Add your first one to start learning.' }}</p>
+    <p class="text-gray-400 text-base">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No terms yet. Add your first one to start learning.' }}</p>
   </div>
 } @else {
   <div>
     <!-- Table header -->
-    <div class="grid grid-cols-[1fr_140px_80px] sm:grid-cols-[1fr_100px_140px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-      <span>Term</span>
-      <span class="hidden sm:inline">Confidence</span>
+    <div class="grid grid-cols-[1fr_100px_120px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <span>Group</span>
+      <span>Confidence</span>
       <span>Next Review</span>
       <span></span>
     </div>
 
-    <!-- Rows -->
-    @for (word of filteredWords; track word.id) {
-      <div [class]="'grid grid-cols-[1fr_140px_80px] sm:grid-cols-[1fr_100px_140px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last && revealedWordId !== word.id ? '' : 'border-b border-gray-200')">
-        <!-- Word -->
-        <div class="min-w-0">
-          <button (click)="toggleReveal(word)"
-                  class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
-            {{ word.word }}
-          </button>
+    <!-- Group rows -->
+    @for (group of filteredGroups; track group.addedDate; let last = $last) {
+      <div (click)="toggleGroup(group)"
+           [class]="'grid grid-cols-[1fr_100px_120px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors cursor-pointer ' + (last || expandedDate === group.addedDate ? '' : 'border-b border-gray-200')">
+        <!-- Date — Label -->
+        <div class="flex items-center gap-2.5 min-w-0">
+          <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0"
+               [class.rotate-90]="expandedDate === group.addedDate"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-base font-medium text-gray-900 truncate">
+            {{ groupDisplayName(group) }}
+          </span>
+          @if (!group.label && generatingLabelDate === group.addedDate) {
+            <span class="text-xs text-gray-400 animate-pulse flex-shrink-0">generating...</span>
+          }
         </div>
 
         <!-- Confidence (clickable) -->
-        <div class="relative hidden sm:block">
-          <button (click)="toggleRatingMenu(word, $event)"
-                  [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + statusColor(word)">
-            {{ statusLabel(word) }}
+        <div class="relative">
+          <button (click)="toggleConfidenceMenu(group, $event)"
+                  [class]="'text-base font-medium cursor-pointer hover:opacity-70 transition-opacity ' + groupConfidenceColor(group)">
+            {{ groupConfidenceLabel(group) }}
           </button>
 
-          @if (ratingMenuWordId === word.id) {
+          @if (confidenceMenuDate === group.addedDate) {
             <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[120px]">
               @for (opt of ratingOptions; track opt.quality) {
-                <button (click)="quickRate(word, opt.quality)"
-                        [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ' + opt.menuColor">
+                <button (click)="rateGroup(group, opt.quality, $event)"
+                        [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ' + opt.color">
                   {{ opt.label }}
                 </button>
               }
@@ -90,49 +113,45 @@
         </div>
 
         <!-- Next review -->
-        <span [class]="'text-sm font-medium ' + nextReviewColor(word)">
-          {{ nextReviewLabel(word) }}
+        <span [class]="'text-base font-medium ' + groupNextReviewColor(group)">
+          {{ groupNextReviewLabel(group) }}
         </span>
 
-        <!-- Delete button -->
+        <!-- Quiz button -->
         <div class="justify-self-end">
-          <button (click)="deleteWord(word, $event)"
-                  class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
+          <button (click)="startQuiz(group, $event)"
+                  [disabled]="generatingQuizDate === group.addedDate"
+                  [class]="'px-4 py-1.5 text-sm font-medium rounded-lg transition-all ' + (generatingQuizDate === group.addedDate ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md cursor-pointer')">
+            @if (generatingQuizDate === group.addedDate) {
+              <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+            } @else {
+              Quiz
+            }
           </button>
         </div>
       </div>
 
-      <!-- Reveal panel: definition + rating -->
-      @if (revealedWordId === word.id) {
-        <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200" (click)="$event.stopPropagation()">
-          @if (editingDefinition) {
-            <input type="text" [(ngModel)]="editDefinitionValue" placeholder="Definition or synonym..."
-                   (keydown.enter)="saveDefinition(word)"
-                   class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 mb-4" />
-          } @else if (word.definition) {
-            <p class="text-sm text-gray-600 mb-4">
-              {{ word.definition }}
-              <button (click)="startEditDefinition(word)" class="ml-2 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
-                <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                </svg>
-              </button>
-            </p>
-          } @else {
-            <button (click)="startEditDefinition(word)"
-                    class="text-sm text-gray-400 hover:text-sky-500 transition-colors cursor-pointer mb-4 block">
-              + Add definition
-            </button>
-          }
-          <div class="flex gap-2">
-            @for (opt of ratingOptions; track opt.quality) {
-              <button (click)="rate(word, opt.quality)"
-                      [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ' + opt.color">
-                {{ opt.label }}
-              </button>
+      <!-- Expanded: numbered list of terms -->
+      @if (expandedDate === group.addedDate) {
+        <div class="border-b border-gray-200 bg-gray-50/60 px-8 py-5">
+          <div class="space-y-2.5">
+            @for (word of group.words; track word.id; let i = $index) {
+              <div class="group flex items-baseline gap-2">
+                <span class="text-base text-gray-800 tabular-nums w-6 text-right flex-shrink-0">{{ i + 1 }}.</span>
+                <span class="text-base text-gray-800">{{ word.word }}</span>
+                @if (word.definition) {
+                  <span class="text-base text-gray-400">— {{ word.definition }}</span>
+                }
+                <button (click)="deleteWord(word, $event)"
+                        class="opacity-0 group-hover:opacity-100 ml-auto p-1 text-gray-300 hover:text-red-400 transition-all cursor-pointer flex-shrink-0">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
             }
           </div>
         </div>

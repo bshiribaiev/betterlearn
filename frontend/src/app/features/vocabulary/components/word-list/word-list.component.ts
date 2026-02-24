@@ -1,8 +1,9 @@
 import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { VocabularyService } from '../../services/vocabulary.service';
-import { Word } from '../../models/vocabulary.model';
+import { Word, WordGroup } from '../../models/vocabulary.model';
 
 @Component({
   selector: 'app-word-list',
@@ -12,33 +13,38 @@ import { Word } from '../../models/vocabulary.model';
 })
 export class WordListComponent implements OnInit {
   private vocabService = inject(VocabularyService);
+  private router = inject(Router);
 
   @Input() topicId!: number;
+  @Input() topicName = '';
   @Input() showToolbar = true;
 
-  words: Word[] = [];
+  groups: WordGroup[] = [];
   loading = true;
   activeTab: 'due' | 'all' = 'due';
+  expandedDate: string | null = null;
+  generatingLabelDate: string | null = null;
+
   showAddForm = false;
   addWord = '';
   addError = '';
-  revealedWordId: number | null = null;
-  editingDefinition = false;
-  editDefinitionValue = '';
+
   deletedWord: Word | null = null;
   private deleteTimer: any = null;
 
+  generatingQuizDate: string | null = null;
+  confidenceMenuDate: string | null = null;
+
   ratingOptions = [
-    { label: 'Low', quality: 1, color: 'bg-red-50 text-red-500 hover:bg-red-100', menuColor: 'text-red-500' },
-    { label: 'Medium', quality: 3, color: 'bg-amber-50 text-amber-500 hover:bg-amber-100', menuColor: 'text-amber-500' },
-    { label: 'High', quality: 5, color: 'bg-emerald-50 text-emerald-500 hover:bg-emerald-100', menuColor: 'text-emerald-500' },
+    { label: 'Low', quality: 1, color: 'text-red-500' },
+    { label: 'Medium', quality: 3, color: 'text-amber-500' },
+    { label: 'High', quality: 5, color: 'text-emerald-500' },
   ];
-  ratingMenuWordId: number | null = null;
 
   @HostListener('document:click')
   closeMenus() {
     this.showAddForm = false;
-    this.ratingMenuWordId = null;
+    this.confidenceMenuDate = null;
   }
 
   ngOnInit() {
@@ -46,15 +52,22 @@ export class WordListComponent implements OnInit {
   }
 
   loadWords() {
-    this.vocabService.findByTopic(this.topicId).subscribe(words => {
-      this.words = words;
+    this.vocabService.findByTopicGrouped(this.topicId).subscribe(groups => {
+      this.groups = groups;
       this.loading = false;
+      if (this.activeTab === 'due' && this.totalDueCount === 0) {
+        this.activeTab = 'all';
+      }
     });
   }
 
-  get filteredWords(): Word[] {
-    if (this.activeTab === 'due') return this.words.filter(w => this.isDue(w));
-    return this.words;
+  get filteredGroups(): WordGroup[] {
+    if (this.activeTab === 'due') {
+      return this.groups
+        .map(g => ({ ...g, words: g.words.filter(w => this.isDue(w)) }))
+        .filter(g => g.words.length > 0);
+    }
+    return this.groups;
   }
 
   isDue(word: Word): boolean {
@@ -68,85 +81,142 @@ export class WordListComponent implements OnInit {
     return Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  nextReviewLabel(word: Word): string {
-    if (word.status === 'new') return 'New';
-    const days = this.daysUntilReview(word);
-    if (days < 0) return `${Math.abs(days)}d overdue`;
-    if (days === 0) return 'Due today';
-    if (days === 1) return 'Tomorrow';
-    return `In ${days} days`;
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
-  nextReviewColor(word: Word): string {
-    if (word.status === 'new') return 'text-gray-400';
-    const days = this.daysUntilReview(word);
-    if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-sky-500';
-    if (days === 1) return 'text-orange-500';
-    if (days <= 3) return 'text-violet-500';
+  groupDisplayName(group: WordGroup): string {
+    const date = this.formatDate(group.addedDate);
+    if (group.label) return `${date} — ${group.label}`;
+    return date;
+  }
+
+  groupConfidenceLabel(group: WordGroup): string {
+    const statusRank: Record<string, number> = { 'new': 0, 'learning': 1, 'review': 2, 'mastered': 3 };
+    const avg = group.words.reduce((sum, w) => sum + (statusRank[w.status] ?? 0), 0) / group.words.length;
+    if (avg >= 2.5) return 'High';
+    if (avg >= 1.5) return 'Medium';
+    if (avg >= 0.5) return 'Low';
+    return 'New';
+  }
+
+  groupConfidenceColor(group: WordGroup): string {
+    const label = this.groupConfidenceLabel(group);
+    return {
+      'New': 'text-gray-400',
+      'Low': 'text-red-500',
+      'Medium': 'text-amber-500',
+      'High': 'text-emerald-500'
+    }[label] ?? 'text-gray-400';
+  }
+
+  groupNextReviewLabel(group: WordGroup): string {
+    if (group.dueCount > 0) return `${group.dueCount} due`;
+    const earliest = group.words.reduce((min, w) => {
+      const d = this.daysUntilReview(w);
+      return d < min ? d : min;
+    }, Infinity);
+    if (earliest === 1) return 'Tomorrow';
+    return `In ${earliest} days`;
+  }
+
+  groupNextReviewColor(group: WordGroup): string {
+    if (group.dueCount > 0) return 'text-red-500';
     return 'text-gray-500';
   }
 
-  statusLabel(word: Word): string {
-    return { 'new': 'New', 'learning': 'Low', 'review': 'Medium', 'mastered': 'High' }[word.status] ?? 'New';
-  }
-
-  statusColor(word: Word): string {
-    return {
-      'new': 'text-gray-400',
-      'learning': 'text-red-500',
-      'review': 'text-amber-500',
-      'mastered': 'text-emerald-500'
-    }[word.status] ?? 'text-gray-400';
-  }
-
-  toggleRatingMenu(word: Word, event: Event) {
-    event.stopPropagation();
-    this.ratingMenuWordId = this.ratingMenuWordId === word.id ? null : word.id;
-  }
-
-  quickRate(word: Word, quality: number) {
-    this.ratingMenuWordId = null;
-    this.vocabService.submitReview(word.id, quality).subscribe(() => {
-      this.loadWords();
-    });
-  }
-
-  toggleReveal(word: Word) {
-    if (this.revealedWordId === word.id) {
-      this.revealedWordId = null;
-      this.editingDefinition = false;
-    } else {
-      this.revealedWordId = word.id;
-      this.editingDefinition = false;
+  toggleGroup(group: WordGroup) {
+    if (this.expandedDate === group.addedDate) {
+      this.expandedDate = null;
+      return;
+    }
+    this.expandedDate = group.addedDate;
+    if (!group.label && group.words.length >= 2) {
+      this.generateLabel(group);
     }
   }
 
-  startEditDefinition(word: Word) {
-    this.editDefinitionValue = word.definition ?? '';
-    this.editingDefinition = true;
-  }
-
-  saveDefinition(word: Word) {
-    const value = this.editDefinitionValue.trim();
-    if (!value) return;
-    this.vocabService.update(word.id, { definition: value }).subscribe(updated => {
-      word.definition = updated.definition;
-      this.editingDefinition = false;
+  generateLabel(group: WordGroup) {
+    this.generatingLabelDate = group.addedDate;
+    this.vocabService.generateGroupLabel(this.topicId, group.addedDate).subscribe({
+      next: (res) => {
+        group.label = res.label;
+        this.generatingLabelDate = null;
+      },
+      error: () => this.generatingLabelDate = null
     });
   }
 
-  rate(word: Word, quality: number) {
-    this.revealedWordId = null;
-    this.editingDefinition = false;
-    this.vocabService.submitReview(word.id, quality).subscribe(updated => {
-      this.words = this.words.map(w => w.id === word.id ? updated : w);
+  startQuiz(group: WordGroup, event: Event) {
+    event.stopPropagation();
+    this.generatingQuizDate = group.addedDate;
+    this.vocabService.generateTermQuiz(this.topicId, group.addedDate).subscribe({
+      next: (res) => {
+        this.generatingQuizDate = null;
+        this.router.navigate(['/quiz', this.topicId, 'terms', 'session'], {
+          state: {
+            questions: res.questions,
+            topicId: this.topicId,
+            topicName: this.topicName,
+            date: group.addedDate,
+            groupLabel: group.label || this.formatDate(group.addedDate)
+          }
+        });
+      },
+      error: () => this.generatingQuizDate = null
     });
+  }
+
+  startQuizAll(event: Event) {
+    event.stopPropagation();
+    this.generatingQuizDate = '__all__';
+    this.vocabService.generateTermQuiz(this.topicId, null).subscribe({
+      next: (res) => {
+        this.generatingQuizDate = null;
+        this.router.navigate(['/quiz', this.topicId, 'terms', 'session'], {
+          state: {
+            questions: res.questions,
+            topicId: this.topicId,
+            topicName: this.topicName,
+            date: null,
+            groupLabel: 'All Due'
+          }
+        });
+      },
+      error: () => this.generatingQuizDate = null
+    });
+  }
+
+  toggleConfidenceMenu(group: WordGroup, event: Event) {
+    event.stopPropagation();
+    this.confidenceMenuDate = this.confidenceMenuDate === group.addedDate ? null : group.addedDate;
+  }
+
+  rateGroup(group: WordGroup, quality: number, event: Event) {
+    event.stopPropagation();
+    this.confidenceMenuDate = null;
+    const wordIds = group.words.map(w => w.id);
+    let completed = 0;
+    for (const id of wordIds) {
+      this.vocabService.submitReview(id, quality).subscribe(() => {
+        completed++;
+        if (completed === wordIds.length) this.loadWords();
+      });
+    }
   }
 
   deleteWord(word: Word, event: Event) {
     event.stopPropagation();
-    this.words = this.words.filter(w => w.id !== word.id);
+    for (const group of this.groups) {
+      group.words = group.words.filter(w => w.id !== word.id);
+    }
+    this.groups = this.groups.filter(g => g.words.length > 0);
     this.deletedWord = word;
     clearTimeout(this.deleteTimer);
     this.deleteTimer = setTimeout(() => this.confirmDelete(), 4000);
@@ -186,5 +256,9 @@ export class WordListComponent implements OnInit {
       },
       error: (err) => this.addError = err.error?.detail || 'Failed to add word'
     });
+  }
+
+  get totalDueCount(): number {
+    return this.groups.reduce((sum, g) => sum + g.dueCount, 0);
   }
 }
