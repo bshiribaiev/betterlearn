@@ -34,7 +34,7 @@ public class VocabularyWord {
     private int intervalDays = 0;
 
     @Column(name = "next_review", nullable = false)
-    private LocalDate nextReview = LocalDate.now();
+    private LocalDate nextReview = LocalDate.now().plusDays(1);
 
     @Column(nullable = false, length = 20)
     private String status = "new";
@@ -67,6 +67,7 @@ public class VocabularyWord {
     public int getIntervalDays() { return intervalDays; }
     public LocalDate getNextReview() { return nextReview; }
     public String getStatus() { return status; }
+    public Instant getCreatedAt() { return createdAt; }
 
     public void setWord(String word) { this.word = word; }
     public void setDefinition(String definition) { this.definition = definition; }

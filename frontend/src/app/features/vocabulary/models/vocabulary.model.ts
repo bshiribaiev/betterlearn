@@ -8,6 +8,15 @@ export interface Word {
   easinessFactor: number;
   repetition: number;
   status: 'new' | 'learning' | 'review' | 'mastered';
+  createdAt: string;
+}
+
+export interface WordGroup {
+  addedDate: string;
+  label: string | null;
+  totalCount: number;
+  dueCount: number;
+  words: Word[];
 }
 
 export interface WordCreate {

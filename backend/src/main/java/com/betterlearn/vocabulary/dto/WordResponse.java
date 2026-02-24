@@ -3,6 +3,7 @@ package com.betterlearn.vocabulary.dto;
 import com.betterlearn.vocabulary.VocabularyWord;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 public record WordResponse(
         Long id,
@@ -13,13 +14,15 @@ public record WordResponse(
         int intervalDays,
         double easinessFactor,
         int repetition,
-        String status
+        String status,
+        LocalDate createdAt
 ) {
     public static WordResponse from(VocabularyWord w) {
         return new WordResponse(
                 w.getId(), w.getTopic().getId(), w.getWord(), w.getDefinition(),
                 w.getNextReview(), w.getIntervalDays(),
-                w.getEasinessFactor(), w.getRepetition(), w.getStatus()
+                w.getEasinessFactor(), w.getRepetition(), w.getStatus(),
+                w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate()
         );
     }
 }
