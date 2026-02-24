@@ -49,6 +49,11 @@ export class ConceptListComponent implements OnInit {
   ngOnInit() {
     this.topicId = Number(this.route.snapshot.paramMap.get('topicId'));
     this.topicName = history.state?.topicName || '';
+    if (!this.topicName) {
+      this.quizService.findAllTopics().subscribe(topics => {
+        this.topicName = topics.find(t => t.id === this.topicId)?.name || 'Topic';
+      });
+    }
     this.loadConcepts();
   }
 

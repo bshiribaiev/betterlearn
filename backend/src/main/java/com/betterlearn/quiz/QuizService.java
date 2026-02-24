@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.betterlearn.vocabulary.VocabularyRepository;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -19,18 +22,20 @@ public class QuizService {
     private final QuizSessionRepository sessionRepo;
     private final UserRepository userRepo;
     private final Sm2Service sm2Service;
+    private final VocabularyRepository vocabRepo;
     private final GeminiService geminiService;
     private final ObjectMapper objectMapper;
 
     public QuizService(QuizTopicRepository topicRepo, QuizConceptRepository conceptRepo,
                        QuizSessionRepository sessionRepo, UserRepository userRepo,
-                       Sm2Service sm2Service, GeminiService geminiService,
-                       ObjectMapper objectMapper) {
+                       Sm2Service sm2Service, VocabularyRepository vocabRepo,
+                       GeminiService geminiService, ObjectMapper objectMapper) {
         this.topicRepo = topicRepo;
         this.conceptRepo = conceptRepo;
         this.sessionRepo = sessionRepo;
         this.userRepo = userRepo;
         this.sm2Service = sm2Service;
+        this.vocabRepo = vocabRepo;
         this.geminiService = geminiService;
         this.objectMapper = objectMapper;
     }
@@ -39,14 +44,22 @@ public class QuizService {
 
     public List<TopicResponse> findAll(Long userId) {
         return topicRepo.findAllByUserId(userId).stream()
-                .map(TopicResponse::from)
+                .map(t -> TopicResponse.from(t, earliestDueDate(t.getId())))
                 .toList();
     }
 
     public List<TopicResponse> findDue(Long userId) {
         return topicRepo.findDueByUserId(userId).stream()
-                .map(TopicResponse::from)
+                .map(t -> TopicResponse.from(t, earliestDueDate(t.getId())))
                 .toList();
+    }
+
+    private LocalDate earliestDueDate(Long topicId) {
+        LocalDate conceptDate = conceptRepo.findEarliestNextReviewByTopicId(topicId);
+        LocalDate wordDate = vocabRepo.findEarliestNextReviewByTopicId(topicId);
+        if (conceptDate == null) return wordDate;
+        if (wordDate == null) return conceptDate;
+        return conceptDate.isBefore(wordDate) ? conceptDate : wordDate;
     }
 
     @Transactional

@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
 import { QuizConcept } from '../quiz/models/quiz.model';
@@ -114,10 +114,21 @@ interface DashboardData {
 })
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
+  private router = inject(Router);
   data: DashboardData | null = null;
   loading = true;
 
   ngOnInit() {
+    this.loadData();
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd && event.urlAfterRedirects === '/dashboard') {
+        this.loadData();
+      }
+    });
+  }
+
+  private loadData() {
+    this.loading = true;
     this.http.get<DashboardData>('/api/dashboard').subscribe(data => {
       this.data = data;
       this.loading = false;

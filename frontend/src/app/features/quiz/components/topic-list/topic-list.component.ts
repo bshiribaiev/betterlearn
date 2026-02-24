@@ -54,14 +54,15 @@ export class TopicListComponent implements OnInit {
   }
 
   daysUntilReview(topic: QuizTopic): number {
+    const dateStr = topic.earliestDueDate || topic.nextReview;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const review = new Date(topic.nextReview + 'T00:00:00');
+    const review = new Date(dateStr + 'T00:00:00');
     return Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   nextReviewLabel(topic: QuizTopic): string {
-    if (topic.status === 'new') return 'New';
+    if (!topic.earliestDueDate) return 'Empty';
     const days = this.daysUntilReview(topic);
     if (days < 0) return `${Math.abs(days)}d overdue`;
     if (days === 0) return 'Due today';
@@ -70,26 +71,13 @@ export class TopicListComponent implements OnInit {
   }
 
   nextReviewColor(topic: QuizTopic): string {
-    if (topic.status === 'new') return 'text-gray-400';
+    if (!topic.earliestDueDate) return 'text-gray-400';
     const days = this.daysUntilReview(topic);
     if (days < 0) return 'text-red-500';
     if (days === 0) return 'text-sky-500';
     if (days === 1) return 'text-orange-500';
     if (days <= 3) return 'text-violet-500';
     return 'text-gray-500';
-  }
-
-  statusLabel(topic: QuizTopic): string {
-    return { 'new': 'New', 'learning': 'Low', 'review': 'Medium', 'mastered': 'High' }[topic.status] ?? 'New';
-  }
-
-  statusColor(topic: QuizTopic): string {
-    return {
-      'new': 'text-gray-400',
-      'learning': 'text-red-500',
-      'review': 'text-amber-500',
-      'mastered': 'text-emerald-500'
-    }[topic.status] ?? 'text-gray-400';
   }
 
   openTopic(topic: QuizTopic) {

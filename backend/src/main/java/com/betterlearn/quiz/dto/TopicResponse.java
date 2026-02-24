@@ -12,9 +12,14 @@ public record TopicResponse(
         double easinessFactor,
         int repetition,
         String status,
-        int totalReviews
+        int totalReviews,
+        LocalDate earliestDueDate
 ) {
     public static TopicResponse from(QuizTopic topic) {
+        return from(topic, null);
+    }
+
+    public static TopicResponse from(QuizTopic topic, LocalDate earliestDueDate) {
         return new TopicResponse(
                 topic.getId(),
                 topic.getName(),
@@ -23,7 +28,8 @@ public record TopicResponse(
                 topic.getEasinessFactor(),
                 topic.getRepetition(),
                 topic.getStatus(),
-                topic.getTotalReviews()
+                topic.getTotalReviews(),
+                earliestDueDate
         );
     }
 }

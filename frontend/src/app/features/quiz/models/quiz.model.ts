@@ -7,6 +7,7 @@ export interface QuizTopic {
   repetition: number;
   status: 'new' | 'learning' | 'review' | 'mastered';
   totalReviews: number;
+  earliestDueDate: string | null;
 }
 
 export interface QuizConcept {

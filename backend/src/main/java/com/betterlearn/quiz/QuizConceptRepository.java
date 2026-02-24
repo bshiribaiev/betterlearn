@@ -3,6 +3,7 @@ package com.betterlearn.quiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> {
@@ -12,6 +13,9 @@ public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> 
 
     @Query("SELECT c FROM QuizConcept c WHERE c.topic.user.id = :userId AND c.nextReview <= CURRENT_DATE ORDER BY c.nextReview ASC")
     List<QuizConcept> findDueByUserId(Long userId);
+
+    @Query("SELECT MIN(c.nextReview) FROM QuizConcept c WHERE c.topic.id = :topicId")
+    LocalDate findEarliestNextReviewByTopicId(Long topicId);
 
     boolean existsByTopicIdAndName(Long topicId, String name);
 

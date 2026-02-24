@@ -56,6 +56,16 @@ public class LeetcodeService {
 
         String confidence = request.confidence() != null ? request.confidence() : "none";
         LeetcodeProblem problem = new LeetcodeProblem(user, request.url(), title, request.notes(), confidence);
+
+        if (!"none".equals(confidence)) {
+            int quality = confidenceToQuality(confidence);
+            Sm2Result result = sm2Service.calculate(
+                    problem.getEasinessFactor(), problem.getRepetition(),
+                    problem.getIntervalDays(), quality);
+            problem.applySmResult(result.easinessFactor(), result.repetition(),
+                    result.intervalDays(), result.nextReview(), result.status());
+        }
+
         return ProblemResponse.from(problemRepo.save(problem));
     }
 
@@ -114,6 +124,15 @@ public class LeetcodeService {
             throw new IllegalArgumentException("Problem not found");
         }
         return problem;
+    }
+
+    static int confidenceToQuality(String confidence) {
+        return switch (confidence) {
+            case "low" -> 1;
+            case "average" -> 3;
+            case "high" -> 5;
+            default -> 3;
+        };
     }
 
     static String deriveConfidence(int quality) {
