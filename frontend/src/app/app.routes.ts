@@ -10,6 +10,8 @@ import { ConceptListComponent } from './features/quiz/components/concept-list/co
 import { QuizSessionComponent } from './features/quiz/components/quiz-session/quiz-session.component';
 import { QuizResultsComponent } from './features/quiz/components/quiz-results/quiz-results.component';
 import { AuthCallbackComponent } from './features/auth/auth-callback/auth-callback.component';
+import { TermQuizSessionComponent } from './features/vocabulary/components/term-quiz-session/term-quiz-session.component';
+import { TermQuizResultsComponent } from './features/vocabulary/components/term-quiz-results/term-quiz-results.component';
 export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
@@ -25,6 +27,8 @@ export const routes: Routes = [
       { path: 'quiz/:topicId/concepts', component: ConceptListComponent },
       { path: 'quiz/concepts/:conceptId/session', component: QuizSessionComponent },
       { path: 'quiz/concepts/:conceptId/results', component: QuizResultsComponent },
+      { path: 'quiz/:topicId/terms/session', component: TermQuizSessionComponent },
+      { path: 'quiz/:topicId/terms/results', component: TermQuizResultsComponent },
     ]
   },
   { path: '**', redirectTo: '' }
