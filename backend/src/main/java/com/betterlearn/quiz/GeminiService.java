@@ -36,6 +36,7 @@ public class GeminiService {
                 )),
                 "generationConfig", Map.of(
                         "responseMimeType", "application/json",
+                        "responseSchema", quizArraySchema(),
                         "temperature", 0.7
                 )
         );
@@ -99,17 +100,11 @@ public class GeminiService {
                 Generate exactly %d multiple-choice questions testing knowledge of these %d terms from the topic "%s":
                 %s
 
-                Return a JSON array where each element has:
-                - "question": a question testing understanding of one specific term
-                - "options": array of exactly 4 answer choices
-                - "correctIndex": 0-based index of the correct option
-                - "explanation": brief explanation of the correct answer
-
                 Requirements:
                 - Generate exactly one question per term, covering ALL terms listed above
+                - Each question must have exactly 4 answer choices
                 - Questions should test understanding, not just definitions
                 - All 4 options should be plausible
-                - Return ONLY the JSON array, no other text
                 """.formatted(count, terms.size(), topicName, String.join(", ", terms));
 
         String url = String.format(API_URL, config.getModel(), config.getApiKey());
@@ -120,6 +115,7 @@ public class GeminiService {
                 )),
                 "generationConfig", Map.of(
                         "responseMimeType", "application/json",
+                        "responseSchema", quizArraySchema(),
                         "temperature", 0.7
                 )
         );
@@ -127,6 +123,27 @@ public class GeminiService {
         JsonNode response = restTemplate.postForObject(url, request, JsonNode.class);
         String json = extractText(response);
         return parseQuestions(json);
+    }
+
+    private Map<String, Object> quizArraySchema() {
+        return Map.of(
+                "type", "ARRAY",
+                "items", Map.of(
+                        "type", "OBJECT",
+                        "properties", Map.of(
+                                "question", Map.of("type", "STRING"),
+                                "options", Map.of(
+                                        "type", "ARRAY",
+                                        "items", Map.of("type", "STRING"),
+                                        "minItems", 4,
+                                        "maxItems", 4
+                                ),
+                                "correctIndex", Map.of("type", "INTEGER"),
+                                "explanation", Map.of("type", "STRING")
+                        ),
+                        "required", List.of("question", "options", "correctIndex", "explanation")
+                )
+        );
     }
 
     private List<QuizQuestionDto> parseQuestions(String json) {
