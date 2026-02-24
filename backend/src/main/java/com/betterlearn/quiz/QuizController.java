@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -130,5 +131,44 @@ public class QuizController {
     public List<ReviewResponse> getWordHistory(@RequestAttribute Long userId,
                                                 @PathVariable Long id) {
         return vocabularyService.getHistory(userId, id);
+    }
+
+    // --- Words grouped ---
+
+    @GetMapping("/topics/{topicId}/words/grouped")
+    public List<WordGroupResponse> findWordsGrouped(@RequestAttribute Long userId,
+                                                     @PathVariable Long topicId) {
+        quizService.findOwnedTopic(userId, topicId);
+        return vocabularyService.findByTopicGrouped(topicId);
+    }
+
+    @PostMapping("/topics/{topicId}/words/groups/{date}/label")
+    public java.util.Map<String, String> generateGroupLabel(@RequestAttribute Long userId,
+                                                             @PathVariable Long topicId,
+                                                             @PathVariable LocalDate date) {
+        QuizTopic topic = quizService.findOwnedTopic(userId, topicId);
+        String label = vocabularyService.generateGroupLabel(topic, date);
+        return java.util.Map.of("label", label);
+    }
+
+    // --- Term quiz ---
+
+    @PostMapping("/topics/{topicId}/words/quiz/generate")
+    public QuizGenerateResponse generateTermQuiz(@RequestAttribute Long userId,
+                                                  @PathVariable Long topicId,
+                                                  @RequestParam(required = false) LocalDate date,
+                                                  @RequestParam(required = false) Integer count) {
+        quizService.findOwnedTopic(userId, topicId);
+        var questions = vocabularyService.generateTermQuiz(topicId, date, count);
+        return new QuizGenerateResponse(questions);
+    }
+
+    @PostMapping("/topics/{topicId}/words/quiz/submit")
+    public TermQuizResultResponse submitTermQuiz(@RequestAttribute Long userId,
+                                                  @PathVariable Long topicId,
+                                                  @RequestParam(required = false) LocalDate date,
+                                                  @Valid @RequestBody QuizSubmitRequest request) {
+        quizService.findOwnedTopic(userId, topicId);
+        return vocabularyService.submitTermQuiz(userId, topicId, date, request.questions(), request.answers());
     }
 }
