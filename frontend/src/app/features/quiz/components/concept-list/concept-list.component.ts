@@ -38,7 +38,6 @@ export class ConceptListComponent implements OnInit {
   showTermForm = false;
   termName = '';
   termError = '';
-  termConfidence: 'low' | 'medium' | 'high' = 'low';
 
   @HostListener('document:click')
   closeMenus() {
@@ -61,6 +60,9 @@ export class ConceptListComponent implements OnInit {
     this.quizService.findConcepts(this.topicId).subscribe(concepts => {
       this.concepts = concepts;
       this.loading = false;
+      if (this.activeTab === 'due' && this.concepts.filter(c => this.isDue(c)).length === 0) {
+        this.activeTab = 'all';
+      }
     });
   }
 
@@ -92,10 +94,7 @@ export class ConceptListComponent implements OnInit {
   nextReviewColor(concept: QuizConcept): string {
     if (concept.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(concept);
-    if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-sky-500';
-    if (days === 1) return 'text-orange-500';
-    if (days <= 3) return 'text-violet-500';
+    if (days <= 0) return 'text-red-500';
     return 'text-gray-500';
   }
 
@@ -171,7 +170,6 @@ export class ConceptListComponent implements OnInit {
     this.showTermForm = !this.showTermForm;
     this.termName = '';
     this.termError = '';
-    this.termConfidence = 'low';
   }
 
   submitTerm(event: Event) {
@@ -179,21 +177,11 @@ export class ConceptListComponent implements OnInit {
     if (!this.termName.trim()) return;
     this.termError = '';
 
-    const quality = { low: 1, medium: 3, high: 5 }[this.termConfidence];
     this.vocabService.create(this.topicId, { word: this.termName.trim() }).subscribe({
-      next: (word) => {
-        this.vocabService.submitReview(word.id, quality).subscribe({
-          next: () => {
-            this.showTermForm = false;
-            this.termName = '';
-            if (this.wordList) this.wordList.loadWords();
-          },
-          error: () => {
-            this.showTermForm = false;
-            this.termName = '';
-            if (this.wordList) this.wordList.loadWords();
-          }
-        });
+      next: () => {
+        this.showTermForm = false;
+        this.termName = '';
+        if (this.wordList) this.wordList.loadWords();
       },
       error: (err) => this.termError = err.error?.detail || 'Failed to add term'
     });

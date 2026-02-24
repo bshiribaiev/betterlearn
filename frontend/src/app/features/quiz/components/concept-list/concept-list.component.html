@@ -73,23 +73,6 @@
               <input type="text" placeholder="Word or phrase..."
                      [(ngModel)]="termName" name="term"
                      class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
-              <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1.5">Confidence</label>
-                <div class="flex gap-2">
-                  <button type="button" (click)="termConfidence = 'low'"
-                          [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (termConfidence === 'low' ? 'bg-red-50 border-red-300 text-red-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                    Low
-                  </button>
-                  <button type="button" (click)="termConfidence = 'medium'"
-                          [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (termConfidence === 'medium' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                    Medium
-                  </button>
-                  <button type="button" (click)="termConfidence = 'high'"
-                          [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (termConfidence === 'high' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                    High
-                  </button>
-                </div>
-              </div>
               <button type="submit"
                       class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
                 Add Term
@@ -126,18 +109,18 @@
             <!-- Concept name -->
             <div class="min-w-0">
               <button (click)="toggleExpand(concept, $event)"
-                      class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
+                      class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
                 {{ concept.name }}
               </button>
             </div>
 
             <!-- Status -->
-            <span [class]="'text-sm font-medium hidden sm:inline ' + statusColor(concept)">
+            <span [class]="'text-base font-medium hidden sm:inline ' + statusColor(concept)">
               {{ statusLabel(concept) }}
             </span>
 
             <!-- Next review -->
-            <span [class]="'text-sm font-medium ' + nextReviewColor(concept)">
+            <span [class]="'text-base font-medium ' + nextReviewColor(concept)">
               {{ nextReviewLabel(concept) }}
             </span>
 
@@ -146,7 +129,14 @@
               <button (click)="generateQuiz(concept, $event)"
                       [disabled]="generatingConceptId === concept.id"
                       [class]="'px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingConceptId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md')">
-                {{ generatingConceptId === concept.id ? 'Generating...' : 'Quiz' }}
+                @if (generatingConceptId === concept.id) {
+                  <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                } @else {
+                  Quiz
+                }
               </button>
               <button (click)="deleteConcept(concept, $event)"
                       class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
@@ -188,7 +178,7 @@
     }
     }
   } @else {
-    <app-word-list #wordList [topicId]="topicId" [showToolbar]="false" />
+    <app-word-list #wordList [topicId]="topicId" [topicName]="topicName" [showToolbar]="false" />
   }
 </div>
 
