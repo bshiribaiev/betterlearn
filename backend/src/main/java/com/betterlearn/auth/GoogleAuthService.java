@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public class GoogleAuthService {
         return fetchUserInfo(accessToken);
     }
 
-    @SuppressWarnings("unchecked")
+
     private String exchangeCodeForAccessToken(String code) {
         var params = new LinkedMultiValueMap<String, String>();
         params.add("code", code);
@@ -52,8 +53,8 @@ public class GoogleAuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                TOKEN_URL, HttpMethod.POST, new HttpEntity<>(params, headers), Map.class);
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                TOKEN_URL, HttpMethod.POST, new HttpEntity<>(params, headers), new ParameterizedTypeReference<Map<String, Object>>() {});
 
         Map<String, Object> body = response.getBody();
         if (body == null || !body.containsKey("access_token")) {
@@ -62,13 +63,13 @@ public class GoogleAuthService {
         return (String) body.get("access_token");
     }
 
-    @SuppressWarnings("unchecked")
+
     private GoogleUserInfo fetchUserInfo(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                USERINFO_URL, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                USERINFO_URL, HttpMethod.GET, new HttpEntity<>(headers), new ParameterizedTypeReference<Map<String, Object>>() {});
 
         Map<String, Object> body = response.getBody();
         if (body == null || !body.containsKey("email")) {
