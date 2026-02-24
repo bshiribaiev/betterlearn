@@ -7,7 +7,7 @@
         <p class="text-sm text-gray-400 mb-4">{{ subtitle }}</p>
       }
       <p [class]="'text-5xl font-bold ' + scoreColor()">{{ scorePercent }}%</p>
-      <p class="text-sm text-gray-400 mt-2">{{ session.correctAnswers }} of {{ session.totalQuestions }} correct</p>
+      <p class="text-base text-gray-400 mt-2">{{ session.correctAnswers }} of {{ session.totalQuestions }} correct</p>
     </div>
 
     <!-- Questions review -->
@@ -18,12 +18,12 @@
             <span [class]="'flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white ' + (isCorrect(i) ? 'bg-emerald-500' : 'bg-red-500')">
               {{ isCorrect(i) ? '&#10003;' : '&#10007;' }}
             </span>
-            <p class="text-sm font-medium text-gray-900">{{ q.question }}</p>
+            <p class="text-base font-medium text-gray-900">{{ q.question }}</p>
           </div>
 
           <div class="ml-7 space-y-1.5">
             @for (option of q.options; track $index; let j = $index) {
-              <div [class]="'text-sm px-3 py-1.5 rounded-lg ' +
+              <div [class]="'text-base px-3 py-2 rounded-lg ' +
                 (j === q.correctIndex ? 'bg-emerald-100 text-emerald-700 font-medium' :
                  j === answers[i] && j !== q.correctIndex ? 'bg-red-100 text-red-700' :
                  'text-gray-500')">
@@ -33,7 +33,7 @@
           </div>
 
           @if (q.explanation) {
-            <p class="ml-7 mt-3 text-xs text-gray-500 italic">{{ q.explanation }}</p>
+            <p class="ml-7 mt-3 text-sm text-gray-500 italic">{{ q.explanation }}</p>
           }
         </div>
       }
@@ -41,7 +41,7 @@
 
     <div class="flex justify-center">
       <a routerLink="/quiz"
-         class="px-6 py-2.5 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
+         class="px-6 py-2.5 text-base font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
         Back to Topics
       </a>
     </div>

@@ -37,6 +37,9 @@ export class TopicListComponent implements OnInit {
     this.quizService.findAllTopics().subscribe(topics => {
       this.topics = topics;
       this.loading = false;
+      if (this.activeTab === 'due' && this.dueCount === 0) {
+        this.activeTab = 'all';
+      }
     });
   }
 
@@ -73,10 +76,7 @@ export class TopicListComponent implements OnInit {
   nextReviewColor(topic: QuizTopic): string {
     if (!topic.earliestDueDate) return 'text-gray-400';
     const days = this.daysUntilReview(topic);
-    if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-sky-500';
-    if (days === 1) return 'text-orange-500';
-    if (days <= 3) return 'text-violet-500';
+    if (days <= 0) return 'text-red-500';
     return 'text-gray-500';
   }
 

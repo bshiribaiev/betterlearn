@@ -50,6 +50,9 @@ export class ProblemListComponent implements OnInit {
     this.leetcodeService.findAll().subscribe(problems => {
       this.problems = problems;
       this.loading = false;
+      if (this.activeTab === 'due' && this.dueCount === 0) {
+        this.activeTab = 'all';
+      }
     });
   }
 
@@ -85,10 +88,7 @@ export class ProblemListComponent implements OnInit {
   nextReviewColor(problem: Problem): string {
     if (problem.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(problem);
-    if (days < 0) return 'text-red-500';
-    if (days === 0) return 'text-sky-500';
-    if (days === 1) return 'text-orange-500';
-    if (days <= 3) return 'text-violet-500';
+    if (days <= 0) return 'text-red-500';
     return 'text-gray-500';
   }
 

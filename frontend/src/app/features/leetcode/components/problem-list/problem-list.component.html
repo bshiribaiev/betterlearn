@@ -96,7 +96,7 @@
           <!-- Problem name + link icon -->
           <div class="min-w-0 flex items-center gap-2">
             <button (click)="toggleExpand(problem, $event)"
-                    class="text-sm font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
+                    class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
               {{ problem.title }}
             </button>
             <a [href]="problem.url" target="_blank" rel="noopener"
@@ -110,7 +110,7 @@
           <!-- Confidence (inline popover) -->
           <div class="relative hidden sm:block">
             <button (click)="toggleConfidenceMenu(problem)"
-                    [class]="'text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ' + confidenceColor(problem)">
+                    [class]="'text-base font-medium cursor-pointer hover:opacity-70 transition-opacity ' + confidenceColor(problem)">
               {{ confidenceLabel(problem) }}
             </button>
 
@@ -127,7 +127,7 @@
           </div>
 
           <!-- Next review -->
-          <span [class]="'text-sm font-medium ' + nextReviewColor(problem)">
+          <span [class]="'text-base font-medium ' + nextReviewColor(problem)">
             {{ nextReviewLabel(problem) }}
           </span>
 

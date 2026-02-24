@@ -49,7 +49,7 @@ interface DashboardData {
             @for (problem of data.dueProblems; track problem.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
                 <div class="flex items-center gap-3 min-w-0">
-                  <span class="text-sm font-medium text-gray-900 truncate">{{ problem.title }}</span>
+                  <span class="text-base font-medium text-gray-900 truncate">{{ problem.title }}</span>
                   <a [href]="problem.url" target="_blank" rel="noopener"
                      class="flex-shrink-0 text-gray-300 hover:text-blue-500 transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@ interface DashboardData {
           <div class="space-y-2">
             @for (concept of data.dueConcepts; track concept.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
-                <span class="text-sm font-medium text-gray-900 truncate">{{ concept.name }}</span>
+                <span class="text-base font-medium text-gray-900 truncate">{{ concept.name }}</span>
                 <a [routerLink]="['/quiz', concept.topicId, 'concepts']"
                    class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Study
@@ -92,7 +92,7 @@ interface DashboardData {
           <div class="space-y-2">
             @for (word of data.dueWords; track word.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
-                <span class="text-sm font-medium text-gray-900 truncate">{{ word.word }}</span>
+                <span class="text-base font-medium text-gray-900 truncate">{{ word.word }}</span>
                 <a [routerLink]="['/quiz', word.topicId, 'concepts']"
                    class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Review

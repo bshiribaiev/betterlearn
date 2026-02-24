@@ -65,11 +65,11 @@
              [class]="'grid grid-cols-[1fr_140px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors cursor-pointer ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Topic name -->
           <div class="min-w-0">
-            <span class="text-sm font-medium text-gray-900 truncate">{{ topic.name }}</span>
+            <span class="text-base font-medium text-gray-900 truncate">{{ topic.name }}</span>
           </div>
 
           <!-- Next review -->
-          <span [class]="'text-sm font-medium ' + nextReviewColor(topic)">
+          <span [class]="'text-base font-medium ' + nextReviewColor(topic)">
             {{ nextReviewLabel(topic) }}
           </span>
 
