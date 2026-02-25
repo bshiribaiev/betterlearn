@@ -178,7 +178,7 @@
     }
     }
   } @else {
-    <app-word-list #wordList [topicId]="topicId" [topicName]="topicName" [showToolbar]="false" />
+    <app-word-list #wordList [topicId]="topicId" [topicName]="topicName" [showToolbar]="false" (loaded)="onTermsLoaded()" />
   }
 </div>
 

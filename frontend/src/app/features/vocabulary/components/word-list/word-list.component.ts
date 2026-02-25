@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostListener, inject, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,6 +18,7 @@ export class WordListComponent implements OnInit {
   @Input() topicId!: number;
   @Input() topicName = '';
   @Input() showToolbar = true;
+  @Output() loaded = new EventEmitter<void>();
 
   groups: WordGroup[] = [];
   loading = true;
@@ -55,7 +56,8 @@ export class WordListComponent implements OnInit {
     this.vocabService.findByTopicGrouped(this.topicId).subscribe(groups => {
       this.groups = groups;
       this.loading = false;
-      if (this.activeTab === 'due' && this.totalDueCount === 0) {
+      this.loaded.emit();
+      if (this.showToolbar && this.activeTab === 'due' && this.totalDueCount === 0) {
         this.activeTab = 'all';
       }
     });
@@ -117,13 +119,15 @@ export class WordListComponent implements OnInit {
   }
 
   groupNextReviewLabel(group: WordGroup): string {
-    if (group.dueCount > 0) return `${group.dueCount} due`;
-    const earliest = group.words.reduce((min, w) => {
-      const d = this.daysUntilReview(w);
-      return d < min ? d : min;
-    }, Infinity);
-    if (earliest === 1) return 'Tomorrow';
-    return `In ${earliest} days`;
+    const earliestDate = group.words.reduce((min, w) =>
+      w.nextReview < min ? w.nextReview : min, group.words[0].nextReview);
+    const d = new Date(earliestDate + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (d.getTime() <= today.getTime()) return 'Today';
+    const tmr = new Date(today); tmr.setDate(tmr.getDate() + 1);
+    if (d.getTime() === tmr.getTime()) return 'Tomorrow';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   groupNextReviewColor(group: WordGroup): string {

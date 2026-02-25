@@ -56,14 +56,29 @@ export class ConceptListComponent implements OnInit {
     this.loadConcepts();
   }
 
+  private conceptsLoaded = false;
+  private termsLoaded = false;
+
   loadConcepts() {
     this.quizService.findConcepts(this.topicId).subscribe(concepts => {
       this.concepts = concepts;
       this.loading = false;
-      if (this.activeTab === 'due' && this.concepts.filter(c => this.isDue(c)).length === 0) {
-        this.activeTab = 'all';
-      }
+      this.conceptsLoaded = true;
+      this.maybeRedirectToAll();
     });
+  }
+
+  maybeRedirectToAll() {
+    if (this.activeTab !== 'due') return;
+    if (!this.conceptsLoaded || !this.termsLoaded) return;
+    const conceptsDue = this.concepts.filter(c => this.isDue(c)).length > 0;
+    const termsDue = this.wordList ? this.wordList.totalDueCount > 0 : false;
+    if (!conceptsDue && !termsDue) this.setTab('all');
+  }
+
+  onTermsLoaded() {
+    this.termsLoaded = true;
+    this.maybeRedirectToAll();
   }
 
   get filteredConcepts(): QuizConcept[] {
