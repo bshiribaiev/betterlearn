@@ -216,6 +216,24 @@ public class VocabularyService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<DueTermGroupResponse> findDueGroupedForUser(Long userId) {
+        List<VocabularyWord> dueWords = wordRepo.findDueByTopicUserId(userId);
+        Map<String, List<VocabularyWord>> grouped = dueWords.stream()
+                .collect(Collectors.groupingBy(w -> w.getTopic().getId() + "|" +
+                        w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate()));
+
+        return grouped.entrySet().stream().map(entry -> {
+            VocabularyWord first = entry.getValue().getFirst();
+            Long topicId = first.getTopic().getId();
+            String topicName = first.getTopic().getName();
+            LocalDate addedDate = first.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+            String label = labelRepo.findByTopicIdAndAddedDate(topicId, addedDate)
+                    .map(VocabDateLabel::getLabel).orElse(null);
+            return new DueTermGroupResponse(topicId, topicName, addedDate, label, entry.getValue().size());
+        }).sorted(Comparator.comparing(DueTermGroupResponse::addedDate).reversed()).toList();
+    }
+
     public long countForUser(Long userId) {
         return wordRepo.countByTopicUserId(userId);
     }

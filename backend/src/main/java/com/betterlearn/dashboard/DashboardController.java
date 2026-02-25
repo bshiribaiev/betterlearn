@@ -7,7 +7,7 @@ import com.betterlearn.quiz.QuizConceptRepository;
 import com.betterlearn.quiz.QuizService;
 import com.betterlearn.quiz.dto.ConceptResponse;
 import com.betterlearn.vocabulary.VocabularyService;
-import com.betterlearn.vocabulary.dto.WordResponse;
+import com.betterlearn.vocabulary.dto.DueTermGroupResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,18 +45,19 @@ public class DashboardController {
 
         // Topics: concepts + vocab combined
         List<ConceptResponse> conceptsDue = quizService.findDueConcepts(userId);
-        List<WordResponse> wordsDue = vocabularyService.findDueForUser(userId);
+        List<DueTermGroupResponse> termGroups = vocabularyService.findDueGroupedForUser(userId);
         long conceptsTotal = quizConceptRepository.countByTopicUserId(userId);
         long wordsTotal = vocabularyService.countForUser(userId);
         int masteredConcepts = (int) quizConceptRepository.countByTopicUserIdAndStatus(userId, "mastered");
         int masteredWords = (int) vocabularyService.countByStatusForUser(userId, "mastered");
 
-        int topicsDueCount = conceptsDue.size() + wordsDue.size();
+        int termsDueCount = termGroups.stream().mapToInt(DueTermGroupResponse::dueCount).sum();
+        int topicsDueCount = conceptsDue.size() + termsDueCount;
         int topicsTotalCount = (int) (conceptsTotal + wordsTotal);
         int masteredTopicItems = masteredConcepts + masteredWords;
 
         return new DashboardResponse(due.size(), all.size(), masteredProblems, due,
                 topicsDueCount, topicsTotalCount, masteredTopicItems,
-                conceptsDue, wordsDue);
+                conceptsDue, termGroups);
     }
 }

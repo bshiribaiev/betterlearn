@@ -2,7 +2,7 @@ package com.betterlearn.dashboard;
 
 import com.betterlearn.leetcode.dto.ProblemResponse;
 import com.betterlearn.quiz.dto.ConceptResponse;
-import com.betterlearn.vocabulary.dto.WordResponse;
+import com.betterlearn.vocabulary.dto.DueTermGroupResponse;
 
 import java.util.List;
 
@@ -15,5 +15,5 @@ public record DashboardResponse(
         int topicsTotalCount,
         int masteredTopicItems,
         List<ConceptResponse> dueConcepts,
-        List<WordResponse> dueWords
+        List<DueTermGroupResponse> dueTermGroups
 ) {}

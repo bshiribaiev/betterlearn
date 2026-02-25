@@ -4,7 +4,14 @@ import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
 import { QuizConcept } from '../quiz/models/quiz.model';
-import { Word } from '../vocabulary/models/vocabulary.model';
+
+interface DueTermGroup {
+  topicId: number;
+  topicName: string;
+  addedDate: string;
+  label: string | null;
+  dueCount: number;
+}
 
 interface DashboardData {
   dueCount: number;
@@ -15,7 +22,7 @@ interface DashboardData {
   topicsTotalCount: number;
   masteredTopicItems: number;
   dueConcepts: QuizConcept[];
-  dueWords: Word[];
+  dueTermGroups: DueTermGroup[];
 }
 
 @Component({
@@ -29,16 +36,32 @@ interface DashboardData {
       @if (loading) {
         <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
       } @else {
-      <!-- Stats -->
-      <div class="grid grid-cols-2 gap-4 mb-8">
-        <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">LeetCode Due</p>
-          <p class="text-2xl font-semibold" [class]="data?.dueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.dueCount ?? '-' }}</p>
-        </div>
-        <div class="bg-white border border-gray-100 rounded-xl p-5">
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Topics Due</p>
-          <p class="text-2xl font-semibold" [class]="data?.topicsDueCount ? 'text-red-500' : 'text-gray-900'">{{ data?.topicsDueCount ?? '-' }}</p>
-        </div>
+      <!-- Navigation cards -->
+      <div class="grid grid-cols-2 gap-5 mb-8">
+        <a routerLink="/quiz"
+           class="flex items-center gap-5 p-6 bg-white border border-gray-100 rounded-xl hover:border-sky-200 hover:shadow-md transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
+            <svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-lg font-semibold text-gray-900">Subjects</p>
+            <p class="text-base text-gray-400">Topics, terms & quizzes</p>
+          </div>
+        </a>
+        <a routerLink="/leetcode"
+           class="flex items-center gap-5 p-6 bg-white border border-gray-100 rounded-xl hover:border-amber-200 hover:shadow-md transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+            <svg class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.938 5.938 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.94-.207a1.384 1.384 0 0 0-.207-1.943l-3.5-2.831c-.8-.647-1.766-1.045-2.774-1.202l2.015-2.158A1.384 1.384 0 0 0 13.483 0zm-2.866 12.815a1.38 1.38 0 0 0-1.38 1.382 1.38 1.38 0 0 0 1.38 1.382H20.79a1.38 1.38 0 0 0 1.38-1.382 1.38 1.38 0 0 0-1.38-1.382z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-lg font-semibold text-gray-900">LeetCode</p>
+            <p class="text-base text-gray-400">Problems & reviews</p>
+          </div>
+        </a>
       </div>
 
       <!-- Due problems -->
@@ -47,21 +70,20 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode — Needs Review</h2>
           <div class="space-y-2">
             @for (problem of data.dueProblems; track problem.id) {
-              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
+              <a routerLink="/leetcode"
+                 class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer">
                 <div class="flex items-center gap-3 min-w-0">
                   <span class="text-base font-medium text-gray-900 truncate">{{ problem.title }}</span>
-                  <a [href]="problem.url" target="_blank" rel="noopener"
-                     class="flex-shrink-0 text-gray-300 hover:text-blue-500 transition-colors">
+                  <span class="flex-shrink-0 text-gray-300">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
-                  </a>
+                  </span>
                 </div>
-                <a routerLink="/leetcode"
-                   class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
+                <span class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg">
                   Review
-                </a>
-              </div>
+                </span>
+              </a>
             }
           </div>
         </div>
@@ -85,25 +107,28 @@ interface DashboardData {
         </div>
       }
 
-      <!-- Due words -->
-      @if (data && data.dueWords.length > 0) {
+      <!-- Due term groups -->
+      @if (data && data.dueTermGroups.length > 0) {
         <div class="mb-8">
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Terms — Needs Review</h2>
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Subjects — Needs Review</h2>
           <div class="space-y-2">
-            @for (word of data.dueWords; track word.id) {
-              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
-                <span class="text-base font-medium text-gray-900 truncate">{{ word.word }}</span>
-                <a [routerLink]="['/quiz', word.topicId, 'concepts']"
-                   class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
+            @for (group of data.dueTermGroups; track group.topicId + group.addedDate) {
+              <a [routerLink]="['/quiz', group.topicId, 'concepts']"
+                 class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer">
+                <div class="min-w-0">
+                  <span class="text-base font-medium text-gray-900">{{ group.topicName }}:</span>
+                  <span class="text-base text-gray-400 ml-1.5">{{ formatDate(group.addedDate) }}{{ group.label ? ' — ' + group.label : '' }}</span>
+                </div>
+                <span class="flex-shrink-0 px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg">
                   Review
-                </a>
-              </div>
+                </span>
+              </a>
             }
           </div>
         </div>
       }
 
-      @if (data && data.dueProblems.length === 0 && data.dueConcepts.length === 0 && data.dueWords.length === 0) {
+      @if (data && data.dueProblems.length === 0 && data.dueConcepts.length === 0 && data.dueTermGroups.length === 0) {
         <div class="text-center py-12">
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>
@@ -125,6 +150,16 @@ export class DashboardComponent implements OnInit {
         this.loadData();
       }
     });
+  }
+
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   private loadData() {
