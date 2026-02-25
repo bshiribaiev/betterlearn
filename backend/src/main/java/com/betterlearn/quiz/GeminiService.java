@@ -125,6 +125,46 @@ public class GeminiService {
         return parseQuestions(json);
     }
 
+    public List<QuizQuestionDto> generateQuestionsFromContent(String topicName, String noteName, String content, int count) {
+        String prompt = """
+                Generate %d multiple-choice questions based on the following notes about "%s — %s".
+
+                === NOTES ===
+                %s
+                === END NOTES ===
+
+                Return a JSON array where each element has:
+                - "question": the question text
+                - "options": array of exactly 4 answer choices
+                - "correctIndex": 0-based index of the correct option
+                - "explanation": brief explanation of why the correct answer is right
+
+                Requirements:
+                - Questions must be derived from the provided notes content
+                - Questions should test understanding, not just memorization
+                - All 4 options should be plausible
+                - Vary difficulty from moderate to challenging
+                - Return ONLY the JSON array, no other text
+                """.formatted(count, topicName, noteName, content);
+
+        String url = String.format(API_URL, config.getModel(), config.getApiKey());
+
+        Map<String, Object> request = Map.of(
+                "contents", List.of(Map.of(
+                        "parts", List.of(Map.of("text", prompt))
+                )),
+                "generationConfig", Map.of(
+                        "responseMimeType", "application/json",
+                        "responseSchema", quizArraySchema(),
+                        "temperature", 0.7
+                )
+        );
+
+        JsonNode response = restTemplate.postForObject(url, request, JsonNode.class);
+        String json = extractText(response);
+        return parseQuestions(json);
+    }
+
     private Map<String, Object> quizArraySchema() {
         return Map.of(
                 "type", "ARRAY",

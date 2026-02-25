@@ -4,6 +4,8 @@ import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
 import { QuizConcept } from '../quiz/models/quiz.model';
+import { QuizService } from '../quiz/services/quiz.service';
+import { VocabularyService } from '../vocabulary/services/vocabulary.service';
 
 interface DueTermGroup {
   topicId: number;
@@ -89,18 +91,29 @@ interface DashboardData {
         </div>
       }
 
-      <!-- Due concepts -->
+      <!-- Due notes -->
       @if (data && data.dueConcepts.length > 0) {
         <div class="mb-8">
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Concepts — Needs Review</h2>
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Notes — Needs Review</h2>
           <div class="space-y-2">
             @for (concept of data.dueConcepts; track concept.id) {
-              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl">
-                <span class="text-base font-medium text-gray-900 truncate">{{ concept.name }}</span>
+              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
                 <a [routerLink]="['/quiz', concept.topicId, 'concepts']"
-                   class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
-                  Study
+                   class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer">
+                  {{ concept.name }}
                 </a>
+                <button (click)="generateNoteQuiz(concept)"
+                        [disabled]="generatingNoteId === concept.id"
+                        [class]="'flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
+                  @if (generatingNoteId === concept.id) {
+                    <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                  } @else {
+                    Review
+                  }
+                </button>
               </div>
             }
           </div>
@@ -113,16 +126,25 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Subjects — Needs Review</h2>
           <div class="space-y-2">
             @for (group of data.dueTermGroups; track group.topicId + group.addedDate) {
-              <a [routerLink]="['/quiz', group.topicId, 'concepts']"
-                 class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer">
-                <div class="min-w-0">
+              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                <a [routerLink]="['/quiz', group.topicId, 'concepts']"
+                   class="min-w-0 hover:opacity-70 transition-opacity cursor-pointer">
                   <span class="text-base font-medium text-gray-900">{{ group.topicName }}:</span>
                   <span class="text-base text-gray-400 ml-1.5">{{ formatDate(group.addedDate) }}{{ group.label ? ' — ' + group.label : '' }}</span>
-                </div>
-                <span class="flex-shrink-0 px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg">
-                  Review
-                </span>
-              </a>
+                </a>
+                <button (click)="generateTermQuiz(group)"
+                        [disabled]="generatingTermKey === group.topicId + group.addedDate"
+                        [class]="'flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingTermKey === group.topicId + group.addedDate ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
+                  @if (generatingTermKey === group.topicId + group.addedDate) {
+                    <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                  } @else {
+                    Review
+                  }
+                </button>
+              </div>
             }
           </div>
         </div>
@@ -140,8 +162,13 @@ interface DashboardData {
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private quizService = inject(QuizService);
+  private vocabService = inject(VocabularyService);
+
   data: DashboardData | null = null;
   loading = true;
+  generatingNoteId: number | null = null;
+  generatingTermKey: string | null = null;
 
   ngOnInit() {
     this.loadData();
@@ -160,6 +187,39 @@ export class DashboardComponent implements OnInit {
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Yesterday';
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  generateNoteQuiz(concept: QuizConcept) {
+    this.generatingNoteId = concept.id;
+    this.quizService.generate(concept.id).subscribe({
+      next: (res) => {
+        this.generatingNoteId = null;
+        this.router.navigate(['/quiz', 'concepts', concept.id, 'session'], {
+          state: { questions: res.questions, conceptName: concept.name }
+        });
+      },
+      error: () => this.generatingNoteId = null
+    });
+  }
+
+  generateTermQuiz(group: DueTermGroup) {
+    const key = group.topicId + group.addedDate;
+    this.generatingTermKey = key;
+    this.vocabService.generateTermQuiz(group.topicId, group.addedDate).subscribe({
+      next: (res) => {
+        this.generatingTermKey = null;
+        this.router.navigate(['/quiz', group.topicId, 'terms', 'session'], {
+          state: {
+            questions: res.questions,
+            topicId: group.topicId,
+            topicName: group.topicName,
+            date: group.addedDate,
+            groupLabel: group.label || this.formatDate(group.addedDate)
+          }
+        });
+      },
+      error: () => this.generatingTermKey = null
+    });
   }
 
   private loadData() {

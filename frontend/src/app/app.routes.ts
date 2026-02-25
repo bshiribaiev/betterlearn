@@ -12,6 +12,7 @@ import { QuizResultsComponent } from './features/quiz/components/quiz-results/qu
 import { AuthCallbackComponent } from './features/auth/auth-callback/auth-callback.component';
 import { TermQuizSessionComponent } from './features/vocabulary/components/term-quiz-session/term-quiz-session.component';
 import { TermQuizResultsComponent } from './features/vocabulary/components/term-quiz-results/term-quiz-results.component';
+import { NoteEditorComponent } from './features/quiz/components/note-editor/note-editor.component';
 export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
@@ -25,6 +26,8 @@ export const routes: Routes = [
       { path: 'leetcode', component: ProblemListComponent },
       { path: 'quiz', component: TopicListComponent },
       { path: 'quiz/:topicId/concepts', component: ConceptListComponent },
+      { path: 'quiz/:topicId/notes/new', component: NoteEditorComponent },
+      { path: 'quiz/:topicId/notes/:conceptId', component: NoteEditorComponent },
       { path: 'quiz/concepts/:conceptId/session', component: QuizSessionComponent },
       { path: 'quiz/concepts/:conceptId/results', component: QuizResultsComponent },
       { path: 'quiz/:topicId/terms/session', component: TermQuizSessionComponent },

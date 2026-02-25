@@ -14,6 +14,7 @@ export interface QuizConcept {
   id: number;
   topicId: number;
   name: string;
+  content: string | null;
   nextReview: string;
   intervalDays: number;
   easinessFactor: number;

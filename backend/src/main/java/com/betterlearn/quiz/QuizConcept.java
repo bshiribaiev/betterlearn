@@ -38,6 +38,9 @@ public class QuizConcept {
     @Column(name = "total_reviews", nullable = false)
     private int totalReviews = 0;
 
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -68,6 +71,9 @@ public class QuizConcept {
     public Long getId() { return id; }
     public QuizTopic getTopic() { return topic; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
     public double getEasinessFactor() { return easinessFactor; }
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }

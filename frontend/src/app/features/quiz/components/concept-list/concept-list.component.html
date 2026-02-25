@@ -15,7 +15,7 @@
       </button>
       <button (click)="activeSection = 'quizzes'"
               [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeSection === 'quizzes' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
-        Quizzes
+        Notes
       </button>
       <div class="w-px h-5 bg-gray-200 mx-1"></div>
       <button (click)="setTab('due')"
@@ -29,31 +29,14 @@
     </div>
     <div class="relative">
       @if (activeSection === 'quizzes') {
-        <button (click)="toggleAddForm($event)"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
+        <a [routerLink]="['/quiz', topicId, 'notes', 'new']"
+           [state]="{ topicName: topicName }"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
-          Add Concept
-        </button>
-
-        @if (showAddForm) {
-          <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
-               (click)="$event.stopPropagation()">
-            @if (addError) {
-              <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
-            }
-            <form (submit)="submitConcept($event)" class="space-y-3">
-              <input type="text" placeholder="Concept name (e.g. Load Balancing)..."
-                     [(ngModel)]="addName" name="name"
-                     class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
-              <button type="submit"
-                      class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
-                Add Concept
-              </button>
-            </form>
-          </div>
-        }
+          Add Note
+        </a>
       } @else {
         <button (click)="toggleTermAddForm($event)"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
@@ -91,13 +74,13 @@
     <!-- Table -->
     @if (filteredConcepts.length === 0) {
       <div class="text-center py-16">
-        <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No concepts yet. Add your first one to start studying.' }}</p>
+        <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No notes yet. Add your first one to start studying.' }}</p>
       </div>
     } @else {
       <div>
         <!-- Table header -->
         <div class="grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-          <span>Concept</span>
+          <span>Note</span>
           <span class="hidden sm:inline">Confidence</span>
           <span>Next Review</span>
           <span></span>
@@ -106,12 +89,13 @@
         <!-- Rows -->
         @for (concept of filteredConcepts; track concept.id) {
           <div [class]="'grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
-            <!-- Concept name -->
+            <!-- Note name -->
             <div class="min-w-0">
-              <button (click)="toggleExpand(concept, $event)"
-                      class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
+              <a [routerLink]="['/quiz', topicId, 'notes', concept.id]"
+                 [state]="{ topicName: topicName, concept: concept }"
+                 class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer block">
                 {{ concept.name }}
-              </button>
+              </a>
             </div>
 
             <!-- Status -->
@@ -147,32 +131,6 @@
             </div>
           </div>
 
-          <!-- Expanded detail panel -->
-          @if (expandedConceptId === concept.id) {
-            <div class="px-4 py-4 bg-gray-50/80 border-b border-gray-200">
-              <div class="flex gap-6 mb-4 text-xs text-gray-500">
-                <span>EF: {{ concept.easinessFactor | number:'1.2-2' }}</span>
-                <span>Interval: {{ concept.intervalDays }}d</span>
-                <span>Reviews: {{ concept.totalReviews }}</span>
-              </div>
-
-              <div>
-                <label class="block text-xs font-medium text-gray-400 mb-2">Session History</label>
-                @if (sessionHistory.length === 0) {
-                  <p class="text-xs text-gray-400">No sessions yet.</p>
-                } @else {
-                  <div class="flex flex-wrap gap-2">
-                    @for (session of sessionHistory; track session.id) {
-                      <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs">
-                        <span [class]="'font-medium ' + qualityColor(session.quality)">{{ session.correctAnswers }}/{{ session.totalQuestions }}</span>
-                        <span class="text-gray-300">{{ session.takenAt | date:'MMM d' }}</span>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            </div>
-          }
         }
       </div>
     }

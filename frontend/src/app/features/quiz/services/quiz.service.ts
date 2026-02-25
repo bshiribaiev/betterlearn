@@ -30,8 +30,12 @@ export class QuizService {
     return this.http.get<QuizConcept[]>(`/api/quiz/topics/${topicId}/concepts`);
   }
 
-  createConcept(topicId: number, name: string) {
-    return this.http.post<QuizConcept>(`/api/quiz/topics/${topicId}/concepts`, { name });
+  createConcept(topicId: number, body: { name: string; content?: string }) {
+    return this.http.post<QuizConcept>(`/api/quiz/topics/${topicId}/concepts`, body);
+  }
+
+  updateConcept(id: number, body: { name: string; content?: string | null }) {
+    return this.http.put<QuizConcept>(`/api/quiz/concepts/${id}`, body);
   }
 
   deleteConcept(id: number) {

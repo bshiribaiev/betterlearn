@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
-import { QuizConcept, QuizSession } from '../../models/quiz.model';
+import { QuizConcept } from '../../models/quiz.model';
 import { VocabularyService } from '../../../vocabulary/services/vocabulary.service';
 import { WordListComponent } from '../../../vocabulary/components/word-list/word-list.component';
 
@@ -27,11 +27,6 @@ export class ConceptListComponent implements OnInit {
   loading = true;
   activeSection: 'quizzes' | 'terms' = 'terms';
   activeTab: 'due' | 'all' = 'due';
-  showAddForm = false;
-  addName = '';
-  addError = '';
-  expandedConceptId: number | null = null;
-  sessionHistory: QuizSession[] = [];
   generatingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
   private deleteTimer: any = null;
@@ -41,7 +36,6 @@ export class ConceptListComponent implements OnInit {
 
   @HostListener('document:click')
   closeMenus() {
-    this.showAddForm = false;
     this.showTermForm = false;
   }
 
@@ -131,19 +125,6 @@ export class ConceptListComponent implements OnInit {
     if (this.wordList) this.wordList.activeTab = tab;
   }
 
-  toggleExpand(concept: QuizConcept, event: Event) {
-    event.stopPropagation();
-    if (this.expandedConceptId === concept.id) {
-      this.expandedConceptId = null;
-      return;
-    }
-    this.expandedConceptId = concept.id;
-    this.sessionHistory = [];
-    this.quizService.getSessions(concept.id).subscribe(sessions => {
-      this.sessionHistory = sessions;
-    });
-  }
-
   generateQuiz(concept: QuizConcept, event: Event) {
     event.stopPropagation();
     this.generatingConceptId = concept.id;
@@ -200,38 +181,5 @@ export class ConceptListComponent implements OnInit {
       },
       error: (err) => this.termError = err.error?.detail || 'Failed to add term'
     });
-  }
-
-  toggleAddForm(event: Event) {
-    event.stopPropagation();
-    this.showAddForm = !this.showAddForm;
-    this.addName = '';
-    this.addError = '';
-  }
-
-  submitConcept(event: Event) {
-    event.preventDefault();
-    if (!this.addName.trim()) return;
-    this.addError = '';
-
-    this.quizService.createConcept(this.topicId, this.addName.trim()).subscribe({
-      next: () => {
-        this.showAddForm = false;
-        this.addName = '';
-        this.loadConcepts();
-      },
-      error: (err) => this.addError = err.error?.detail || 'Failed to add concept'
-    });
-  }
-
-  qualityLabel(quality: number): string {
-    return { 0: 'Fail', 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Great', 5: 'Perfect' }[quality] ?? `Q${quality}`;
-  }
-
-  qualityColor(quality: number): string {
-    if (quality <= 1) return 'text-red-500';
-    if (quality <= 2) return 'text-orange-500';
-    if (quality <= 3) return 'text-blue-500';
-    return 'text-emerald-500';
   }
 }

@@ -63,6 +63,13 @@ public class QuizController {
         return quizService.createConcept(userId, topicId, request);
     }
 
+    @PutMapping("/concepts/{id}")
+    public ConceptResponse updateConcept(@RequestAttribute Long userId,
+                                          @PathVariable Long id,
+                                          @Valid @RequestBody ConceptUpdateRequest request) {
+        return quizService.updateConcept(userId, id, request);
+    }
+
     @DeleteMapping("/concepts/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteConcept(@RequestAttribute Long userId, @PathVariable Long id) {

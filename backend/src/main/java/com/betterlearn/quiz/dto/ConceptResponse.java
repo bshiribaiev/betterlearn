@@ -8,6 +8,7 @@ public record ConceptResponse(
         long id,
         long topicId,
         String name,
+        String content,
         LocalDate nextReview,
         int intervalDays,
         double easinessFactor,
@@ -18,7 +19,7 @@ public record ConceptResponse(
     public static ConceptResponse from(QuizConcept c) {
         return new ConceptResponse(
                 c.getId(), c.getTopic().getId(), c.getName(),
-                c.getNextReview(), c.getIntervalDays(),
+                c.getContent(), c.getNextReview(), c.getIntervalDays(),
                 c.getEasinessFactor(), c.getRepetition(),
                 c.getStatus(), c.getTotalReviews()
         );

@@ -103,6 +103,15 @@ public class QuizService {
         }
 
         QuizConcept concept = new QuizConcept(topic, request.name());
+        concept.setContent(request.content());
+        return ConceptResponse.from(conceptRepo.save(concept));
+    }
+
+    @Transactional
+    public ConceptResponse updateConcept(Long userId, Long conceptId, ConceptUpdateRequest request) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        concept.setName(request.name());
+        concept.setContent(request.content());
         return ConceptResponse.from(conceptRepo.save(concept));
     }
 
@@ -117,8 +126,16 @@ public class QuizService {
     @Transactional(readOnly = true)
     public QuizGenerateResponse generateForConcept(Long userId, Long conceptId, int count) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
-        String promptTopic = concept.getTopic().getName() + " — " + concept.getName();
-        List<QuizQuestionDto> questions = geminiService.generateQuestions(promptTopic, count);
+        String topicName = concept.getTopic().getName();
+        String content = concept.getContent();
+
+        List<QuizQuestionDto> questions;
+        if (content != null && !content.isBlank()) {
+            questions = geminiService.generateQuestionsFromContent(topicName, concept.getName(), content, count);
+        } else {
+            String promptTopic = topicName + " — " + concept.getName();
+            questions = geminiService.generateQuestions(promptTopic, count);
+        }
         return new QuizGenerateResponse(questions);
     }
 
