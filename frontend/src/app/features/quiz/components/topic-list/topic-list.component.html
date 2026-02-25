@@ -22,7 +22,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
-        Add Topic
+        Add Subject
       </button>
 
       @if (showAddForm) {
@@ -32,12 +32,12 @@
             <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
           }
           <form (submit)="submitTopic($event)" class="space-y-3">
-            <input type="text" placeholder="Topic name (e.g. System Design)..."
+            <input type="text" placeholder="Subject name (e.g. System Design)..."
                    [(ngModel)]="addName" name="name"
                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 transition-colors" />
             <button type="submit"
                     class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
-              Add Topic
+              Add Subject
             </button>
           </form>
         </div>
@@ -48,13 +48,13 @@
   <!-- Table -->
   @if (filteredTopics.length === 0) {
     <div class="text-center py-16">
-      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No topics yet. Add your first one to start studying.' }}</p>
+      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No subjects yet. Add your first one to start studying.' }}</p>
     </div>
   } @else {
     <div>
       <!-- Table header -->
       <div class="grid grid-cols-[1fr_140px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-        <span>Topic</span>
+        <span>Subject</span>
         <span>Next Review</span>
         <span></span>
       </div>
