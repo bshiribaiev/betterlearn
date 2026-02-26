@@ -90,8 +90,9 @@ interface DashboardData {
             @for (concept of data.dueConcepts; track concept.id) {
               <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
                 <a [routerLink]="['/quiz', concept.topicId, 'concepts']"
-                   class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer">
-                  {{ concept.name }}
+                   class="min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
+                  <span class="text-base font-medium text-gray-900">{{ concept.topicName }}:</span>
+                  <span class="text-base text-gray-400 ml-1">{{ concept.name }}</span>
                 </a>
                 <button (click)="generateNoteQuiz(concept)"
                         [disabled]="generatingNoteId === concept.id"

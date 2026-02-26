@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept } from '../../models/quiz.model';
 
@@ -33,6 +34,13 @@ export class ConceptListComponent implements OnInit {
       });
     }
     this.loadConcepts();
+
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      const id = Number(this.route.snapshot.paramMap.get('topicId'));
+      if (id === this.topicId) this.loadConcepts();
+    });
   }
 
   loadConcepts() {
@@ -62,7 +70,6 @@ export class ConceptListComponent implements OnInit {
   }
 
   nextReviewLabel(concept: QuizConcept): string {
-    if (concept.status === 'new') return 'New';
     const days = this.daysUntilReview(concept);
     if (days < 0) return `${Math.abs(days)}d overdue`;
     if (days === 0) return 'Due today';
@@ -71,7 +78,6 @@ export class ConceptListComponent implements OnInit {
   }
 
   nextReviewColor(concept: QuizConcept): string {
-    if (concept.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(concept);
     if (days <= 0) return 'text-red-500';
     return 'text-gray-500';

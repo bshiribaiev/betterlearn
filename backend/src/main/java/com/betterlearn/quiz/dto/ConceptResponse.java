@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record ConceptResponse(
         long id,
         long topicId,
+        String topicName,
         String name,
         String content,
         LocalDate nextReview,
@@ -18,8 +19,8 @@ public record ConceptResponse(
 ) {
     public static ConceptResponse from(QuizConcept c) {
         return new ConceptResponse(
-                c.getId(), c.getTopic().getId(), c.getName(),
-                c.getContent(), c.getNextReview(), c.getIntervalDays(),
+                c.getId(), c.getTopic().getId(), c.getTopic().getName(),
+                c.getName(), c.getContent(), c.getNextReview(), c.getIntervalDays(),
                 c.getEasinessFactor(), c.getRepetition(),
                 c.getStatus(), c.getTotalReviews()
         );

@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> {
 
-    @Query("SELECT c FROM QuizConcept c WHERE c.topic.id = :topicId ORDER BY CASE WHEN c.nextReview <= CURRENT_DATE THEN 0 ELSE 1 END, c.nextReview ASC")
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.id = :topicId ORDER BY CASE WHEN c.nextReview <= CURRENT_DATE THEN 0 ELSE 1 END, c.nextReview ASC")
     List<QuizConcept> findByTopicId(Long topicId);
 
-    @Query("SELECT c FROM QuizConcept c WHERE c.topic.user.id = :userId AND c.nextReview <= CURRENT_DATE ORDER BY c.nextReview ASC")
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId AND c.nextReview <= CURRENT_DATE ORDER BY c.nextReview ASC")
     List<QuizConcept> findDueByUserId(Long userId);
 
     @Query("SELECT MIN(c.nextReview) FROM QuizConcept c WHERE c.topic.id = :topicId")

@@ -13,6 +13,7 @@ export interface QuizTopic {
 export interface QuizConcept {
   id: number;
   topicId: number;
+  topicName: string;
   name: string;
   content: string | null;
   nextReview: string;
