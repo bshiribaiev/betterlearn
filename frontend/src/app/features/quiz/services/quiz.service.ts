@@ -30,11 +30,11 @@ export class QuizService {
     return this.http.get<QuizConcept[]>(`/api/quiz/topics/${topicId}/concepts`);
   }
 
-  createConcept(topicId: number, body: { name: string; content?: string }) {
+  createConcept(topicId: number, body: { name: string; content?: string; terms?: string | null }) {
     return this.http.post<QuizConcept>(`/api/quiz/topics/${topicId}/concepts`, body);
   }
 
-  updateConcept(id: number, body: { name: string; content?: string | null }) {
+  updateConcept(id: number, body: { name: string; content?: string | null; terms?: string | null }) {
     return this.http.put<QuizConcept>(`/api/quiz/concepts/${id}`, body);
   }
 
@@ -56,5 +56,9 @@ export class QuizService {
 
   getSessions(conceptId: number) {
     return this.http.get<QuizSession[]>(`/api/quiz/concepts/${conceptId}/sessions`);
+  }
+
+  submitFlashcardReview(conceptId: number, quality: number) {
+    return this.http.post<QuizSession>(`/api/quiz/concepts/${conceptId}/flashcard-review`, { quality });
   }
 }

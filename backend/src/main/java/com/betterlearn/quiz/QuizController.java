@@ -90,6 +90,13 @@ public class QuizController {
         return quizService.submitForConcept(userId, id, request);
     }
 
+    @PostMapping("/concepts/{id}/flashcard-review")
+    public SessionResponse submitFlashcardReview(@RequestAttribute Long userId,
+                                                  @PathVariable Long id,
+                                                  @Valid @RequestBody FlashcardSubmitRequest request) {
+        return quizService.submitFlashcardReview(userId, id, request.quality());
+    }
+
     @GetMapping("/concepts/{id}/sessions")
     public List<SessionResponse> getConceptSessions(@RequestAttribute Long userId,
                                                      @PathVariable Long id) {

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { QuizService } from '../../services/quiz.service';
-import { QuizConcept } from '../../models/quiz.model';
+import { QuizConcept, FlashcardTerm } from '../../models/quiz.model';
 
 @Component({
   selector: 'app-concept-list',
@@ -111,6 +111,28 @@ export class ConceptListComponent implements OnInit {
         });
       },
       error: () => this.generatingConceptId = null
+    });
+  }
+
+  hasTerms(concept: QuizConcept): boolean {
+    if (!concept.terms) return false;
+    try {
+      const terms: FlashcardTerm[] = JSON.parse(concept.terms);
+      return terms.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  startFlashcards(concept: QuizConcept, event: Event) {
+    event.stopPropagation();
+    this.router.navigate(['/quiz', 'concepts', concept.id, 'flashcards'], {
+      state: {
+        terms: JSON.parse(concept.terms!),
+        topicName: this.topicName,
+        conceptName: concept.name,
+        topicId: this.topicId,
+      }
     });
   }
 

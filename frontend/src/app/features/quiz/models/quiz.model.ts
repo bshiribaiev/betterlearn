@@ -16,12 +16,18 @@ export interface QuizConcept {
   topicName: string;
   name: string;
   content: string | null;
+  terms: string | null;
   nextReview: string;
   intervalDays: number;
   easinessFactor: number;
   repetition: number;
   status: 'new' | 'learning' | 'review' | 'mastered';
   totalReviews: number;
+}
+
+export interface FlashcardTerm {
+  term: string;
+  definition: string;
 }
 
 export interface QuizQuestion {

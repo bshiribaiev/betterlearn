@@ -37,7 +37,7 @@
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <div class="grid grid-cols-[1fr_100px_130px] sm:grid-cols-[1fr_100px_110px_130px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Note</span>
         <span class="hidden sm:inline">Confidence</span>
         <span>Next Review</span>
@@ -46,7 +46,7 @@
 
       <!-- Rows -->
       @for (concept of filteredConcepts; track concept.id) {
-        <div [class]="'grid grid-cols-[1fr_140px_140px] sm:grid-cols-[1fr_100px_140px_140px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+        <div [class]="'grid grid-cols-[1fr_100px_130px] sm:grid-cols-[1fr_100px_110px_130px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Note name -->
           <div class="min-w-0">
             <a [routerLink]="['/quiz', topicId, 'notes', concept.id]"
@@ -68,6 +68,16 @@
 
           <!-- Actions -->
           <div class="justify-self-end flex items-center gap-2">
+            @if (hasTerms(concept)) {
+              <button (click)="startFlashcards(concept, $event)"
+                      class="px-3 py-1.5 border border-teal-500 bg-teal-500 text-white rounded-lg hover:bg-teal-600 hover:border-teal-600 hover:shadow-sm transition-all cursor-pointer"
+                      title="Flashcards">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="4" y="2" width="12" height="16" rx="2"/>
+                  <rect x="8" y="6" width="12" height="16" rx="2"/>
+                </svg>
+              </button>
+            }
             <button (click)="generateQuiz(concept, $event)"
                     [disabled]="generatingConceptId === concept.id"
                     [class]="'px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingConceptId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md')">

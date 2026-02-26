@@ -11,6 +11,8 @@ import { QuizSessionComponent } from './features/quiz/components/quiz-session/qu
 import { QuizResultsComponent } from './features/quiz/components/quiz-results/quiz-results.component';
 import { AuthCallbackComponent } from './features/auth/auth-callback/auth-callback.component';
 import { NoteEditorComponent } from './features/quiz/components/note-editor/note-editor.component';
+import { FlashcardSessionComponent } from './features/quiz/components/flashcard-session/flashcard-session.component';
+import { FlashcardResultsComponent } from './features/quiz/components/flashcard-results/flashcard-results.component';
 export const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
@@ -28,6 +30,8 @@ export const routes: Routes = [
       { path: 'quiz/:topicId/notes/:conceptId', component: NoteEditorComponent },
       { path: 'quiz/concepts/:conceptId/session', component: QuizSessionComponent },
       { path: 'quiz/concepts/:conceptId/results', component: QuizResultsComponent },
+      { path: 'quiz/concepts/:conceptId/flashcards', component: FlashcardSessionComponent },
+      { path: 'quiz/concepts/:conceptId/flashcard-results', component: FlashcardResultsComponent },
     ]
   },
   { path: '**', redirectTo: '' }

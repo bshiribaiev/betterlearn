@@ -1,0 +1,19 @@
+<div class="max-w-2xl mx-auto px-6 py-8">
+  <div class="text-center py-8">
+    <h1 class="text-2xl font-semibold text-gray-900 mb-2">Flashcard Review Complete</h1>
+    @if (subtitle) {
+      <p class="text-sm text-gray-400 mb-6">{{ subtitle }}</p>
+    }
+
+    <div class="border border-gray-200 rounded-2xl p-8 mb-8">
+      <p class="text-4xl font-bold" [class]="ratingColor">{{ ratingLabel }}</p>
+      <p class="text-gray-400 mt-2">{{ termCount }} terms reviewed</p>
+    </div>
+
+    <a [routerLink]="['/quiz', topicId, 'concepts']"
+       [state]="{ topicName: topicName }"
+       class="px-6 py-2.5 text-base font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors inline-block">
+      Back to Notes
+    </a>
+  </div>
+</div>

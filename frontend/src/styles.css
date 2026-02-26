@@ -104,3 +104,76 @@ button, a, [role="button"] {
   border-top: 2px solid #e5e7eb;
   margin: 1.5rem 0;
 }
+
+/* Term block */
+.term-block {
+  border-left: 3px solid #d1d5db;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.term-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.term-block-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.term-block-delete {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: #d1d5db;
+  font-size: 1rem;
+  line-height: 1;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.term-block:hover .term-block-delete {
+  opacity: 1;
+}
+
+.term-block-delete:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+.term-block-term {
+  font-size: var(--editor-font-size, 1.1rem);
+  font-weight: 600;
+  color: #1f2937;
+  outline: none;
+  min-height: 1.5em;
+}
+
+.term-block-definition {
+  font-size: calc(var(--editor-font-size, 1.1rem) * 0.9);
+  color: #6b7280;
+  outline: none;
+  min-height: 1.5em;
+  margin-top: 0.25rem;
+}
+
+.term-block-term:empty::before,
+.term-block-definition:empty::before {
+  content: attr(data-placeholder);
+  color: #d1d5db;
+  pointer-events: none;
+}

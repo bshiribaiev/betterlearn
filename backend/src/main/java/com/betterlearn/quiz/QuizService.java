@@ -96,6 +96,7 @@ public class QuizService {
 
         QuizConcept concept = new QuizConcept(topic, request.name());
         concept.setContent(request.content());
+        concept.setTerms(request.terms());
         return ConceptResponse.from(conceptRepo.save(concept));
     }
 
@@ -104,6 +105,7 @@ public class QuizService {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         concept.setName(request.name());
         concept.setContent(request.content());
+        concept.setTerms(request.terms());
         return ConceptResponse.from(conceptRepo.save(concept));
     }
 
@@ -184,6 +186,49 @@ public class QuizService {
         return sessionRepo.findByConceptIdOrderByTakenAtDesc(conceptId).stream()
                 .map(SessionResponse::from)
                 .toList();
+    }
+
+    // --- Flashcard review ---
+
+    @Transactional
+    public SessionResponse submitFlashcardReview(Long userId, Long conceptId, int quality) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        QuizTopic topic = concept.getTopic();
+
+        // Count terms for totalQuestions
+        int termCount = countTerms(concept.getTerms());
+
+        // Update concept SM-2
+        Sm2Result conceptResult = sm2Service.calculate(
+                concept.getEasinessFactor(), concept.getRepetition(),
+                concept.getIntervalDays(), quality
+        );
+        concept.applySmResult(conceptResult.easinessFactor(), conceptResult.repetition(),
+                conceptResult.intervalDays(), conceptResult.nextReview(), conceptResult.status());
+
+        // Update topic SM-2
+        Sm2Result topicResult = sm2Service.calculate(
+                topic.getEasinessFactor(), topic.getRepetition(),
+                topic.getIntervalDays(), quality
+        );
+        topic.applySmResult(topicResult.easinessFactor(), topicResult.repetition(),
+                topicResult.intervalDays(), topicResult.nextReview(), topicResult.status());
+
+        QuizSession session = new QuizSession(topic, concept, termCount, 0, quality, "[]");
+        sessionRepo.save(session);
+        conceptRepo.save(concept);
+        topicRepo.save(topic);
+
+        return SessionResponse.from(session);
+    }
+
+    private int countTerms(String termsJson) {
+        if (termsJson == null || termsJson.isBlank()) return 0;
+        try {
+            return objectMapper.readTree(termsJson).size();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     // --- Ownership checks ---

@@ -1,6 +1,8 @@
 package com.betterlearn.quiz;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,6 +43,10 @@ public class QuizConcept {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String terms;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -74,6 +80,8 @@ public class QuizConcept {
     public void setName(String name) { this.name = name; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getTerms() { return terms; }
+    public void setTerms(String terms) { this.terms = terms; }
     public double getEasinessFactor() { return easinessFactor; }
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }

@@ -11,6 +11,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { Extension } from '@tiptap/core';
 import Suggestion, { SuggestionOptions, SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
+import { TermBlock } from './term-block.extension';
 
 interface SlashCommandItem {
   label: string;
@@ -50,6 +51,10 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   {
     label: 'Divider', icon: '—',
     action: (editor) => editor.chain().focus().setHorizontalRule().run()
+  },
+  {
+    label: 'Term', icon: 'Tt',
+    action: (editor) => editor.chain().focus().insertTermBlock().run()
   },
 ];
 
@@ -179,6 +184,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       extensions: [
         StarterKit,
         Placeholder.configure({ placeholder: 'Type / for commands...' }),
+        TermBlock,
         this.createSlashCommandExtension(),
       ],
     });
@@ -342,13 +348,26 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.slashMenuLeft = rect.left - wrapperRect.left;
   }
 
+  private extractTerms(): { term: string; definition: string }[] {
+    const json = this.editor.getJSON();
+    if (!json.content) return [];
+    return json.content
+      .filter((node: any) => node.type === 'termBlock')
+      .map((node: any) => ({
+        term: node.attrs?.term || '',
+        definition: node.attrs?.definition || '',
+      }))
+      .filter((t: any) => t.term.trim());
+  }
+
   private persist() {
     const name = this.title.trim();
     if (!name) return;
 
     const content = this.editor.getHTML();
-    // Don't save empty editor content
     const htmlContent = content === '<p></p>' ? null : content;
+    const terms = this.extractTerms();
+    const termsJson = terms.length > 0 ? JSON.stringify(terms) : null;
 
     this.saving = true;
     this.saved = false;
@@ -357,7 +376,8 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       this.created = true;
       this.quizService.createConcept(this.topicId, {
         name,
-        content: htmlContent || undefined
+        content: htmlContent || undefined,
+        terms: termsJson || undefined
       }).subscribe({
         next: (concept) => {
           this.conceptId = concept.id;
@@ -372,7 +392,8 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     } else if (this.conceptId) {
       this.quizService.updateConcept(this.conceptId, {
         name,
-        content: htmlContent
+        content: htmlContent,
+        terms: termsJson
       }).subscribe({
         next: () => {
           this.saving = false;
