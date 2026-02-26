@@ -30,7 +30,7 @@ public class QuizConcept {
     private int intervalDays = 0;
 
     @Column(name = "next_review", nullable = false)
-    private LocalDate nextReview = LocalDate.now();
+    private LocalDate nextReview = LocalDate.now().plusDays(1);
 
     @Column(nullable = false, length = 20)
     private String status = "new";

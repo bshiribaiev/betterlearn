@@ -5,15 +5,6 @@ import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
 import { QuizConcept } from '../quiz/models/quiz.model';
 import { QuizService } from '../quiz/services/quiz.service';
-import { VocabularyService } from '../vocabulary/services/vocabulary.service';
-
-interface DueTermGroup {
-  topicId: number;
-  topicName: string;
-  addedDate: string;
-  label: string | null;
-  dueCount: number;
-}
 
 interface DashboardData {
   dueCount: number;
@@ -24,7 +15,7 @@ interface DashboardData {
   topicsTotalCount: number;
   masteredTopicItems: number;
   dueConcepts: QuizConcept[];
-  dueTermGroups: DueTermGroup[];
+  dueTermGroups: any[];
 }
 
 @Component({
@@ -49,7 +40,7 @@ interface DashboardData {
           </div>
           <div>
             <p class="text-lg font-semibold text-gray-900">Subjects</p>
-            <p class="text-base text-gray-400">Topics, terms & quizzes</p>
+            <p class="text-base text-gray-400">Topics, notes & quizzes</p>
           </div>
         </a>
         <a routerLink="/leetcode"
@@ -120,37 +111,7 @@ interface DashboardData {
         </div>
       }
 
-      <!-- Due term groups -->
-      @if (data && data.dueTermGroups.length > 0) {
-        <div class="mb-8">
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Subjects — Needs Review</h2>
-          <div class="space-y-2">
-            @for (group of data.dueTermGroups; track group.topicId + group.addedDate) {
-              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
-                <a [routerLink]="['/quiz', group.topicId, 'concepts']"
-                   class="min-w-0 hover:opacity-70 transition-opacity cursor-pointer">
-                  <span class="text-base font-medium text-gray-900">{{ group.topicName }}:</span>
-                  <span class="text-base text-gray-400 ml-1.5">{{ formatDate(group.addedDate) }}{{ group.label ? ' — ' + group.label : '' }}</span>
-                </a>
-                <button (click)="generateTermQuiz(group)"
-                        [disabled]="generatingTermKey === group.topicId + group.addedDate"
-                        [class]="'flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingTermKey === group.topicId + group.addedDate ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
-                  @if (generatingTermKey === group.topicId + group.addedDate) {
-                    <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                  } @else {
-                    Review
-                  }
-                </button>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @if (data && data.dueProblems.length === 0 && data.dueConcepts.length === 0 && data.dueTermGroups.length === 0) {
+      @if (data && data.dueProblems.length === 0 && data.dueConcepts.length === 0) {
         <div class="text-center py-12">
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>
@@ -163,12 +124,10 @@ export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private quizService = inject(QuizService);
-  private vocabService = inject(VocabularyService);
 
   data: DashboardData | null = null;
   loading = true;
   generatingNoteId: number | null = null;
-  generatingTermKey: string | null = null;
 
   ngOnInit() {
     this.loadData();
@@ -177,16 +136,6 @@ export class DashboardComponent implements OnInit {
         this.loadData();
       }
     });
-  }
-
-  formatDate(dateStr: string): string {
-    const date = new Date(dateStr + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diff = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff === 0) return 'Today';
-    if (diff === 1) return 'Yesterday';
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   generateNoteQuiz(concept: QuizConcept) {
@@ -199,26 +148,6 @@ export class DashboardComponent implements OnInit {
         });
       },
       error: () => this.generatingNoteId = null
-    });
-  }
-
-  generateTermQuiz(group: DueTermGroup) {
-    const key = group.topicId + group.addedDate;
-    this.generatingTermKey = key;
-    this.vocabService.generateTermQuiz(group.topicId, group.addedDate).subscribe({
-      next: (res) => {
-        this.generatingTermKey = null;
-        this.router.navigate(['/quiz', group.topicId, 'terms', 'session'], {
-          state: {
-            questions: res.questions,
-            topicId: group.topicId,
-            topicName: group.topicName,
-            date: group.addedDate,
-            groupLabel: group.label || this.formatDate(group.addedDate)
-          }
-        });
-      },
-      error: () => this.generatingTermKey = null
     });
   }
 

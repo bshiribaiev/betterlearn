@@ -1,43 +1,28 @@
-import { Component, HostListener, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept } from '../../models/quiz.model';
-import { VocabularyService } from '../../../vocabulary/services/vocabulary.service';
-import { WordListComponent } from '../../../vocabulary/components/word-list/word-list.component';
 
 @Component({
   selector: 'app-concept-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, WordListComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './concept-list.component.html'
 })
 export class ConceptListComponent implements OnInit {
   private quizService = inject(QuizService);
-  private vocabService = inject(VocabularyService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-
-  @ViewChild('wordList') wordList?: WordListComponent;
 
   topicId = 0;
   topicName = '';
   concepts: QuizConcept[] = [];
   loading = true;
-  activeSection: 'quizzes' | 'terms' = 'terms';
   activeTab: 'due' | 'all' = 'due';
   generatingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
   private deleteTimer: any = null;
-  showTermForm = false;
-  termName = '';
-  termError = '';
-
-  @HostListener('document:click')
-  closeMenus() {
-    this.showTermForm = false;
-  }
 
   ngOnInit() {
     this.topicId = Number(this.route.snapshot.paramMap.get('topicId'));
@@ -50,29 +35,14 @@ export class ConceptListComponent implements OnInit {
     this.loadConcepts();
   }
 
-  private conceptsLoaded = false;
-  private termsLoaded = false;
-
   loadConcepts() {
     this.quizService.findConcepts(this.topicId).subscribe(concepts => {
       this.concepts = concepts;
       this.loading = false;
-      this.conceptsLoaded = true;
-      this.maybeRedirectToAll();
+      if (this.activeTab === 'due' && this.filteredConcepts.length === 0) {
+        this.activeTab = 'all';
+      }
     });
-  }
-
-  maybeRedirectToAll() {
-    if (this.activeTab !== 'due') return;
-    if (!this.conceptsLoaded || !this.termsLoaded) return;
-    const conceptsDue = this.concepts.filter(c => this.isDue(c)).length > 0;
-    const termsDue = this.wordList ? this.wordList.totalDueCount > 0 : false;
-    if (!conceptsDue && !termsDue) this.setTab('all');
-  }
-
-  onTermsLoaded() {
-    this.termsLoaded = true;
-    this.maybeRedirectToAll();
   }
 
   get filteredConcepts(): QuizConcept[] {
@@ -122,7 +92,6 @@ export class ConceptListComponent implements OnInit {
 
   setTab(tab: 'due' | 'all') {
     this.activeTab = tab;
-    if (this.wordList) this.wordList.activeTab = tab;
   }
 
   generateQuiz(concept: QuizConcept, event: Event) {
@@ -159,27 +128,5 @@ export class ConceptListComponent implements OnInit {
     if (!this.deletedConcept) return;
     this.quizService.deleteConcept(this.deletedConcept.id).subscribe();
     this.deletedConcept = null;
-  }
-
-  toggleTermAddForm(event: Event) {
-    event.stopPropagation();
-    this.showTermForm = !this.showTermForm;
-    this.termName = '';
-    this.termError = '';
-  }
-
-  submitTerm(event: Event) {
-    event.preventDefault();
-    if (!this.termName.trim()) return;
-    this.termError = '';
-
-    this.vocabService.create(this.topicId, { word: this.termName.trim() }).subscribe({
-      next: () => {
-        this.showTermForm = false;
-        this.termName = '';
-        if (this.wordList) this.wordList.loadWords();
-      },
-      error: (err) => this.termError = err.error?.detail || 'Failed to add term'
-    });
   }
 }
