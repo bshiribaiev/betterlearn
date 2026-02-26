@@ -48,7 +48,7 @@ public class GeminiService {
 
     private String buildPrompt(String topic, int count) {
         return """
-                Generate %d multiple-choice questions about "%s" for a system design / software engineering quiz.
+                Generate %d multiple-choice questions about "%s".
 
                 Return a JSON array where each element has:
                 - "question": the question text
