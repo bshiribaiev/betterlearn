@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept } from '../../models/quiz.model';
 import { Subject, debounceTime } from 'rxjs';
@@ -60,7 +60,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   template: `
     <div class="max-w-3xl mx-auto px-6 py-8">
       <div class="flex items-center gap-3 mb-8">
-        <a [routerLink]="['/quiz', topicId, 'concepts']"
+        <a [routerLink]="backRoute"
            class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -126,11 +126,13 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
 export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private quizService = inject(QuizService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
 
   topicId = 0;
   topicName = '';
+  backRoute: string[] = [];
   conceptId: number | null = null;
   title = '';
   editorContent = '';
@@ -169,6 +171,9 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       ? Number(this.route.snapshot.paramMap.get('conceptId'))
       : null;
     this.topicName = history.state?.topicName || '';
+    this.backRoute = history.state?.from === 'dashboard'
+      ? ['/dashboard']
+      : ['/quiz', String(this.topicId), 'concepts'];
 
     this.editor = new Editor({
       extensions: [
