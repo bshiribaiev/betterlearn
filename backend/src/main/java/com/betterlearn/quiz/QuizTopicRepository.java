@@ -10,7 +10,7 @@ public interface QuizTopicRepository extends JpaRepository<QuizTopic, Long> {
     @Query("SELECT t FROM QuizTopic t WHERE t.user.id = :userId ORDER BY CASE WHEN t.nextReview <= CURRENT_DATE THEN 0 ELSE 1 END, t.nextReview ASC")
     List<QuizTopic> findAllByUserId(Long userId);
 
-    @Query("SELECT t FROM QuizTopic t WHERE t.user.id = :userId AND t.nextReview <= CURRENT_DATE ORDER BY t.nextReview ASC")
+    @Query("SELECT DISTINCT t FROM QuizTopic t JOIN QuizConcept c ON c.topic = t WHERE t.user.id = :userId AND c.nextReview <= CURRENT_DATE ORDER BY t.nextReview ASC")
     List<QuizTopic> findDueByUserId(Long userId);
 
     boolean existsByUserIdAndName(Long userId, String name);
