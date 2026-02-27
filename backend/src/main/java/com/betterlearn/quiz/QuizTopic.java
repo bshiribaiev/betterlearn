@@ -39,6 +39,12 @@ public class QuizTopic {
     @Column(name = "total_reviews", nullable = false)
     private int totalReviews = 0;
 
+    @Column(name = "textbook_name", length = 300)
+    private String textbookName;
+
+    @Column(name = "textbook_url")
+    private String textbookUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -69,12 +75,17 @@ public class QuizTopic {
     public Long getId() { return id; }
     public User getUser() { return user; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public double getEasinessFactor() { return easinessFactor; }
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }
     public LocalDate getNextReview() { return nextReview; }
     public String getStatus() { return status; }
     public int getTotalReviews() { return totalReviews; }
+    public String getTextbookName() { return textbookName; }
+    public void setTextbookName(String textbookName) { this.textbookName = textbookName; }
+    public String getTextbookUrl() { return textbookUrl; }
+    public void setTextbookUrl(String textbookUrl) { this.textbookUrl = textbookUrl; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

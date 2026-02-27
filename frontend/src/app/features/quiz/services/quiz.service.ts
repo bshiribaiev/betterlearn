@@ -20,6 +20,10 @@ export class QuizService {
     return this.http.post<QuizTopic>('/api/quiz/topics', { name });
   }
 
+  updateTopic(id: number, body: { name: string; textbookName?: string | null; textbookUrl?: string | null }) {
+    return this.http.put<QuizTopic>(`/api/quiz/topics/${id}`, body);
+  }
+
   deleteTopic(id: number) {
     return this.http.delete<void>(`/api/quiz/topics/${id}`);
   }

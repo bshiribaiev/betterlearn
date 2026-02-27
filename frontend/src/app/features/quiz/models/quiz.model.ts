@@ -8,6 +8,8 @@ export interface QuizTopic {
   status: 'new' | 'learning' | 'review' | 'mastered';
   totalReviews: number;
   earliestDueDate: string | null;
+  textbookName: string | null;
+  textbookUrl: string | null;
 }
 
 export interface QuizConcept {

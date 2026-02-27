@@ -1,14 +1,15 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { QuizService } from '../../services/quiz.service';
-import { QuizConcept, FlashcardTerm } from '../../models/quiz.model';
+import { QuizConcept, QuizTopic, FlashcardTerm } from '../../models/quiz.model';
 
 @Component({
   selector: 'app-concept-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './concept-list.component.html'
 })
 export class ConceptListComponent implements OnInit {
@@ -18,9 +19,14 @@ export class ConceptListComponent implements OnInit {
 
   topicId = 0;
   topicName = '';
+  textbookName: string | null = null;
+  textbookUrl: string | null = null;
+  editingTextbook = false;
+  editTextbookName = '';
+  editTextbookUrl = '';
   concepts: QuizConcept[] = [];
   loading = true;
-  activeTab: 'due' | 'all' = 'due';
+  activeTab: 'all' | 'due' = 'all';
   generatingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
   private deleteTimer: any = null;
@@ -28,10 +34,10 @@ export class ConceptListComponent implements OnInit {
   ngOnInit() {
     this.topicId = Number(this.route.snapshot.paramMap.get('topicId'));
     this.topicName = history.state?.topicName || '';
+    this.textbookName = history.state?.textbookName ?? null;
+    this.textbookUrl = history.state?.textbookUrl ?? null;
     if (!this.topicName) {
-      this.quizService.findAllTopics().subscribe(topics => {
-        this.topicName = topics.find(t => t.id === this.topicId)?.name || 'Topic';
-      });
+      this.loadTopicMetadata();
     }
     this.loadConcepts();
 
@@ -43,19 +49,55 @@ export class ConceptListComponent implements OnInit {
     });
   }
 
-  loadConcepts() {
-    this.quizService.findConcepts(this.topicId).subscribe(concepts => {
-      this.concepts = concepts;
-      this.loading = false;
-      if (this.activeTab === 'due' && this.filteredConcepts.length === 0) {
-        this.activeTab = 'all';
+  private loadTopicMetadata() {
+    this.quizService.findAllTopics().subscribe(topics => {
+      const topic = topics.find(t => t.id === this.topicId);
+      if (topic) {
+        this.topicName = topic.name;
+        this.textbookName = topic.textbookName;
+        this.textbookUrl = topic.textbookUrl;
       }
     });
   }
 
+  startEditTextbook() {
+    this.editingTextbook = true;
+    this.editTextbookName = this.textbookName || '';
+    this.editTextbookUrl = this.textbookUrl || '';
+  }
+
+  cancelEditTextbook() {
+    this.editingTextbook = false;
+  }
+
+  saveTextbook() {
+    const name = this.editTextbookName.trim() || null;
+    const url = this.editTextbookUrl.trim() || null;
+    this.quizService.updateTopic(this.topicId, {
+      name: this.topicName,
+      textbookName: name,
+      textbookUrl: url,
+    }).subscribe(updated => {
+      this.textbookName = updated.textbookName;
+      this.textbookUrl = updated.textbookUrl;
+      this.editingTextbook = false;
+    });
+  }
+
+  loadConcepts() {
+    this.quizService.findConcepts(this.topicId).subscribe(concepts => {
+      this.concepts = concepts;
+      this.loading = false;
+    });
+  }
+
   get filteredConcepts(): QuizConcept[] {
-    if (this.activeTab === 'due') return this.concepts.filter(c => this.isDue(c));
-    return this.concepts;
+    const list = this.activeTab === 'due' ? this.concepts.filter(c => this.isDue(c)) : this.concepts;
+    return [...list].sort((a, b) => {
+      const aDue = this.isDue(a) ? 0 : 1;
+      const bDue = this.isDue(b) ? 0 : 1;
+      return aDue - bDue;
+    });
   }
 
   isDue(concept: QuizConcept): boolean {

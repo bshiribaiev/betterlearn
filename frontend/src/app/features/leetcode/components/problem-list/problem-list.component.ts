@@ -16,7 +16,7 @@ export class ProblemListComponent implements OnInit {
 
   problems: Problem[] = [];
   loading = true;
-  activeTab: 'due' | 'all' = 'due';
+  activeTab: 'all' | 'due' = 'all';
   showAddForm = false;
   reviewingProblem: Problem | null = null;
   confidenceMenuProblem: Problem | null = null;
@@ -50,15 +50,16 @@ export class ProblemListComponent implements OnInit {
     this.leetcodeService.findAll().subscribe(problems => {
       this.problems = problems;
       this.loading = false;
-      if (this.activeTab === 'due' && this.dueCount === 0) {
-        this.activeTab = 'all';
-      }
     });
   }
 
   get filteredProblems(): Problem[] {
-    if (this.activeTab === 'due') return this.problems.filter(p => this.isDue(p));
-    return this.problems;
+    const list = this.activeTab === 'due' ? this.problems.filter(p => this.isDue(p)) : this.problems;
+    return [...list].sort((a, b) => {
+      const aDue = this.isDue(a) ? 0 : 1;
+      const bDue = this.isDue(b) ? 0 : 1;
+      return aDue - bDue;
+    });
   }
 
   get dueCount(): number {

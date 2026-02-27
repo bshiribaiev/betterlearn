@@ -1,5 +1,38 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
-  <h1 class="text-2xl font-semibold text-gray-900 mb-6">{{ topicName || 'Topic' }}</h1>
+  <h1 class="text-2xl font-semibold text-gray-900">{{ topicName || 'Topic' }}</h1>
+
+  <!-- Textbook metadata -->
+  @if (editingTextbook) {
+    <div class="mt-2 mb-6 flex items-center gap-2">
+      <input type="text" [(ngModel)]="editTextbookName" placeholder="Textbook name"
+             class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 w-48" />
+      <input type="text" [(ngModel)]="editTextbookUrl" placeholder="URL (optional)"
+             class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 w-64" />
+      <button (click)="saveTextbook()"
+              class="px-3 py-1 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Save</button>
+      <button (click)="cancelEditTextbook()"
+              class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
+    </div>
+  } @else {
+    <div class="mt-1 mb-6 group/textbook flex items-center gap-1.5 min-h-[24px]">
+      @if (textbookName) {
+        @if (textbookUrl) {
+          <a [href]="textbookUrl" target="_blank" rel="noopener"
+             class="text-sm text-gray-400 hover:text-sky-500 transition-colors">{{ textbookName }}</a>
+        } @else {
+          <span class="text-sm text-gray-400">{{ textbookName }}</span>
+        }
+      } @else {
+        <span class="text-sm text-gray-300 opacity-0 group-hover/textbook:opacity-100 transition-opacity">Add textbook</span>
+      }
+      <button (click)="startEditTextbook()"
+              class="opacity-0 group-hover/textbook:opacity-100 p-0.5 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+        </svg>
+      </button>
+    </div>
+  }
 
   <!-- Toolbar -->
   <div class="flex items-center justify-between mb-6">
@@ -9,14 +42,11 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
       </a>
-      <button (click)="setTab('due')"
-              [class]="'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-gray-100 text-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50')">
-        Due
-      </button>
-      <button (click)="setTab('all')"
-              [class]="'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'all' ? 'bg-gray-100 text-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50')">
-        All
-      </button>
+      <select [(ngModel)]="activeTab"
+              class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 cursor-pointer appearance-none text-center">
+        <option value="all">All</option>
+        <option value="due">Due</option>
+      </select>
     </div>
     <a [routerLink]="['/quiz', topicId, 'notes', 'new']"
        [state]="{ topicName: topicName }"
@@ -72,9 +102,9 @@
               <button (click)="startFlashcards(concept, $event)"
                       class="px-3 py-1.5 border border-teal-500 bg-teal-500 text-white rounded-lg hover:bg-teal-600 hover:border-teal-600 hover:shadow-sm transition-all cursor-pointer"
                       title="Flashcards">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <rect x="4" y="2" width="12" height="16" rx="2"/>
-                  <rect x="8" y="6" width="12" height="16" rx="2"/>
+                <svg class="w-4 h-4" viewBox="0 0 24 24">
+                  <rect x="2" y="3" width="12" height="16" rx="2" fill="white" transform="rotate(-10 8 11)" opacity="0.7"/>
+                  <rect x="10" y="5" width="12" height="16" rx="2" fill="white" transform="rotate(10 16 13)"/>
                 </svg>
               </button>
             }

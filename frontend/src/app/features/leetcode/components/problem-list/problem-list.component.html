@@ -19,16 +19,11 @@
   } @else {
   <!-- Tabs + Add button -->
   <div class="flex items-center justify-between mb-6">
-    <div class="flex gap-1">
-      <button (click)="activeTab = 'due'"
-              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
-        Due
-      </button>
-      <button (click)="activeTab = 'all'"
-              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'all' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
-        All
-      </button>
-    </div>
+    <select [(ngModel)]="activeTab"
+            class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 cursor-pointer appearance-none text-center">
+      <option value="all">All</option>
+      <option value="due">Due</option>
+    </select>
     <div class="relative">
       <button (click)="toggleAddForm($event)"
               class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">

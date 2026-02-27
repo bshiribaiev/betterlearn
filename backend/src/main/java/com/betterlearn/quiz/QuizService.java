@@ -62,7 +62,18 @@ public class QuizService {
 
         User user = userRepo.getReferenceById(userId);
         QuizTopic topic = new QuizTopic(user, request.name());
+        topic.setTextbookName(request.textbookName());
+        topic.setTextbookUrl(request.textbookUrl());
         return TopicResponse.from(topicRepo.save(topic));
+    }
+
+    @Transactional
+    public TopicResponse updateTopic(Long userId, Long topicId, TopicUpdateRequest request) {
+        QuizTopic topic = findOwnedTopic(userId, topicId);
+        topic.setName(request.name());
+        topic.setTextbookName(request.textbookName());
+        topic.setTextbookUrl(request.textbookUrl());
+        return TopicResponse.from(topicRepo.save(topic), earliestDueDate(topicId));
     }
 
     @Transactional

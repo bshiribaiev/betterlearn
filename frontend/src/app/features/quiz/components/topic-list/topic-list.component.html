@@ -6,16 +6,11 @@
   } @else {
   <!-- Tabs + Add button -->
   <div class="flex items-center justify-between mb-6">
-    <div class="flex gap-1">
-      <button (click)="activeTab = 'due'"
-              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
-        Due
-      </button>
-      <button (click)="activeTab = 'all'"
-              [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'all' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
-        All
-      </button>
-    </div>
+    <select [(ngModel)]="activeTab"
+            class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 cursor-pointer appearance-none text-center">
+      <option value="all">All</option>
+      <option value="due">Due</option>
+    </select>
     <div class="relative">
       <button (click)="toggleAddForm($event)"
               class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
@@ -48,12 +43,12 @@
   <!-- Table -->
   @if (filteredTopics.length === 0) {
     <div class="text-center py-16">
-      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No subjects yet. Add your first one to start studying.' }}</p>
+      <p class="text-gray-400 text-sm">{{ activeTab === 'due' ? 'Nothing due. You\'re all caught up!' : 'No subjects yet. Add one to start studying.' }}</p>
     </div>
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <div class="grid grid-cols-[1fr_110px_50px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Subject</span>
         <span>Next Review</span>
         <span></span>
@@ -62,10 +57,32 @@
       <!-- Rows -->
       @for (topic of filteredTopics; track topic.id) {
         <div (click)="openTopic(topic)"
-             [class]="'grid grid-cols-[1fr_140px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors cursor-pointer ' + ($last ? '' : 'border-b border-gray-200')">
+             [class]="'grid grid-cols-[1fr_110px_50px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors cursor-pointer ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Topic name -->
-          <div class="min-w-0">
-            <span class="text-base font-medium text-gray-900 truncate">{{ topic.name }}</span>
+          <div class="min-w-0 flex items-center gap-1.5 group/name">
+            @if (editingTopicId === topic.id) {
+              <input type="text"
+                     [(ngModel)]="editingName"
+                     (blur)="submitRename(topic)"
+                     (keydown.enter)="submitRename(topic)"
+                     (keydown.escape)="cancelRename()"
+                     (click)="$event.stopPropagation()"
+                     class="text-base font-medium text-gray-900 w-full border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400"
+                     autofocus />
+            } @else {
+              <div class="truncate">
+                <span class="text-base font-medium text-gray-900">{{ topic.name }}</span>
+                @if (topic.textbookName) {
+                  <span class="block text-xs text-gray-400 truncate">{{ topic.textbookName }}</span>
+                }
+              </div>
+              <button (click)="startRename(topic, $event)"
+                      class="opacity-0 group-hover/name:opacity-100 p-1 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+              </button>
+            }
           </div>
 
           <!-- Next review -->

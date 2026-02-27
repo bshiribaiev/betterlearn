@@ -17,12 +17,14 @@ export class TopicListComponent implements OnInit {
 
   topics: QuizTopic[] = [];
   loading = true;
-  activeTab: 'due' | 'all' = 'due';
+  activeTab: 'all' | 'due' = 'all';
   showAddForm = false;
   addName = '';
   addError = '';
   deletedTopic: QuizTopic | null = null;
   private deleteTimer: any = null;
+  editingTopicId: number | null = null;
+  editingName = '';
 
   @HostListener('document:click')
   closeMenus() {
@@ -37,15 +39,16 @@ export class TopicListComponent implements OnInit {
     this.quizService.findAllTopics().subscribe(topics => {
       this.topics = topics;
       this.loading = false;
-      if (this.activeTab === 'due' && this.dueCount === 0) {
-        this.activeTab = 'all';
-      }
     });
   }
 
   get filteredTopics(): QuizTopic[] {
-    if (this.activeTab === 'due') return this.topics.filter(t => this.isDue(t));
-    return this.topics;
+    const list = this.activeTab === 'due' ? this.topics.filter(t => this.isDue(t)) : this.topics;
+    return [...list].sort((a, b) => {
+      const aDue = this.isDue(a) ? 0 : 1;
+      const bDue = this.isDue(b) ? 0 : 1;
+      return aDue - bDue;
+    });
   }
 
   get dueCount(): number {
@@ -82,7 +85,7 @@ export class TopicListComponent implements OnInit {
 
   openTopic(topic: QuizTopic) {
     this.router.navigate(['/quiz', topic.id, 'concepts'], {
-      state: { topicName: topic.name }
+      state: { topicName: topic.name, textbookName: topic.textbookName, textbookUrl: topic.textbookUrl }
     });
   }
 
@@ -106,6 +109,31 @@ export class TopicListComponent implements OnInit {
     if (!this.deletedTopic) return;
     this.quizService.deleteTopic(this.deletedTopic.id).subscribe();
     this.deletedTopic = null;
+  }
+
+  startRename(topic: QuizTopic, event: Event) {
+    event.stopPropagation();
+    this.editingTopicId = topic.id;
+    this.editingName = topic.name;
+  }
+
+  submitRename(topic: QuizTopic) {
+    const name = this.editingName.trim();
+    if (!name || name === topic.name) {
+      this.editingTopicId = null;
+      return;
+    }
+    this.quizService.updateTopic(topic.id, { name }).subscribe({
+      next: (updated) => {
+        topic.name = updated.name;
+        this.editingTopicId = null;
+      },
+      error: () => this.editingTopicId = null
+    });
+  }
+
+  cancelRename() {
+    this.editingTopicId = null;
   }
 
   toggleAddForm(event: Event) {

@@ -41,6 +41,13 @@ public class QuizController {
         return quizService.create(userId, request);
     }
 
+    @PutMapping("/topics/{id}")
+    public TopicResponse updateTopic(@RequestAttribute Long userId,
+                                      @PathVariable Long id,
+                                      @Valid @RequestBody TopicUpdateRequest request) {
+        return quizService.updateTopic(userId, id, request);
+    }
+
     @DeleteMapping("/topics/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTopic(@RequestAttribute Long userId, @PathVariable Long id) {

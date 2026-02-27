@@ -63,20 +63,21 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode — Needs Review</h2>
           <div class="space-y-2">
             @for (problem of data.dueProblems; track problem.id) {
-              <a routerLink="/leetcode"
-                 class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer">
-                <div class="flex items-center gap-3 min-w-0">
+              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                <a [href]="problem.url" target="_blank" rel="noopener"
+                   class="flex items-center gap-3 min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
                   <span class="text-base font-medium text-gray-900 truncate">{{ problem.title }}</span>
                   <span class="flex-shrink-0 text-gray-300">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                   </span>
-                </div>
-                <span class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg">
+                </a>
+                <a routerLink="/leetcode"
+                   class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Review
-                </span>
-              </a>
+                </a>
+              </div>
             }
           </div>
         </div>
