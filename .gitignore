@@ -37,3 +37,4 @@ backend/target/
 *.jar
 .DS_Store
 CLAUDE.md
+.vscode

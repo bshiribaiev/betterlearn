@@ -57,7 +57,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   },
   {
     label: 'Term', icon: 'Tt',
-    action: (editor) => editor.chain().focus().insertTermBlock().run()
+    action: (editor) => editor.chain().focus().toggleBulletList().run()
   },
 ];
 
@@ -642,15 +642,45 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private extractTerms(): { term: string; definition: string }[] {
+    const terms: { term: string; definition: string }[] = [];
     const json = this.editor.getJSON();
-    if (!json.content) return [];
-    return json.content
-      .filter((node: any) => node.type === 'termBlock')
-      .map((node: any) => ({
-        term: node.attrs?.term || '',
-        definition: node.attrs?.definition || '',
-      }))
-      .filter((t: any) => t.term.trim());
+    if (!json.content) return terms;
+
+    // Extract from bullet list items with "term: definition" format
+    for (const node of json.content) {
+      if (node.type === 'bulletList' && node.content) {
+        for (const li of node.content) {
+          const text = this.extractTextFromNode(li);
+          const colonIdx = text.indexOf(':');
+          const dashIdx = text.indexOf(' - ');
+          let sepIdx = -1;
+          let sepLen = 1;
+          if (colonIdx > 0 && (dashIdx < 0 || colonIdx <= dashIdx)) {
+            sepIdx = colonIdx; sepLen = 1;
+          } else if (dashIdx > 0) {
+            sepIdx = dashIdx; sepLen = 3;
+          }
+          if (sepIdx > 0) {
+            const term = text.substring(0, sepIdx).trim();
+            const definition = text.substring(sepIdx + sepLen).trim();
+            if (term) terms.push({ term, definition });
+          }
+        }
+      }
+      // Legacy: support old termBlock nodes
+      if (node.type === 'termBlock') {
+        const t = (node.attrs?.['term'] || '').trim();
+        const d = node.attrs?.['definition'] || '';
+        if (t) terms.push({ term: t, definition: d });
+      }
+    }
+    return terms;
+  }
+
+  private extractTextFromNode(node: any): string {
+    if (node.text) return node.text;
+    if (!node.content) return '';
+    return node.content.map((child: any) => this.extractTextFromNode(child)).join('');
   }
 
   private persist() {
