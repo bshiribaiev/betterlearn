@@ -2,6 +2,7 @@ import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewI
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept } from '../../models/quiz.model';
 import { Subject, debounceTime } from 'rxjs';
@@ -12,6 +13,7 @@ import { TiptapEditorDirective } from 'ngx-tiptap';
 import { Extension } from '@tiptap/core';
 import Suggestion, { SuggestionOptions, SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
 import { TermBlock } from './term-block.extension';
+import { PdfAttachment } from './pdf-attachment.extension';
 
 interface SlashCommandItem {
   label: string;
@@ -63,7 +65,11 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, TiptapEditorDirective],
   template: `
-    <div class="max-w-3xl mx-auto px-6 py-8">
+    <div class="max-w-3xl mx-auto px-6 py-8"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave($event)"
+         (drop)="onDrop($event)">
+
       <div class="flex items-center gap-3 mb-8">
         <a [routerLink]="backRoute"
            class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors">
@@ -74,6 +80,23 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
         <a [routerLink]="['/quiz', topicId, 'concepts']"
            class="text-sm text-gray-400 hover:text-sky-600 transition-colors">{{ topicName }}</a>
         <div class="ml-auto flex items-center gap-2">
+          <!-- PDF upload trigger -->
+          <input #pdfInput type="file" accept=".pdf" class="hidden" (change)="onPdfSelected($event)" />
+          @if (uploadingPdf) {
+            <svg class="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          } @else {
+            <button (click)="pdfInput.click()"
+                    class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                    [title]="pdfFilename ? 'Replace PDF' : 'Upload PDF'">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+            </button>
+          }
+
           <div class="relative">
             <button (click)="fontMenuOpen = !fontMenuOpen; $event.stopPropagation()"
                     class="w-7 h-7 flex items-center justify-center rounded text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">A</button>
@@ -106,6 +129,16 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
              class="w-full text-3xl font-semibold text-gray-900 placeholder-gray-300 border-none outline-none mb-4" />
 
       <div class="relative tiptap-wrapper">
+        @if (draggingOver) {
+          <div class="absolute inset-0 z-40 bg-sky-50/80 border-2 border-dashed border-sky-400 rounded-2xl flex items-center justify-center pointer-events-none">
+            <div class="text-center">
+              <svg class="w-10 h-10 text-sky-400 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1"/>
+              </svg>
+              <span class="text-sm font-medium text-sky-600">Drop PDF to attach</span>
+            </div>
+          </div>
+        }
         <tiptap-editor [editor]="editor" (ngModelChange)="onContentChange()" [(ngModel)]="editorContent" outputFormat="html"></tiptap-editor>
 
         @if (slashMenuVisible && filteredCommands.length > 0) {
@@ -126,12 +159,41 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
         }
       </div>
     </div>
+
+    <!-- PDF preview modal -->
+    @if (pdfPreviewUrl) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="closePdfPreview()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[90vw] h-[90vh] max-w-5xl flex flex-col overflow-hidden"
+             (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            <span class="text-sm font-medium text-gray-700 truncate">{{ pdfFilename }}</span>
+            <div class="flex items-center gap-2">
+              <button (click)="downloadPdf()"
+                      class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                Download
+              </button>
+              <button (click)="closePdfPreview()"
+                      class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <iframe [src]="pdfPreviewUrl" class="w-full h-full border-none"></iframe>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private quizService = inject(QuizService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
   @ViewChild('titleInput') titleInput!: ElementRef<HTMLInputElement>;
 
@@ -143,6 +205,10 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   editorContent = '';
   saving = false;
   saved = false;
+  pdfFilename: string | null = null;
+  uploadingPdf = false;
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+  draggingOver = false;
 
   // Slash menu state (driven by suggestion plugin callbacks)
   slashMenuVisible = false;
@@ -185,21 +251,28 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         StarterKit,
         Placeholder.configure({ placeholder: 'Type / for commands...' }),
         TermBlock,
+        PdfAttachment,
         this.createSlashCommandExtension(),
       ],
     });
+
+    // Listen for custom events from PDF attachment node
+    this.editor.view.dom.addEventListener('pdf-preview', () => this.openPdfPreview());
+    this.editor.view.dom.addEventListener('pdf-remove', () => this.removePdf());
 
     if (this.conceptId) {
       this.created = true;
       const concept: QuizConcept | undefined = history.state?.concept;
       if (concept) {
         this.title = concept.name;
+        this.pdfFilename = concept.pdfFilename;
         this.loadContent(concept.content || '');
       } else {
         this.quizService.findConcepts(this.topicId).subscribe(concepts => {
           const c = concepts.find(x => x.id === this.conceptId);
           if (c) {
             this.title = c.name;
+            this.pdfFilename = c.pdfFilename;
             this.loadContent(c.content || '');
           }
         });
@@ -247,6 +320,146 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fontSize = Math.min(Math.max(value / 10, NoteEditorComponent.FONT_SIZE_MIN), NoteEditorComponent.FONT_SIZE_MAX);
     localStorage.setItem(NoteEditorComponent.FONT_SIZE_KEY, String(this.fontSize));
     this.applyFontSize();
+  }
+
+  onPdfSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+
+    if (!this.conceptId) {
+      // Auto-save note first, then upload
+      this.persistSync(() => this.doUploadPdf(file));
+      return;
+    }
+    this.doUploadPdf(file);
+  }
+
+  private doUploadPdf(file: File) {
+    if (!this.conceptId) return;
+    this.uploadingPdf = true;
+    this.quizService.uploadPdf(this.conceptId, file).subscribe({
+      next: (concept) => {
+        this.pdfFilename = concept.pdfFilename;
+        this.uploadingPdf = false;
+        // Remove any existing pdf attachment node first
+        this.removeExistingPdfNode();
+        // Insert at cursor position
+        this.editor.chain().focus().insertPdfAttachment(concept.pdfFilename!).run();
+      },
+      error: () => this.uploadingPdf = false,
+    });
+  }
+
+  private removeExistingPdfNode() {
+    const { doc, tr } = this.editor.state;
+    doc.descendants((node, pos): boolean => {
+      if (node.type.name === 'pdfAttachment') {
+        tr.delete(pos, pos + node.nodeSize);
+        return false;
+      }
+      return true;
+    });
+    if (tr.docChanged) {
+      this.editor.view.dispatch(tr);
+    }
+  }
+
+  removePdf() {
+    if (!this.conceptId) return;
+    this.removeExistingPdfNode();
+    this.quizService.removePdf(this.conceptId).subscribe(() => {
+      this.pdfFilename = null;
+    });
+  }
+
+  downloadPdf() {
+    if (!this.conceptId) return;
+    this.quizService.downloadPdf(this.conceptId).subscribe(res => {
+      const blob = res.body;
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.pdfFilename || 'document.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  openPdfPreview() {
+    if (!this.conceptId) return;
+    this.quizService.downloadPdf(this.conceptId).subscribe(res => {
+      const blob = res.body;
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    });
+  }
+
+  closePdfPreview() {
+    this.pdfPreviewUrl = null;
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer?.types.includes('Files')) {
+      this.draggingOver = true;
+    }
+  }
+
+  onDragLeave(event: DragEvent) {
+    const related = event.relatedTarget as Node | null;
+    const container = (event.currentTarget as HTMLElement);
+    if (!related || !container.contains(related)) {
+      this.draggingOver = false;
+    }
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.draggingOver = false;
+    const file = event.dataTransfer?.files[0];
+    if (!file || file.type !== 'application/pdf') return;
+
+    if (!this.conceptId) {
+      this.persistSync(() => this.doUploadPdf(file));
+      return;
+    }
+    this.doUploadPdf(file);
+  }
+
+  private persistSync(callback: () => void) {
+    const name = this.title.trim();
+    if (!name) return;
+
+    const content = this.editor.getHTML();
+    const htmlContent = content === '<p></p>' ? null : content;
+    const terms = this.extractTerms();
+    const termsJson = terms.length > 0 ? JSON.stringify(terms) : null;
+
+    if (!this.created) {
+      this.created = true;
+      this.quizService.createConcept(this.topicId, {
+        name,
+        content: htmlContent || undefined,
+        terms: termsJson || undefined
+      }).subscribe({
+        next: (concept) => {
+          this.conceptId = concept.id;
+          this.saving = false;
+          this.saved = true;
+          callback();
+        },
+        error: () => {
+          this.saving = false;
+          this.created = false;
+        }
+      });
+    } else {
+      callback();
+    }
   }
 
   private applyFontSize() {
