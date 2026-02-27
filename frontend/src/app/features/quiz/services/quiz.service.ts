@@ -6,8 +6,7 @@ import { QuizTopic, QuizConcept, QuizQuestion, QuizSession } from '../models/qui
 export class QuizService {
   private http = inject(HttpClient);
 
-  // --- Topics ---
-
+  // Topics
   findAllTopics() {
     return this.http.get<QuizTopic[]>('/api/quiz/topics');
   }
@@ -28,8 +27,7 @@ export class QuizService {
     return this.http.delete<void>(`/api/quiz/topics/${id}`);
   }
 
-  // --- Concepts ---
-
+  // Concepts
   findConcepts(topicId: number) {
     return this.http.get<QuizConcept[]>(`/api/quiz/topics/${topicId}/concepts`);
   }
@@ -58,6 +56,12 @@ export class QuizService {
 
   downloadPdf(conceptId: number) {
     return this.http.get(`/api/quiz/concepts/${conceptId}/pdf`, { responseType: 'blob', observe: 'response' });
+  }
+
+  uploadImage(conceptId: number, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ url: string }>(`/api/quiz/concepts/${conceptId}/images`, formData);
   }
 
   generate(conceptId: number, count = 5) {
