@@ -6,12 +6,13 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept } from '../../models/quiz.model';
 import { Subject, debounceTime } from 'rxjs';
-import { Editor } from '@tiptap/core';
+import { Editor, Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Image from '@tiptap/extension-image';
+import { Plugin } from '@tiptap/pm/state';
 import { TiptapEditorDirective } from 'ngx-tiptap';
-import { Extension } from '@tiptap/core';
-import Suggestion, { SuggestionOptions, SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
+import Suggestion, { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
 import { TermBlock } from './term-block.extension';
 import { PdfAttachment } from './pdf-attachment.extension';
 
@@ -135,7 +136,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
               <svg class="w-10 h-10 text-sky-400 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1"/>
               </svg>
-              <span class="text-sm font-medium text-sky-600">Drop PDF to attach</span>
+              <span class="text-sm font-medium text-sky-600">Drop file to attach</span>
             </div>
           </div>
         }
@@ -187,6 +188,27 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
         </div>
       </div>
     }
+
+    <!-- Image lightbox -->
+    @if (imagePreviewSrc) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="imagePreviewSrc = null">
+        <div class="bg-white rounded-2xl shadow-2xl w-[90vw] h-[90vh] max-w-5xl flex flex-col overflow-hidden"
+             (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-end px-5 py-3 border-b border-gray-100">
+            <button (click)="imagePreviewSrc = null"
+                    class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="flex-1 flex items-center justify-center overflow-auto p-6 bg-gray-50">
+            <img [src]="imagePreviewSrc" class="max-w-full max-h-full object-contain rounded-lg" />
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -208,6 +230,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   pdfFilename: string | null = null;
   uploadingPdf = false;
   pdfPreviewUrl: SafeResourceUrl | null = null;
+  imagePreviewSrc: string | null = null;
   draggingOver = false;
 
   // Slash menu state (driven by suggestion plugin callbacks)
@@ -250,15 +273,25 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       extensions: [
         StarterKit,
         Placeholder.configure({ placeholder: 'Type / for commands...' }),
+        Image.configure({ inline: false, allowBase64: false }),
         TermBlock,
         PdfAttachment,
         this.createSlashCommandExtension(),
+        this.createImagePasteExtension(),
       ],
     });
 
     // Listen for custom events from PDF attachment node
     this.editor.view.dom.addEventListener('pdf-preview', () => this.openPdfPreview());
     this.editor.view.dom.addEventListener('pdf-remove', () => this.removePdf());
+
+    // Click image to open lightbox
+    this.editor.view.dom.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IMG' && target.closest('.ProseMirror')) {
+        this.imagePreviewSrc = (target as HTMLImageElement).src;
+      }
+    });
 
     if (this.conceptId) {
       this.created = true;
@@ -421,13 +454,33 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     event.preventDefault();
     this.draggingOver = false;
     const file = event.dataTransfer?.files[0];
-    if (!file || file.type !== 'application/pdf') return;
+    if (!file) return;
 
-    if (!this.conceptId) {
-      this.persistSync(() => this.doUploadPdf(file));
-      return;
+    if (file.type === 'application/pdf') {
+      if (!this.conceptId) {
+        this.persistSync(() => this.doUploadPdf(file));
+        return;
+      }
+      this.doUploadPdf(file);
+    } else if (file.type.startsWith('image/')) {
+      if (!this.conceptId) {
+        this.persistSync(() => this.doUploadImage(file));
+        return;
+      }
+      this.doUploadImage(file);
     }
-    this.doUploadPdf(file);
+  }
+
+  doUploadImage(file: File) {
+    if (!this.conceptId) return;
+    this.quizService.uploadImage(this.conceptId, file).subscribe({
+      next: ({ url }) => {
+        this.editor.chain().focus()
+          .setImage({ src: url })
+          .createParagraphNear()
+          .run();
+      },
+    });
   }
 
   private persistSync(callback: () => void) {
@@ -544,6 +597,33 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
                   component.slashCommandFn = null;
                 },
               };
+            },
+          }),
+        ];
+      },
+    });
+  }
+
+  private createImagePasteExtension(): Extension {
+    const component = this;
+    return Extension.create({
+      name: 'imagePaste',
+      addProseMirrorPlugins() {
+        return [
+          new Plugin({
+            props: {
+              handlePaste(_view, event) {
+                const files = Array.from(event.clipboardData?.files || []);
+                const image = files.find(f => f.type.startsWith('image/'));
+                if (!image) return false;
+                event.preventDefault();
+                if (!component.conceptId) {
+                  component.persistSync(() => component.doUploadImage(image));
+                } else {
+                  component.doUploadImage(image);
+                }
+                return true;
+              },
             },
           }),
         ];
