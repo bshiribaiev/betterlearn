@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/quiz")
@@ -105,6 +106,25 @@ public class QuizController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdf.filename() + "\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf.bytes());
+    }
+
+    // Images
+    @PostMapping("/concepts/{id}/images")
+    public Map<String, String> uploadImage(@RequestAttribute Long userId,
+                                            @PathVariable Long id,
+                                            @RequestParam("file") MultipartFile file) {
+        String url = quizService.uploadImage(userId, id, file);
+        return Map.of("url", url);
+    }
+
+    @GetMapping("/concepts/{conceptId}/images/{filename}")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long conceptId,
+                                            @PathVariable String filename) {
+        QuizService.ImageDownload img = quizService.getImageBytes(conceptId, filename);
+        return ResponseEntity.ok()
+                .contentType(img.mediaType())
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .body(img.bytes());
     }
 
     @PostMapping("/concepts/{id}/generate")

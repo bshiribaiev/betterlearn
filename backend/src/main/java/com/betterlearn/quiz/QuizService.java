@@ -11,9 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.http.MediaType;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class QuizService {
@@ -25,12 +28,14 @@ public class QuizService {
     private final Sm2Service sm2Service;
     private final GeminiService geminiService;
     private final PdfService pdfService;
+    private final ImageService imageService;
     private final ObjectMapper objectMapper;
 
     public QuizService(QuizTopicRepository topicRepo, QuizConceptRepository conceptRepo,
                        QuizSessionRepository sessionRepo, UserRepository userRepo,
                        Sm2Service sm2Service,
-                       GeminiService geminiService, PdfService pdfService, ObjectMapper objectMapper) {
+                       GeminiService geminiService, PdfService pdfService,
+                       ImageService imageService, ObjectMapper objectMapper) {
         this.topicRepo = topicRepo;
         this.conceptRepo = conceptRepo;
         this.sessionRepo = sessionRepo;
@@ -38,6 +43,7 @@ public class QuizService {
         this.sm2Service = sm2Service;
         this.geminiService = geminiService;
         this.pdfService = pdfService;
+        this.imageService = imageService;
         this.objectMapper = objectMapper;
     }
 
@@ -126,6 +132,7 @@ public class QuizService {
     @Transactional
     public void deleteConcept(Long userId, Long conceptId) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
+        imageService.deleteAllImages(conceptId);
         conceptRepo.delete(concept);
     }
 
@@ -252,6 +259,39 @@ public class QuizService {
     }
 
     public record PdfDownload(String filename, byte[] bytes) {}
+
+    // Image upload
+    private static final Map<String, MediaType> IMAGE_TYPES = Map.of(
+            "png", MediaType.IMAGE_PNG,
+            "jpg", MediaType.IMAGE_JPEG,
+            "jpeg", MediaType.IMAGE_JPEG,
+            "gif", MediaType.IMAGE_GIF,
+            "webp", MediaType.parseMediaType("image/webp")
+    );
+
+    @Transactional(readOnly = true)
+    public String uploadImage(Long userId, Long conceptId, MultipartFile file) {
+        findOwnedConcept(userId, conceptId);
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("File must be an image");
+        }
+        try {
+            String filename = imageService.saveImage(conceptId, file.getOriginalFilename(), file.getBytes());
+            return "/api/quiz/concepts/" + conceptId + "/images/" + filename;
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read uploaded file");
+        }
+    }
+
+    public ImageDownload getImageBytes(Long conceptId, String filename) {
+        byte[] bytes = imageService.loadImage(conceptId, filename);
+        String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        MediaType type = IMAGE_TYPES.getOrDefault(ext, MediaType.APPLICATION_OCTET_STREAM);
+        return new ImageDownload(bytes, type);
+    }
+
+    public record ImageDownload(byte[] bytes, MediaType mediaType) {}
 
     // Flashcard review
     @Transactional
