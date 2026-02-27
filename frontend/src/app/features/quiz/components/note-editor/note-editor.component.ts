@@ -9,7 +9,7 @@ import { Subject, debounceTime } from 'rxjs';
 import { Editor, Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import Image from '@tiptap/extension-image';
+import TiptapImage from '@tiptap/extension-image';
 import { Plugin } from '@tiptap/pm/state';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import Suggestion, { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
@@ -193,20 +193,9 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
     @if (imagePreviewSrc) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
            (click)="imagePreviewSrc = null">
-        <div class="bg-white rounded-2xl shadow-2xl w-[90vw] h-[90vh] max-w-5xl flex flex-col overflow-hidden"
-             (click)="$event.stopPropagation()">
-          <div class="flex items-center justify-end px-5 py-3 border-b border-gray-100">
-            <button (click)="imagePreviewSrc = null"
-                    class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="flex-1 flex items-center justify-center overflow-auto p-6 bg-gray-50">
-            <img [src]="imagePreviewSrc" class="max-w-full max-h-full object-contain rounded-lg" />
-          </div>
-        </div>
+        <img [src]="imagePreviewSrc"
+             class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+             (click)="$event.stopPropagation()" />
       </div>
     }
   `
@@ -273,7 +262,32 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       extensions: [
         StarterKit,
         Placeholder.configure({ placeholder: 'Type / for commands...' }),
-        Image.configure({ inline: false, allowBase64: false }),
+        TiptapImage.configure({ inline: false, allowBase64: false }).extend({
+          addNodeView() {
+            return ({ node }) => {
+              const wrapper = document.createElement('div');
+              wrapper.classList.add('editor-image-wrapper');
+              wrapper.contentEditable = 'false';
+
+              const img = document.createElement('img');
+              img.src = node.attrs['src'];
+              if (node.attrs['alt']) img.alt = node.attrs['alt'];
+              if (node.attrs['title']) img.title = node.attrs['title'];
+
+              const zoom = document.createElement('div');
+              zoom.classList.add('editor-image-zoom');
+              zoom.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <path d="M11 8v6M8 11h6"/>
+              </svg>`;
+
+              wrapper.appendChild(img);
+              wrapper.appendChild(zoom);
+
+              return { dom: wrapper, stopEvent: () => false };
+            };
+          },
+        }),
         TermBlock,
         PdfAttachment,
         this.createSlashCommandExtension(),
