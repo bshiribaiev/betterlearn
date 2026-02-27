@@ -11,6 +11,7 @@ public record ConceptResponse(
         String name,
         String content,
         String terms,
+        String pdfFilename,
         LocalDate nextReview,
         int intervalDays,
         double easinessFactor,
@@ -21,7 +22,8 @@ public record ConceptResponse(
     public static ConceptResponse from(QuizConcept c) {
         return new ConceptResponse(
                 c.getId(), c.getTopic().getId(), c.getTopic().getName(),
-                c.getName(), c.getContent(), c.getTerms(), c.getNextReview(), c.getIntervalDays(),
+                c.getName(), c.getContent(), c.getTerms(), c.getPdfFilename(),
+                c.getNextReview(), c.getIntervalDays(),
                 c.getEasinessFactor(), c.getRepetition(),
                 c.getStatus(), c.getTotalReviews()
         );

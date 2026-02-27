@@ -28,6 +28,9 @@ venv
 .claude
 claude.md
 
+# Uploads
+uploads/
+
 # Java/Maven
 backend/target/
 *.class

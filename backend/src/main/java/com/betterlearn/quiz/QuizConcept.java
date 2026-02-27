@@ -47,6 +47,12 @@ public class QuizConcept {
     @Column(columnDefinition = "jsonb")
     private String terms;
 
+    @Column(columnDefinition = "TEXT")
+    private String pdfText;
+
+    @Column(name = "pdf_filename", length = 300)
+    private String pdfFilename;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -82,6 +88,10 @@ public class QuizConcept {
     public void setContent(String content) { this.content = content; }
     public String getTerms() { return terms; }
     public void setTerms(String terms) { this.terms = terms; }
+    public String getPdfText() { return pdfText; }
+    public void setPdfText(String pdfText) { this.pdfText = pdfText; }
+    public String getPdfFilename() { return pdfFilename; }
+    public void setPdfFilename(String pdfFilename) { this.pdfFilename = pdfFilename; }
     public double getEasinessFactor() { return easinessFactor; }
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }
