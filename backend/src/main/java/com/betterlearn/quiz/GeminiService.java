@@ -125,14 +125,19 @@ public class GeminiService {
         return parseQuestions(json);
     }
 
-    public List<QuizQuestionDto> generateQuestionsFromContent(String topicName, String noteName, String content, int count) {
+    public List<QuizQuestionDto> generateQuestionsFromContent(String topicName, String noteName,
+                                                                String content, String pdfText, int count) {
+        StringBuilder context = new StringBuilder();
+        if (content != null && !content.isBlank()) {
+            context.append("\n=== NOTES ===\n").append(content).append("\n=== END NOTES ===\n");
+        }
+        if (pdfText != null && !pdfText.isBlank()) {
+            context.append("\n=== PDF CONTENT ===\n").append(pdfText).append("\n=== END PDF ===\n");
+        }
+
         String prompt = """
-                Generate %d multiple-choice questions based on the following notes about "%s — %s".
-
-                === NOTES ===
+                Generate %d multiple-choice questions based on the following material about "%s — %s".
                 %s
-                === END NOTES ===
-
                 Return a JSON array where each element has:
                 - "question": the question text
                 - "options": array of exactly 4 answer choices
@@ -140,12 +145,12 @@ public class GeminiService {
                 - "explanation": brief explanation of why the correct answer is right
 
                 Requirements:
-                - Questions must be derived from the provided notes content
+                - Questions must be derived from the provided material
                 - Questions should test understanding, not just memorization
                 - All 4 options should be plausible
                 - Vary difficulty from moderate to challenging
                 - Return ONLY the JSON array, no other text
-                """.formatted(count, topicName, noteName, content);
+                """.formatted(count, topicName, noteName, context);
 
         String url = String.format(API_URL, config.getModel(), config.getApiKey());
 

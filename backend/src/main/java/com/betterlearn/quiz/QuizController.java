@@ -4,8 +4,12 @@ import com.betterlearn.quiz.dto.*;
 import com.betterlearn.vocabulary.VocabularyService;
 import com.betterlearn.vocabulary.dto.*;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -81,6 +85,28 @@ public class QuizController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteConcept(@RequestAttribute Long userId, @PathVariable Long id) {
         quizService.deleteConcept(userId, id);
+    }
+
+    @PostMapping("/concepts/{id}/pdf")
+    public ConceptResponse uploadPdf(@RequestAttribute Long userId,
+                                      @PathVariable Long id,
+                                      @RequestParam("file") MultipartFile file) {
+        return quizService.uploadPdf(userId, id, file);
+    }
+
+    @DeleteMapping("/concepts/{id}/pdf")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removePdf(@RequestAttribute Long userId, @PathVariable Long id) {
+        quizService.removePdf(userId, id);
+    }
+
+    @GetMapping("/concepts/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPdf(@RequestAttribute Long userId, @PathVariable Long id) {
+        QuizService.PdfDownload pdf = quizService.getPdfBytes(userId, id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdf.filename() + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf.bytes());
     }
 
     @PostMapping("/concepts/{id}/generate")

@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,18 +24,20 @@ public class QuizService {
     private final UserRepository userRepo;
     private final Sm2Service sm2Service;
     private final GeminiService geminiService;
+    private final PdfService pdfService;
     private final ObjectMapper objectMapper;
 
     public QuizService(QuizTopicRepository topicRepo, QuizConceptRepository conceptRepo,
                        QuizSessionRepository sessionRepo, UserRepository userRepo,
                        Sm2Service sm2Service,
-                       GeminiService geminiService, ObjectMapper objectMapper) {
+                       GeminiService geminiService, PdfService pdfService, ObjectMapper objectMapper) {
         this.topicRepo = topicRepo;
         this.conceptRepo = conceptRepo;
         this.sessionRepo = sessionRepo;
         this.userRepo = userRepo;
         this.sm2Service = sm2Service;
         this.geminiService = geminiService;
+        this.pdfService = pdfService;
         this.objectMapper = objectMapper;
     }
 
@@ -134,9 +139,14 @@ public class QuizService {
         String topicName = concept.getTopic().getName();
         String content = concept.getContent();
 
+        String pdfText = concept.getPdfText();
+        boolean hasContent = content != null && !content.isBlank();
+        boolean hasPdf = pdfText != null && !pdfText.isBlank();
+
         List<QuizQuestionDto> questions;
-        if (content != null && !content.isBlank()) {
-            questions = geminiService.generateQuestionsFromContent(topicName, concept.getName(), content, count);
+        if (hasContent || hasPdf) {
+            questions = geminiService.generateQuestionsFromContent(
+                    topicName, concept.getName(), content, pdfText, count);
         } else {
             String promptTopic = topicName + " — " + concept.getName();
             questions = geminiService.generateQuestions(promptTopic, count);
@@ -198,6 +208,54 @@ public class QuizService {
                 .map(SessionResponse::from)
                 .toList();
     }
+
+    // --- PDF upload ---
+
+    @Transactional
+    public ConceptResponse uploadPdf(Long userId, Long conceptId, MultipartFile file) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+
+        try {
+            byte[] bytes = file.getBytes();
+            String text = pdfService.extractText(bytes);
+            String filename = file.getOriginalFilename();
+
+            // Delete old PDF if exists
+            if (concept.getPdfFilename() != null) {
+                pdfService.deletePdf(conceptId, concept.getPdfFilename());
+            }
+
+            pdfService.savePdf(conceptId, filename, bytes);
+            concept.setPdfText(text);
+            concept.setPdfFilename(filename);
+            return ConceptResponse.from(conceptRepo.save(concept));
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read uploaded file");
+        }
+    }
+
+    @Transactional
+    public void removePdf(Long userId, Long conceptId) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        if (concept.getPdfFilename() != null) {
+            pdfService.deletePdf(conceptId, concept.getPdfFilename());
+        }
+        concept.setPdfText(null);
+        concept.setPdfFilename(null);
+        conceptRepo.save(concept);
+    }
+
+    @Transactional(readOnly = true)
+    public PdfDownload getPdfBytes(Long userId, Long conceptId) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        if (concept.getPdfFilename() == null) {
+            throw new IllegalArgumentException("No PDF attached");
+        }
+        byte[] bytes = pdfService.loadPdf(conceptId, concept.getPdfFilename());
+        return new PdfDownload(concept.getPdfFilename(), bytes);
+    }
+
+    public record PdfDownload(String filename, byte[] bytes) {}
 
     // --- Flashcard review ---
 
