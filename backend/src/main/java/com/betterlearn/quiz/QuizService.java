@@ -41,8 +41,7 @@ public class QuizService {
         this.objectMapper = objectMapper;
     }
 
-    // --- Topic CRUD ---
-
+    // Topic CRUD
     public List<TopicResponse> findAll(Long userId) {
         return topicRepo.findAllByUserId(userId).stream()
                 .map(t -> TopicResponse.from(t, earliestDueDate(t.getId())))
@@ -87,8 +86,7 @@ public class QuizService {
         topicRepo.delete(topic);
     }
 
-    // --- Concept CRUD ---
-
+    // Concept CRUD
     public List<ConceptResponse> findConceptsByTopic(Long userId, Long topicId) {
         findOwnedTopic(userId, topicId);
         return conceptRepo.findByTopicId(topicId).stream()
@@ -131,8 +129,7 @@ public class QuizService {
         conceptRepo.delete(concept);
     }
 
-    // --- Generate & Submit (per concept) ---
-
+    // Generate & Submit (per concept)
     @Transactional(readOnly = true)
     public QuizGenerateResponse generateForConcept(Long userId, Long conceptId, int count) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
@@ -209,8 +206,7 @@ public class QuizService {
                 .toList();
     }
 
-    // --- PDF upload ---
-
+    // PDF upload
     @Transactional
     public ConceptResponse uploadPdf(Long userId, Long conceptId, MultipartFile file) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
@@ -257,8 +253,7 @@ public class QuizService {
 
     public record PdfDownload(String filename, byte[] bytes) {}
 
-    // --- Flashcard review ---
-
+    // Flashcard review
     @Transactional
     public SessionResponse submitFlashcardReview(Long userId, Long conceptId, int quality) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
@@ -300,8 +295,7 @@ public class QuizService {
         }
     }
 
-    // --- Ownership checks ---
-
+    // Ownership checks
     public QuizTopic findOwnedTopic(Long userId, Long topicId) {
         QuizTopic topic = topicRepo.findById(topicId)
                 .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
@@ -322,8 +316,7 @@ public class QuizService {
         return concept;
     }
 
-    // --- Helpers ---
-
+    // Helpers
     static int scoreToQuality(int correct, int total) {
         if (total == 0) return 0;
         int pct = (int) Math.round(100.0 * correct / total);

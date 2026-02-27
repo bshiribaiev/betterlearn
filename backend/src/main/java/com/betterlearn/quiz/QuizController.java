@@ -26,8 +26,7 @@ public class QuizController {
         this.vocabularyService = vocabularyService;
     }
 
-    // --- Topics ---
-
+    // Topics
     @GetMapping("/topics")
     public List<TopicResponse> findAllTopics(@RequestAttribute Long userId) {
         return quizService.findAll(userId);
@@ -58,8 +57,7 @@ public class QuizController {
         quizService.deleteTopic(userId, id);
     }
 
-    // --- Concepts ---
-
+    // Concepts
     @GetMapping("/topics/{topicId}/concepts")
     public List<ConceptResponse> findConcepts(@RequestAttribute Long userId,
                                               @PathVariable Long topicId) {
@@ -136,8 +134,7 @@ public class QuizController {
         return quizService.getConceptSessions(userId, id);
     }
 
-    // --- Words (vocab under topic) ---
-
+    // Words (vocab under topic)
     @GetMapping("/topics/{topicId}/words")
     public List<WordResponse> findWords(@RequestAttribute Long userId,
                                         @PathVariable Long topicId) {
@@ -180,8 +177,7 @@ public class QuizController {
         return vocabularyService.getHistory(userId, id);
     }
 
-    // --- Words grouped ---
-
+    // Words grouped
     @GetMapping("/topics/{topicId}/words/grouped")
     public List<WordGroupResponse> findWordsGrouped(@RequestAttribute Long userId,
                                                      @PathVariable Long topicId) {
@@ -198,8 +194,7 @@ public class QuizController {
         return java.util.Map.of("label", label);
     }
 
-    // --- Term quiz ---
-
+    // Term quiz
     @PostMapping("/topics/{topicId}/words/quiz/generate")
     public QuizGenerateResponse generateTermQuiz(@RequestAttribute Long userId,
                                                   @PathVariable Long topicId,

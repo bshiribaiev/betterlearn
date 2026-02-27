@@ -101,8 +101,7 @@ public class VocabularyService {
                 .toList();
     }
 
-    // --- Grouped view ---
-
+    // Grouped view
     @Transactional(readOnly = true)
     public List<WordGroupResponse> findByTopicGrouped(Long topicId) {
         List<VocabularyWord> allWords = wordRepo.findAllByTopicId(topicId);
@@ -153,8 +152,7 @@ public class VocabularyService {
         return label;
     }
 
-    // --- Term quiz ---
-
+    // Term quiz
     @Transactional(readOnly = true)
     public List<QuizQuestionDto> generateTermQuiz(Long topicId, LocalDate date, Integer count) {
         List<VocabularyWord> words = wordRepo.findAllByTopicId(topicId).stream()
@@ -208,8 +206,7 @@ public class VocabularyService {
         return 0;
     }
 
-    // --- Dashboard queries ---
-
+    // Dashboard queries
     public List<WordResponse> findDueForUser(Long userId) {
         return wordRepo.findDueByTopicUserId(userId).stream()
                 .map(WordResponse::from)
@@ -242,8 +239,7 @@ public class VocabularyService {
         return wordRepo.countByTopicUserIdAndStatus(userId, status);
     }
 
-    // --- Ownership ---
-
+    // Ownership
     private VocabularyWord findOwnedWord(Long userId, Long wordId) {
         VocabularyWord word = wordRepo.findById(wordId)
                 .orElseThrow(() -> new IllegalArgumentException("Word not found"));
