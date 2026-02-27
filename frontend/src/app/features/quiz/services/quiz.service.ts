@@ -46,6 +46,20 @@ export class QuizService {
     return this.http.delete<void>(`/api/quiz/concepts/${id}`);
   }
 
+  uploadPdf(conceptId: number, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<QuizConcept>(`/api/quiz/concepts/${conceptId}/pdf`, formData);
+  }
+
+  removePdf(conceptId: number) {
+    return this.http.delete<void>(`/api/quiz/concepts/${conceptId}/pdf`);
+  }
+
+  downloadPdf(conceptId: number) {
+    return this.http.get(`/api/quiz/concepts/${conceptId}/pdf`, { responseType: 'blob', observe: 'response' });
+  }
+
   generate(conceptId: number, count = 5) {
     return this.http.post<{ questions: QuizQuestion[] }>(
       `/api/quiz/concepts/${conceptId}/generate?count=${count}`, {}
