@@ -57,7 +57,12 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   },
   {
     label: 'Term', icon: 'Tt',
-    action: (editor) => editor.chain().focus().toggleBulletList().run()
+    action: (editor) => {
+      editor.chain().focus().insertContent([
+        { type: 'paragraph', content: [{ type: 'text', text: 'Terms', marks: [{ type: 'bold' }] }] },
+        { type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }] },
+      ]).run();
+    }
   },
 ];
 
@@ -660,8 +665,8 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     const json = this.editor.getJSON();
     if (!json.content) return terms;
 
-    // Extract from bullet list items with "term: definition" format
     for (const node of json.content) {
+      // Bullet list items with "term: definition" or "term - definition"
       if (node.type === 'bulletList' && node.content) {
         for (const li of node.content) {
           const text = this.extractTextFromNode(li);
@@ -681,6 +686,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       }
+
       // Legacy: support old termBlock nodes
       if (node.type === 'termBlock') {
         const t = (node.attrs?.['term'] || '').trim();
