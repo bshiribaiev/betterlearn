@@ -59,7 +59,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
     label: 'Term', icon: 'Tt',
     action: (editor) => {
       editor.chain().focus().insertContent([
-        { type: 'paragraph', content: [{ type: 'text', text: 'Terms', marks: [{ type: 'bold' }] }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Definitions', marks: [{ type: 'bold' }] }] },
         { type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }] },
       ]).run();
     }
