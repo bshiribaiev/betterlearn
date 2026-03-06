@@ -138,7 +138,7 @@ public class QuizService {
 
     // Generate & Submit (per concept)
     @Transactional
-    public QuizGenerateResponse generateForConcept(Long userId, Long conceptId, int count) {
+    public QuizGenerateResponse generateForConcept(Long userId, Long conceptId) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
 
         // Return cached questions if available
@@ -152,6 +152,8 @@ public class QuizService {
         String pdfText = concept.getPdfText();
         boolean hasContent = content != null && !content.isBlank();
         boolean hasPdf = pdfText != null && !pdfText.isBlank();
+
+        int count = calculateQuestionCount(content, pdfText);
 
         List<QuizQuestionDto> questions;
         if (hasContent || hasPdf) {
@@ -401,16 +403,29 @@ public class QuizService {
         boolean hasContent = content != null && !content.isBlank();
         boolean hasPdf = pdfText != null && !pdfText.isBlank();
 
+        int count = calculateQuestionCount(content, pdfText);
+
         List<QuizQuestionDto> questions;
         if (hasContent || hasPdf) {
             questions = geminiService.generateQuestionsFromContent(
-                    topicName, concept.getName(), content, pdfText, 5);
+                    topicName, concept.getName(), content, pdfText, count);
         } else {
             String promptTopic = topicName + " — " + concept.getName();
-            questions = geminiService.generateQuestions(promptTopic, 5);
+            questions = geminiService.generateQuestions(promptTopic, count);
         }
 
         concept.setCachedQuestions(serializeQuestions(questions));
         conceptRepo.save(concept);
+    }
+
+    static int calculateQuestionCount(String content, String pdfText) {
+        int length = 0;
+        if (content != null) length += content.length();
+        if (pdfText != null) length += pdfText.length();
+
+        if (length < 500) return 3;
+        if (length < 1500) return 5;
+        if (length < 3000) return 7;
+        return 10;
     }
 }

@@ -129,9 +129,8 @@ public class QuizController {
 
     @PostMapping("/concepts/{id}/generate")
     public QuizGenerateResponse generateForConcept(@RequestAttribute Long userId,
-                                                    @PathVariable Long id,
-                                                    @RequestParam(defaultValue = "5") int count) {
-        return quizService.generateForConcept(userId, id, count);
+                                                    @PathVariable Long id) {
+        return quizService.generateForConcept(userId, id);
     }
 
     @PostMapping("/concepts/{id}/submit")
