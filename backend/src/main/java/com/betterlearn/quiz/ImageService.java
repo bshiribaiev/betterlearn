@@ -2,10 +2,13 @@ package com.betterlearn.quiz;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,10 +17,12 @@ public class ImageService {
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("png", "jpg", "jpeg", "gif", "webp");
 
-    private final Path uploadDir;
+    private final S3Client s3;
+    private final String bucket;
 
-    public ImageService(@Value("${app.upload-dir:./uploads}") String uploadDir) {
-        this.uploadDir = Path.of(uploadDir);
+    public ImageService(S3Client s3, @Value("${aws.s3.bucket}") String bucket) {
+        this.s3 = s3;
+        this.bucket = bucket;
     }
 
     public String saveImage(Long conceptId, String originalFilename, byte[] bytes) {
@@ -26,47 +31,34 @@ public class ImageService {
             throw new IllegalArgumentException("Unsupported image type: " + ext);
         }
         String filename = UUID.randomUUID() + "." + ext;
-        try {
-            Path dir = imagesDir(conceptId);
-            Files.createDirectories(dir);
-            Files.write(dir.resolve(filename), bytes);
-            return filename;
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to save image: " + e.getMessage());
-        }
+        String key = imageKey(conceptId, filename);
+
+        s3.putObject(
+                PutObjectRequest.builder().bucket(bucket).key(key).build(),
+                RequestBody.fromBytes(bytes));
+        return filename;
     }
 
     public byte[] loadImage(Long conceptId, String filename) {
         try {
-            return Files.readAllBytes(imagesDir(conceptId).resolve(filename));
-        } catch (IOException e) {
+            return s3.getObjectAsBytes(
+                    GetObjectRequest.builder().bucket(bucket).key(imageKey(conceptId, filename)).build()
+            ).asByteArray();
+        } catch (Exception e) {
             throw new IllegalArgumentException("Image not found");
         }
     }
 
     public void deleteAllImages(Long conceptId) {
-        Path dir = imagesDir(conceptId);
-        if (!Files.exists(dir)) return;
-        try {
-            Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-                @Override
-                public FileVisitResult postVisitDirectory(Path d, IOException exc) throws IOException {
-                    Files.delete(d);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            // ignore cleanup failures
-        }
+        String prefix = "concepts/" + conceptId + "/images/";
+        var listing = s3.listObjectsV2(
+                ListObjectsV2Request.builder().bucket(bucket).prefix(prefix).build());
+        listing.contents().forEach(obj ->
+                s3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(obj.key()).build()));
     }
 
-    private Path imagesDir(Long conceptId) {
-        return uploadDir.resolve("concepts").resolve(String.valueOf(conceptId)).resolve("images");
+    private String imageKey(Long conceptId, String filename) {
+        return "concepts/" + conceptId + "/images/" + filename;
     }
 
     private String extractExtension(String filename) {

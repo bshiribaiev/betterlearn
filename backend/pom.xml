@@ -91,6 +91,13 @@
             <version>2.0.32</version>
         </dependency>
 
+        <!-- AWS S3 -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.31.9</version>
+        </dependency>
+
         <!-- OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>

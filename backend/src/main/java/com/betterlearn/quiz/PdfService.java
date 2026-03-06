@@ -4,20 +4,25 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @Service
 public class PdfService {
 
     private static final int MAX_TEXT_LENGTH = 50_000;
 
-    private final Path uploadDir;
+    private final S3Client s3;
+    private final String bucket;
 
-    public PdfService(@Value("${app.upload-dir:./uploads}") String uploadDir) {
-        this.uploadDir = Path.of(uploadDir);
+    public PdfService(S3Client s3, @Value("${aws.s3.bucket}") String bucket) {
+        this.s3 = s3;
+        this.bucket = bucket;
     }
 
     public String extractText(byte[] pdfBytes) {
@@ -34,30 +39,27 @@ public class PdfService {
     }
 
     public void savePdf(Long conceptId, String filename, byte[] bytes) {
-        try {
-            Path dir = uploadDir.resolve("concepts").resolve(String.valueOf(conceptId));
-            Files.createDirectories(dir);
-            Files.write(dir.resolve(filename), bytes);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to save PDF: " + e.getMessage());
-        }
+        s3.putObject(
+                PutObjectRequest.builder().bucket(bucket).key(pdfKey(conceptId, filename)).build(),
+                RequestBody.fromBytes(bytes));
     }
 
     public byte[] loadPdf(Long conceptId, String filename) {
         try {
-            return Files.readAllBytes(
-                    uploadDir.resolve("concepts").resolve(String.valueOf(conceptId)).resolve(filename));
-        } catch (IOException e) {
+            return s3.getObjectAsBytes(
+                    GetObjectRequest.builder().bucket(bucket).key(pdfKey(conceptId, filename)).build()
+            ).asByteArray();
+        } catch (Exception e) {
             throw new IllegalArgumentException("PDF file not found");
         }
     }
 
     public void deletePdf(Long conceptId, String filename) {
-        try {
-            Path file = uploadDir.resolve("concepts").resolve(String.valueOf(conceptId)).resolve(filename);
-            Files.deleteIfExists(file);
-        } catch (IOException e) {
-            // ignore delete failures
-        }
+        s3.deleteObject(
+                DeleteObjectRequest.builder().bucket(bucket).key(pdfKey(conceptId, filename)).build());
+    }
+
+    private String pdfKey(Long conceptId, String filename) {
+        return "concepts/" + conceptId + "/" + filename;
     }
 }
