@@ -264,6 +264,10 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       : ['/quiz', String(this.topicId), 'concepts'];
 
     this.editor = new Editor({
+      editorProps: {
+        scrollThreshold: 100,
+        scrollMargin: 100,
+      },
       extensions: [
         StarterKit,
         Placeholder.configure({ placeholder: 'Type / for commands...' }),
