@@ -17,6 +17,9 @@ public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> 
     @Query("SELECT MIN(c.nextReview) FROM QuizConcept c WHERE c.topic.id = :topicId")
     LocalDate findEarliestNextReviewByTopicId(Long topicId);
 
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.nextReview <= CURRENT_DATE AND c.cachedQuestions IS NULL AND (c.content IS NOT NULL OR c.pdfText IS NOT NULL)")
+    List<QuizConcept> findDueWithoutCachedQuestions();
+
     boolean existsByTopicIdAndName(Long topicId, String name);
 
     long countByTopicUserId(Long userId);

@@ -47,6 +47,10 @@ public class QuizConcept {
     @Column(columnDefinition = "jsonb")
     private String terms;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "cached_questions", columnDefinition = "jsonb")
+    private String cachedQuestions;
+
     @Column(columnDefinition = "TEXT")
     private String pdfText;
 
@@ -98,4 +102,6 @@ public class QuizConcept {
     public LocalDate getNextReview() { return nextReview; }
     public String getStatus() { return status; }
     public int getTotalReviews() { return totalReviews; }
+    public String getCachedQuestions() { return cachedQuestions; }
+    public void setCachedQuestions(String cachedQuestions) { this.cachedQuestions = cachedQuestions; }
 }

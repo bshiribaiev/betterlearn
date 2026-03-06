@@ -137,12 +137,18 @@ public class QuizService {
     }
 
     // Generate & Submit (per concept)
-    @Transactional(readOnly = true)
+    @Transactional
     public QuizGenerateResponse generateForConcept(Long userId, Long conceptId, int count) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
+
+        // Return cached questions if available
+        if (concept.getCachedQuestions() != null) {
+            List<QuizQuestionDto> cached = deserializeQuestions(concept.getCachedQuestions());
+            return new QuizGenerateResponse(cached);
+        }
+
         String topicName = concept.getTopic().getName();
         String content = concept.getContent();
-
         String pdfText = concept.getPdfText();
         boolean hasContent = content != null && !content.isBlank();
         boolean hasPdf = pdfText != null && !pdfText.isBlank();
@@ -195,6 +201,8 @@ public class QuizService {
         );
         topic.applySmResult(topicResult.easinessFactor(), topicResult.repetition(),
                 topicResult.intervalDays(), topicResult.nextReview(), topicResult.status());
+
+        concept.setCachedQuestions(null);
 
         String questionsJson = serializeQuestions(questions);
         QuizSession session = new QuizSession(topic, concept, total, correct, quality, questionsJson);
@@ -374,5 +382,35 @@ public class QuizService {
         } catch (Exception e) {
             throw new IllegalStateException("Failed to serialize questions");
         }
+    }
+
+    private List<QuizQuestionDto> deserializeQuestions(String json) {
+        try {
+            return objectMapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<>() {});
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to deserialize cached questions");
+        }
+    }
+
+    // Pre-generation
+    @Transactional
+    public void preGenerateQuiz(QuizConcept concept) {
+        String topicName = concept.getTopic().getName();
+        String content = concept.getContent();
+        String pdfText = concept.getPdfText();
+        boolean hasContent = content != null && !content.isBlank();
+        boolean hasPdf = pdfText != null && !pdfText.isBlank();
+
+        List<QuizQuestionDto> questions;
+        if (hasContent || hasPdf) {
+            questions = geminiService.generateQuestionsFromContent(
+                    topicName, concept.getName(), content, pdfText, 5);
+        } else {
+            String promptTopic = topicName + " — " + concept.getName();
+            questions = geminiService.generateQuestions(promptTopic, 5);
+        }
+
+        concept.setCachedQuestions(serializeQuestions(questions));
+        conceptRepo.save(concept);
     }
 }
