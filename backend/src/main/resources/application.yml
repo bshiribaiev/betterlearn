@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/betterlearn
-    username: betterlearn
-    password: betterlearn
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/betterlearn}
+    username: ${DATABASE_USERNAME:betterlearn}
+    password: ${DATABASE_PASSWORD:betterlearn}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -29,12 +29,17 @@ app:
   gemini:
     api-key: ${GEMINI_API_KEY:}
     model: gemini-2.5-flash
-  upload-dir: ${UPLOAD_DIR:./uploads}
-
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+
+aws:
+  access-key-id: ${AWS_ACCESS_KEY_ID:}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+  region: ${AWS_REGION:us-east-2}
+  s3:
+    bucket: ${AWS_S3_BUCKET:}
 
 server:
   port: 8080
