@@ -26,6 +26,7 @@ export interface QuizConcept {
   status: 'new' | 'learning' | 'review' | 'mastered';
   totalReviews: number;
   pdfFilename: string | null;
+  hasCachedQuestions: boolean;
 }
 
 export interface FlashcardTerm {

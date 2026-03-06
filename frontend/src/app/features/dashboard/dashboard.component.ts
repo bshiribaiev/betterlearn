@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
-import { QuizConcept } from '../quiz/models/quiz.model';
+import { QuizConcept, FlashcardTerm } from '../quiz/models/quiz.model';
 import { QuizService } from '../quiz/services/quiz.service';
 
 interface DashboardData {
@@ -96,7 +96,7 @@ interface DashboardData {
                   <span class="text-base font-medium text-gray-900">{{ concept.topicName }}:</span>
                   <span class="text-base text-gray-400 ml-1">{{ concept.name }}</span>
                 </a>
-                <button (click)="generateNoteQuiz(concept)"
+                <button (click)="reviewConcept(concept)"
                         [disabled]="generatingNoteId === concept.id"
                         [class]="'flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
                   @if (generatingNoteId === concept.id) {
@@ -141,7 +141,15 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  generateNoteQuiz(concept: QuizConcept) {
+  reviewConcept(concept: QuizConcept) {
+    if (this.hasTerms(concept)) {
+      const terms: FlashcardTerm[] = JSON.parse(concept.terms!);
+      this.router.navigate(['/quiz', 'concepts', concept.id, 'flashcards'], {
+        state: { terms, topicName: concept.topicName, conceptName: concept.name, topicId: concept.topicId }
+      });
+      return;
+    }
+
     this.generatingNoteId = concept.id;
     this.quizService.generate(concept.id).subscribe({
       next: (res) => {
@@ -152,6 +160,16 @@ export class DashboardComponent implements OnInit {
       },
       error: () => this.generatingNoteId = null
     });
+  }
+
+  private hasTerms(concept: QuizConcept): boolean {
+    if (!concept.terms) return false;
+    try {
+      const terms: FlashcardTerm[] = JSON.parse(concept.terms);
+      return terms.length > 0;
+    } catch {
+      return false;
+    }
   }
 
   private loadData() {
