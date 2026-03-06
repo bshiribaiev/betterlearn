@@ -19,7 +19,7 @@ public interface VocabularyRepository extends JpaRepository<VocabularyWord, Long
 
     boolean existsByTopicIdAndWord(Long topicId, String word);
 
-    @Query("SELECT w FROM VocabularyWord w WHERE w.topic.user.id = :userId AND w.nextReview <= CURRENT_DATE ORDER BY w.nextReview ASC")
+    @Query("SELECT w FROM VocabularyWord w JOIN FETCH w.topic WHERE w.topic.user.id = :userId AND w.nextReview <= CURRENT_DATE ORDER BY w.nextReview ASC")
     List<VocabularyWord> findDueByTopicUserId(Long userId);
 
     long countByTopicUserId(Long userId);

@@ -13,6 +13,8 @@ public interface LeetcodeRepository extends JpaRepository<LeetcodeProblem, Long>
     @Query("SELECT p FROM LeetcodeProblem p WHERE p.user.id = :userId AND p.nextReview <= CURRENT_DATE ORDER BY p.nextReview ASC")
     List<LeetcodeProblem> findDueByUserId(Long userId);
 
+    long countByUserId(Long userId);
+
     boolean existsByUserIdAndUrl(Long userId, String url);
 
     long countByUserIdAndStatus(Long userId, String status);

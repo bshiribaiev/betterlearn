@@ -40,7 +40,7 @@ public class DashboardController {
     public DashboardResponse getDashboard(@RequestAttribute Long userId) {
         // LeetCode
         List<ProblemResponse> due = leetcodeService.findDue(userId);
-        List<ProblemResponse> all = leetcodeService.findAll(userId);
+        int totalCount = (int) leetcodeRepository.countByUserId(userId);
         int masteredProblems = (int) leetcodeRepository.countByUserIdAndStatus(userId, "mastered");
 
         // Topics: concepts + vocab combined
@@ -56,7 +56,7 @@ public class DashboardController {
         int topicsTotalCount = (int) (conceptsTotal + wordsTotal);
         int masteredTopicItems = masteredConcepts + masteredWords;
 
-        return new DashboardResponse(due.size(), all.size(), masteredProblems, due,
+        return new DashboardResponse(due.size(), totalCount, masteredProblems, due,
                 topicsDueCount, topicsTotalCount, masteredTopicItems,
                 conceptsDue, termGroups);
     }
