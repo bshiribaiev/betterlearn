@@ -31,9 +31,9 @@ export class ProblemListComponent implements OnInit {
   private deleteTimer: any = null;
 
   ratingOptions = [
-    { label: 'Low', quality: 1, color: 'text-red-500' },
-    { label: 'Medium', quality: 3, color: 'text-amber-500' },
-    { label: 'High', quality: 5, color: 'text-emerald-500' },
+    { label: 'Bad', quality: 1, color: 'text-red-500' },
+    { label: 'Good', quality: 3, color: 'text-amber-500' },
+    { label: 'Great', quality: 5, color: 'text-emerald-500' },
   ];
 
   @HostListener('document:click')
@@ -96,9 +96,9 @@ export class ProblemListComponent implements OnInit {
   confidenceLabel(problem: Problem): string {
     return {
       'none': 'New',
-      'low': 'Low',
-      'average': 'Medium',
-      'high': 'High'
+      'low': 'Bad',
+      'average': 'Good',
+      'high': 'Great'
     }[problem.confidence] ?? 'New';
   }
 
@@ -171,7 +171,7 @@ export class ProblemListComponent implements OnInit {
   }
 
   qualityLabel(quality: number): string {
-    return { 1: 'Low', 3: 'Medium', 5: 'High' }[quality] ?? `Q${quality}`;
+    return { 1: 'Bad', 3: 'Good', 5: 'Great' }[quality] ?? `Q${quality}`;
   }
 
   qualityColor(quality: number): string {

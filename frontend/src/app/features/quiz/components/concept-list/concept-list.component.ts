@@ -126,7 +126,7 @@ export class ConceptListComponent implements OnInit {
   }
 
   statusLabel(concept: QuizConcept): string {
-    return { 'new': 'New', 'learning': 'Low', 'review': 'Medium', 'mastered': 'High' }[concept.status] ?? 'New';
+    return { 'new': 'New', 'learning': 'Bad', 'review': 'Good', 'mastered': 'Great' }[concept.status] ?? 'New';
   }
 
   statusColor(concept: QuizConcept): string {

@@ -37,9 +37,9 @@ export class WordListComponent implements OnInit {
   confidenceMenuDate: string | null = null;
 
   ratingOptions = [
-    { label: 'Low', quality: 1, color: 'text-red-500' },
-    { label: 'Medium', quality: 3, color: 'text-amber-500' },
-    { label: 'High', quality: 5, color: 'text-emerald-500' },
+    { label: 'Bad', quality: 1, color: 'text-red-500' },
+    { label: 'Good', quality: 3, color: 'text-amber-500' },
+    { label: 'Great', quality: 5, color: 'text-emerald-500' },
   ];
 
   @HostListener('document:click')
@@ -102,9 +102,9 @@ export class WordListComponent implements OnInit {
   groupConfidenceLabel(group: WordGroup): string {
     const statusRank: Record<string, number> = { 'new': 0, 'learning': 1, 'review': 2, 'mastered': 3 };
     const avg = group.words.reduce((sum, w) => sum + (statusRank[w.status] ?? 0), 0) / group.words.length;
-    if (avg >= 2.5) return 'High';
-    if (avg >= 1.5) return 'Medium';
-    if (avg >= 0.5) return 'Low';
+    if (avg >= 2.5) return 'Great';
+    if (avg >= 1.5) return 'Good';
+    if (avg >= 0.5) return 'Bad';
     return 'New';
   }
 
@@ -112,9 +112,9 @@ export class WordListComponent implements OnInit {
     const label = this.groupConfidenceLabel(group);
     return {
       'New': 'text-gray-400',
-      'Low': 'text-red-500',
-      'Medium': 'text-amber-500',
-      'High': 'text-emerald-500'
+      'Bad': 'text-red-500',
+      'Good': 'text-amber-500',
+      'Great': 'text-emerald-500'
     }[label] ?? 'text-gray-400';
   }
 

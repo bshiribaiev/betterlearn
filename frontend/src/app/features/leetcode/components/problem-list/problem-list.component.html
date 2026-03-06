@@ -48,15 +48,15 @@
               <div class="flex gap-2">
                 <button type="button" (click)="addConfidence = 'low'"
                         [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'low' ? 'bg-red-50 border-red-300 text-red-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Low
+                  Bad
                 </button>
                 <button type="button" (click)="addConfidence = 'average'"
                         [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'average' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Medium
+                  Good
                 </button>
                 <button type="button" (click)="addConfidence = 'high'"
                         [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addConfidence === 'high' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  High
+                  Great
                 </button>
               </div>
             </div>
