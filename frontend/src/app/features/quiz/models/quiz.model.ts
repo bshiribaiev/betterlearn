@@ -19,6 +19,7 @@ export interface QuizConcept {
   name: string;
   content: string | null;
   terms: string | null;
+  lastReviewed: string | null;
   nextReview: string;
   intervalDays: number;
   easinessFactor: number;

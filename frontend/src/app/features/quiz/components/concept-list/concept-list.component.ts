@@ -112,6 +112,17 @@ export class ConceptListComponent implements OnInit {
     return Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
+  lastReviewedLabel(concept: QuizConcept): string {
+    if (!concept.lastReviewed) return '—';
+    const date = new Date(concept.lastReviewed + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
   nextReviewLabel(concept: QuizConcept): string {
     const days = this.daysUntilReview(concept);
     if (days === 0) return 'Due today';
@@ -127,13 +138,13 @@ export class ConceptListComponent implements OnInit {
   }
 
   statusLabel(concept: QuizConcept): string {
-    return { 'new': 'New', 'learning': 'Bad', 'review': 'Good', 'mastered': 'Great' }[concept.status] ?? 'New';
+    return { 'new': 'New', 'learning': 'Learning', 'review': 'Review', 'mastered': 'Mastered' }[concept.status] ?? 'New';
   }
 
   statusColor(concept: QuizConcept): string {
     return {
       'new': 'text-gray-400',
-      'learning': 'text-red-500',
+      'learning': 'text-sky-500',
       'review': 'text-amber-500',
       'mastered': 'text-emerald-500'
     }[concept.status] ?? 'text-gray-400';
@@ -150,7 +161,7 @@ export class ConceptListComponent implements OnInit {
       next: (res) => {
         this.generatingConceptId = null;
         this.router.navigate(['/quiz', 'concepts', concept.id, 'session'], {
-          state: { questions: res.questions, topicName: this.topicName, conceptName: concept.name }
+          state: { questions: res.questions, topicName: this.topicName, conceptName: concept.name, topicId: this.topicId }
         });
       },
       error: () => this.generatingConceptId = null
