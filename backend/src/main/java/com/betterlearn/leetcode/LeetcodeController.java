@@ -5,6 +5,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Map;
+
 import java.util.List;
 
 @RestController
@@ -39,6 +42,14 @@ public class LeetcodeController {
                                   @PathVariable Long id,
                                   @RequestBody ProblemUpdateRequest request) {
         return leetcodeService.update(userId, id, request);
+    }
+
+    @PatchMapping("/{id}/reschedule")
+    public ProblemResponse reschedule(@RequestAttribute Long userId,
+                                      @PathVariable Long id,
+                                      @RequestBody Map<String, String> body) {
+        LocalDate date = LocalDate.parse(body.get("nextReview"));
+        return leetcodeService.reschedule(userId, id, date);
     }
 
     @DeleteMapping("/{id}")

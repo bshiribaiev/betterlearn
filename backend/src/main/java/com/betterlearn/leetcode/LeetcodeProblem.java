@@ -78,6 +78,7 @@ public class LeetcodeProblem {
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }
     public LocalDate getNextReview() { return nextReview; }
+    public void setNextReview(LocalDate nextReview) { this.nextReview = nextReview; }
     public String getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }

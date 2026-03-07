@@ -130,6 +130,14 @@ public class QuizService {
     }
 
     @Transactional
+    public ConceptResponse rescheduleConcept(Long userId, Long conceptId, LocalDate nextReview) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        concept.setNextReview(nextReview);
+        concept.setCachedQuestions(null);
+        return ConceptResponse.from(conceptRepo.save(concept));
+    }
+
+    @Transactional
     public void deleteConcept(Long userId, Long conceptId) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         imageService.deleteAllImages(conceptId);

@@ -80,6 +80,14 @@ public class QuizController {
         return quizService.updateConcept(userId, id, request);
     }
 
+    @PatchMapping("/concepts/{id}/reschedule")
+    public ConceptResponse rescheduleConcept(@RequestAttribute Long userId,
+                                              @PathVariable Long id,
+                                              @RequestBody Map<String, String> body) {
+        LocalDate date = LocalDate.parse(body.get("nextReview"));
+        return quizService.rescheduleConcept(userId, id, date);
+    }
+
     @DeleteMapping("/concepts/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteConcept(@RequestAttribute Long userId, @PathVariable Long id) {

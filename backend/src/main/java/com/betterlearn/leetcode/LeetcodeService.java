@@ -80,6 +80,13 @@ public class LeetcodeService {
     }
 
     @Transactional
+    public ProblemResponse reschedule(Long userId, Long problemId, java.time.LocalDate nextReview) {
+        LeetcodeProblem problem = findOwnedProblem(userId, problemId);
+        problem.setNextReview(nextReview);
+        return ProblemResponse.from(problemRepo.save(problem));
+    }
+
+    @Transactional
     public void delete(Long userId, Long problemId) {
         LeetcodeProblem problem = findOwnedProblem(userId, problemId);
         problemRepo.delete(problem);

@@ -100,6 +100,7 @@ public class QuizConcept {
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }
     public LocalDate getNextReview() { return nextReview; }
+    public void setNextReview(LocalDate nextReview) { this.nextReview = nextReview; }
     public String getStatus() { return status; }
     public int getTotalReviews() { return totalReviews; }
     public String getCachedQuestions() { return cachedQuestions; }
