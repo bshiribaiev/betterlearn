@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/betterlearn}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/betterlearn?stringtype=unspecified}
     username: ${DATABASE_USERNAME:betterlearn}
     password: ${DATABASE_PASSWORD:betterlearn}
   jpa:
