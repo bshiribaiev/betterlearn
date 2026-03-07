@@ -40,9 +40,10 @@
     </div>
 
     <div class="flex justify-center">
-      <a routerLink="/quiz"
+      <a [routerLink]="['/quiz', topicId, 'concepts']"
+         [state]="{ topicName: topicName }"
          class="px-6 py-2.5 text-base font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
-        Back to Topics
+        Back to Notes
       </a>
     </div>
   }

@@ -12,6 +12,7 @@ import { QuizQuestion, QuizSession } from '../../models/quiz.model';
 export class QuizResultsComponent implements OnInit {
   private router = inject(Router);
 
+  topicId = 0;
   topicName = '';
   conceptName = '';
   questions: QuizQuestion[] = [];
@@ -27,6 +28,7 @@ export class QuizResultsComponent implements OnInit {
     this.questions = state.questions;
     this.answers = state.answers;
     this.session = state.session;
+    this.topicId = state.topicId || 0;
     this.topicName = state.topicName || '';
     this.conceptName = state.conceptName || '';
   }

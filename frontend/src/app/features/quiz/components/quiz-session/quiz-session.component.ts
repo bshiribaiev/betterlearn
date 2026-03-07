@@ -16,6 +16,7 @@ export class QuizSessionComponent implements OnInit {
   private quizService = inject(QuizService);
 
   conceptId = 0;
+  topicId = 0;
   topicName = '';
   conceptName = '';
   questions: QuizQuestion[] = [];
@@ -30,6 +31,7 @@ export class QuizSessionComponent implements OnInit {
       return;
     }
     this.questions = state.questions;
+    this.topicId = state.topicId || 0;
     this.topicName = state.topicName || '';
     this.conceptName = state.conceptName || '';
     this.answers = new Array(this.questions.length).fill(-1);
@@ -63,6 +65,7 @@ export class QuizSessionComponent implements OnInit {
             questions: this.questions,
             answers: this.answers,
             session,
+            topicId: this.topicId,
             topicName: this.topicName,
             conceptName: this.conceptName
           }
