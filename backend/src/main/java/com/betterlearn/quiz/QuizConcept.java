@@ -40,6 +40,9 @@ public class QuizConcept {
     @Column(name = "total_reviews", nullable = false)
     private int totalReviews = 0;
 
+    @Column(name = "last_reviewed")
+    private LocalDate lastReviewed;
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -82,6 +85,7 @@ public class QuizConcept {
         this.nextReview = next;
         this.status = status;
         this.totalReviews++;
+        this.lastReviewed = LocalDate.now();
     }
 
     public Long getId() { return id; }
@@ -103,6 +107,7 @@ public class QuizConcept {
     public void setNextReview(LocalDate nextReview) { this.nextReview = nextReview; }
     public String getStatus() { return status; }
     public int getTotalReviews() { return totalReviews; }
+    public LocalDate getLastReviewed() { return lastReviewed; }
     public String getCachedQuestions() { return cachedQuestions; }
     public void setCachedQuestions(String cachedQuestions) { this.cachedQuestions = cachedQuestions; }
 }
