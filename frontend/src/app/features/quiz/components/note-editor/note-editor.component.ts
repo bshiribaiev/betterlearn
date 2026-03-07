@@ -8,6 +8,8 @@ import { QuizConcept } from '../../models/quiz.model';
 import { Subject, debounceTime } from 'rxjs';
 import { Editor, Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
 import Placeholder from '@tiptap/extension-placeholder';
 import TiptapImage from '@tiptap/extension-image';
 import { Plugin } from '@tiptap/pm/state';
@@ -269,7 +271,12 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         scrollMargin: 100,
       },
       extensions: [
-        StarterKit,
+        StarterKit.configure({
+          bulletList: false,
+          orderedList: false,
+        }),
+        BulletList.extend({ addInputRules() { return []; } }),
+        OrderedList.extend({ addInputRules() { return []; } }),
         Placeholder.configure({ placeholder: 'Type / for commands...' }),
         TiptapImage.configure({ inline: false, allowBase64: false }).extend({
           addNodeView() {
