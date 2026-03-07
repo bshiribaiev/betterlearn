@@ -63,18 +63,21 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode — Needs Review</h2>
           <div class="space-y-2">
             @for (problem of data.dueProblems; track problem.id) {
-              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
-                <a [href]="problem.url" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
-                  <span class="text-base font-medium text-gray-900 truncate">{{ problem.title }}</span>
-                  <span class="flex-shrink-0 text-gray-300">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                    </svg>
-                  </span>
-                </a>
+              <div class="grid grid-cols-[1fr_100px_80px] gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                <div class="min-w-0">
+                  <a [href]="problem.url" target="_blank" rel="noopener"
+                     class="flex items-center gap-2 min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
+                    <span class="text-base font-medium text-gray-900 truncate">{{ problem.title }}</span>
+                    <span class="flex-shrink-0 text-gray-300">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                      </svg>
+                    </span>
+                  </a>
+                </div>
+                <span [class]="'text-sm ' + dueColor(problem.nextReview)">{{ dueLabel(problem.nextReview) }}</span>
                 <a routerLink="/leetcode"
-                   class="px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
+                   class="justify-self-end px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Review
                 </a>
               </div>
@@ -89,16 +92,19 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Notes — Needs Review</h2>
           <div class="space-y-2">
             @for (concept of data.dueConcepts; track concept.id) {
-              <div class="flex items-center justify-between py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
-                <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
-                   [state]="{ from: 'dashboard', topicName: concept.topicName }"
-                   class="min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
-                  <span class="text-base font-medium text-gray-900">{{ concept.topicName }}:</span>
-                  <span class="text-base text-gray-400 ml-1">{{ concept.name }}</span>
-                </a>
+              <div class="grid grid-cols-[1fr_100px_80px] gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                <div class="min-w-0">
+                  <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
+                     [state]="{ from: 'dashboard', topicName: concept.topicName }"
+                     class="min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
+                    <span class="text-base font-medium text-gray-900">{{ concept.topicName }}:</span>
+                    <span class="text-base text-gray-400 ml-1">{{ concept.name }}</span>
+                  </a>
+                </div>
+                <span [class]="'text-sm ' + dueColor(concept.nextReview)">{{ dueLabel(concept.nextReview) }}</span>
                 <button (click)="reviewConcept(concept)"
                         [disabled]="generatingNoteId === concept.id"
-                        [class]="'flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
+                        [class]="'justify-self-end px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
                   @if (generatingNoteId === concept.id) {
                     <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -170,6 +176,26 @@ export class DashboardComponent implements OnInit {
     } catch {
       return false;
     }
+  }
+
+  dueLabel(nextReview: string): string {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const review = new Date(nextReview + 'T00:00:00');
+    const days = Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Due today';
+    if (days === 1) return 'Due tomorrow';
+    const dateStr = review.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return 'Due ' + dateStr;
+  }
+
+  dueColor(nextReview: string): string {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const review = new Date(nextReview + 'T00:00:00');
+    const days = Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (days <= 0) return 'text-red-500';
+    return 'text-gray-400';
   }
 
   private loadData() {
