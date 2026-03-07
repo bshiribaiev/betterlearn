@@ -11,7 +11,7 @@ import { Router, RouterLink } from '@angular/router';
 export class FlashcardResultsComponent implements OnInit {
   private router = inject(Router);
 
-  quality = 0;
+  correctCount = 0;
   termCount = 0;
   topicName = '';
   conceptName = '';
@@ -21,26 +21,25 @@ export class FlashcardResultsComponent implements OnInit {
     return [this.topicName, this.conceptName].filter(Boolean).join(' — ');
   }
 
-  get ratingLabel(): string {
-    return { 1: 'Again', 2: 'Hard', 3: 'Good', 5: 'Easy' }[this.quality] ?? 'Rated';
+  get scorePercent(): number {
+    return this.termCount > 0 ? Math.round((this.correctCount / this.termCount) * 100) : 0;
   }
 
-  get ratingColor(): string {
-    return {
-      1: 'text-red-500',
-      2: 'text-orange-500',
-      3: 'text-sky-500',
-      5: 'text-emerald-500',
-    }[this.quality] ?? 'text-gray-500';
+  get scoreColor(): string {
+    const pct = this.scorePercent;
+    if (pct >= 90) return 'text-emerald-500';
+    if (pct >= 70) return 'text-sky-500';
+    if (pct >= 50) return 'text-amber-500';
+    return 'text-red-500';
   }
 
   ngOnInit() {
     const state = history.state;
-    if (!state?.quality) {
+    if (state?.correctCount == null) {
       this.router.navigate(['/quiz']);
       return;
     }
-    this.quality = state.quality;
+    this.correctCount = state.correctCount;
     this.termCount = state.termCount || 0;
     this.topicName = state.topicName || '';
     this.conceptName = state.conceptName || '';

@@ -4,7 +4,7 @@
       <p class="text-gray-400 text-sm">No terms found.</p>
       <a routerLink="/quiz" class="text-sky-500 hover:text-sky-600 text-sm mt-2 inline-block">Back to Topics</a>
     </div>
-  } @else if (!finished) {
+  } @else {
     <!-- Progress -->
     <div class="flex items-center justify-between mb-6">
       <span class="text-sm text-gray-400">{{ currentIndex + 1 }} / {{ terms.length }}</span>
@@ -13,7 +13,7 @@
       }
     </div>
     <div class="w-full bg-gray-100 rounded-full h-1 mb-8">
-      <div class="bg-violet-500 h-1 rounded-full transition-all" [style.width.%]="((currentIndex + 1) / terms.length) * 100"></div>
+      <div class="bg-sky-500 h-1 rounded-full transition-all" [style.width.%]="((currentIndex + 1) / terms.length) * 100"></div>
     </div>
 
     <!-- Card -->
@@ -22,60 +22,27 @@
 
       @if (revealed) {
         <div class="border-t border-gray-200 pt-4 w-full">
-          <p class="text-lg text-gray-600">{{ terms[currentIndex].definition }}</p>
+          <p class="text-lg text-gray-600 mb-6">{{ terms[currentIndex].definition }}</p>
+          <!-- Correct / Wrong -->
+          <div class="flex justify-center gap-4">
+            <button (click)="markAndAdvance(false)"
+                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-red-200 text-red-500 font-medium hover:bg-red-50 transition-colors cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              Wrong
+            </button>
+            <button (click)="markAndAdvance(true)"
+                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-emerald-200 text-emerald-500 font-medium hover:bg-emerald-50 transition-colors cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Correct
+            </button>
+          </div>
         </div>
       } @else {
         <button (click)="reveal()"
-                class="mt-4 px-6 py-2.5 text-sm font-medium bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors">
+                class="mt-4 px-6 py-2.5 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">
           Show Definition
         </button>
       }
-    </div>
-
-    <!-- Navigation -->
-    @if (revealed) {
-      <div class="flex justify-between mt-6">
-        <button (click)="prev()" [disabled]="currentIndex === 0"
-                [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (currentIndex === 0 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-100')">
-          Previous
-        </button>
-        @if (currentIndex < terms.length - 1) {
-          <button (click)="next()"
-                  class="px-6 py-2 text-sm font-medium bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors">
-            Next
-          </button>
-        } @else {
-          <button (click)="finish()"
-                  class="px-6 py-2 text-sm font-medium bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors">
-            Finish
-          </button>
-        }
-      </div>
-    }
-  } @else {
-    <!-- Rating -->
-    <div class="text-center py-8">
-      <h1 class="text-2xl font-semibold text-gray-900 mb-2">Rate your recall</h1>
-      <p class="text-gray-400 mb-8">{{ terms.length }} terms reviewed</p>
-
-      <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-        <button (click)="rate(1)" [disabled]="submitting"
-                class="px-6 py-4 rounded-xl border-2 border-red-200 text-red-600 font-medium hover:bg-red-50 transition-colors">
-          Again
-        </button>
-        <button (click)="rate(2)" [disabled]="submitting"
-                class="px-6 py-4 rounded-xl border-2 border-orange-200 text-orange-600 font-medium hover:bg-orange-50 transition-colors">
-          Hard
-        </button>
-        <button (click)="rate(3)" [disabled]="submitting"
-                class="px-6 py-4 rounded-xl border-2 border-sky-200 text-sky-600 font-medium hover:bg-sky-50 transition-colors">
-          Good
-        </button>
-        <button (click)="rate(5)" [disabled]="submitting"
-                class="px-6 py-4 rounded-xl border-2 border-emerald-200 text-emerald-600 font-medium hover:bg-emerald-50 transition-colors">
-          Easy
-        </button>
-      </div>
     </div>
   }
 </div>

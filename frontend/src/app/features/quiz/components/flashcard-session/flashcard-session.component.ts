@@ -17,8 +17,8 @@ export class FlashcardSessionComponent implements OnInit {
   terms: FlashcardTerm[] = [];
   currentIndex = 0;
   revealed = false;
-  finished = false;
   submitting = false;
+  correctCount = 0;
 
   topicName = '';
   conceptName = '';
@@ -48,29 +48,27 @@ export class FlashcardSessionComponent implements OnInit {
     this.revealed = true;
   }
 
-  next() {
-    this.currentIndex++;
-    this.revealed = false;
-  }
+  markAndAdvance(correct: boolean) {
+    if (correct) this.correctCount++;
 
-  prev() {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
-      this.revealed = true; // Already seen
+    if (this.currentIndex < this.terms.length - 1) {
+      this.currentIndex++;
+      this.revealed = false;
+    } else {
+      this.submitResults();
     }
   }
 
-  finish() {
-    this.finished = true;
-  }
-
-  rate(quality: number) {
+  private submitResults() {
     this.submitting = true;
+    const score = this.correctCount / this.terms.length;
+    const quality = score >= 0.9 ? 5 : score >= 0.7 ? 3 : score >= 0.5 ? 2 : 1;
+
     this.quizService.submitFlashcardReview(this.conceptId, quality).subscribe({
-      next: (session) => {
+      next: () => {
         this.router.navigate(['/quiz', 'concepts', this.conceptId, 'flashcard-results'], {
           state: {
-            quality,
+            correctCount: this.correctCount,
             termCount: this.terms.length,
             topicName: this.topicName,
             conceptName: this.conceptName,
