@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/router';
@@ -28,6 +28,7 @@ export class ConceptListComponent implements OnInit {
   loading = true;
   activeTab: 'all' | 'due' = 'all';
   generatingConceptId: number | null = null;
+  reschedulingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
   private deleteTimer: any = null;
 
@@ -113,10 +114,10 @@ export class ConceptListComponent implements OnInit {
 
   nextReviewLabel(concept: QuizConcept): string {
     const days = this.daysUntilReview(concept);
-    if (days < 0) return `${Math.abs(days)}d overdue`;
     if (days === 0) return 'Due today';
     if (days === 1) return 'Tomorrow';
-    return `In ${days} days`;
+    const date = new Date(concept.nextReview + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   nextReviewColor(concept: QuizConcept): string {
@@ -176,6 +177,92 @@ export class ConceptListComponent implements OnInit {
         topicId: this.topicId,
       }
     });
+  }
+
+  // Calendar state
+  calendarYear = 0;
+  calendarMonth = 0;
+  calendarSelectedDate = '';
+  calendarDays: ({ day: number; date: string; isToday: boolean; isSelected: boolean; inMonth: boolean } | null)[] = [];
+
+  get calendarMonthLabel(): string {
+    return new Date(this.calendarYear, this.calendarMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  @HostListener('document:click')
+  closeCalendar() {
+    this.reschedulingConceptId = null;
+  }
+
+  startReschedule(concept: QuizConcept, event: Event) {
+    event.stopPropagation();
+    this.reschedulingConceptId = concept.id;
+    this.calendarSelectedDate = concept.nextReview;
+    const d = new Date(concept.nextReview + 'T00:00:00');
+    this.calendarYear = d.getFullYear();
+    this.calendarMonth = d.getMonth();
+    this.buildCalendar();
+  }
+
+  calendarPrevMonth() {
+    this.calendarMonth--;
+    if (this.calendarMonth < 0) { this.calendarMonth = 11; this.calendarYear--; }
+    this.buildCalendar();
+  }
+
+  calendarNextMonth() {
+    this.calendarMonth++;
+    if (this.calendarMonth > 11) { this.calendarMonth = 0; this.calendarYear++; }
+    this.buildCalendar();
+  }
+
+  selectCalendarDay(concept: QuizConcept, date: string) {
+    this.reschedulingConceptId = null;
+    if (date === concept.nextReview) return;
+    this.quizService.rescheduleConcept(concept.id, date).subscribe(updated => {
+      const idx = this.concepts.findIndex(c => c.id === concept.id);
+      if (idx !== -1) this.concepts[idx] = updated;
+    });
+  }
+
+  todayString(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  tomorrowString(): string {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  private buildCalendar() {
+    const firstDay = new Date(this.calendarYear, this.calendarMonth, 1).getDay();
+    const daysInMonth = new Date(this.calendarYear, this.calendarMonth + 1, 0).getDate();
+    const daysInPrev = new Date(this.calendarYear, this.calendarMonth, 0).getDate();
+    const today = this.todayString();
+    const cells: typeof this.calendarDays = [];
+
+    for (let i = 0; i < firstDay; i++) {
+      const day = daysInPrev - firstDay + 1 + i;
+      const m = this.calendarMonth - 1;
+      const y = m < 0 ? this.calendarYear - 1 : this.calendarYear;
+      const date = `${y}-${String((m + 12) % 12 + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      cells.push({ day, date, isToday: date === today, isSelected: date === this.calendarSelectedDate, inMonth: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = `${this.calendarYear}-${String(this.calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      cells.push({ day: d, date, isToday: date === today, isSelected: date === this.calendarSelectedDate, inMonth: true });
+    }
+    const remaining = 7 - (cells.length % 7);
+    if (remaining < 7) {
+      for (let d = 1; d <= remaining; d++) {
+        const m = this.calendarMonth + 1;
+        const y = m > 11 ? this.calendarYear + 1 : this.calendarYear;
+        const date = `${y}-${String(m % 12 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        cells.push({ day: d, date, isToday: date === today, isSelected: date === this.calendarSelectedDate, inMonth: false });
+      }
+    }
+    this.calendarDays = cells;
   }
 
   deleteConcept(concept: QuizConcept, event: Event) {

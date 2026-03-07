@@ -44,6 +44,10 @@ export class QuizService {
     return this.http.delete<void>(`/api/quiz/concepts/${id}`);
   }
 
+  rescheduleConcept(id: number, nextReview: string) {
+    return this.http.patch<QuizConcept>(`/api/quiz/concepts/${id}/reschedule`, { nextReview });
+  }
+
   uploadPdf(conceptId: number, file: File) {
     const formData = new FormData();
     formData.append('file', file);

@@ -27,6 +27,10 @@ export class LeetcodeService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
+  reschedule(id: number, nextReview: string) {
+    return this.http.patch<Problem>(`${this.base}/${id}/reschedule`, { nextReview });
+  }
+
   submitReview(id: number, quality: number) {
     return this.http.post<Problem>(`${this.base}/${id}/review`, { quality });
   }

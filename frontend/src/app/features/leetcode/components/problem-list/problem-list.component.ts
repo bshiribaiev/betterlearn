@@ -29,6 +29,11 @@ export class ProblemListComponent implements OnInit {
   editNotes = '';
   deletedProblem: Problem | null = null;
   private deleteTimer: any = null;
+  reschedulingProblemId: number | null = null;
+  calendarYear = 0;
+  calendarMonth = 0;
+  calendarSelectedDate = '';
+  calendarDays: ({ day: number; date: string; isToday: boolean; isSelected: boolean; inMonth: boolean } | null)[] = [];
 
   ratingOptions = [
     { label: 'Bad', quality: 1, color: 'text-red-500' },
@@ -40,6 +45,7 @@ export class ProblemListComponent implements OnInit {
   closeMenus() {
     this.confidenceMenuProblem = null;
     this.showAddForm = false;
+    this.reschedulingProblemId = null;
   }
 
   ngOnInit() {
@@ -80,10 +86,10 @@ export class ProblemListComponent implements OnInit {
   nextReviewLabel(problem: Problem): string {
     if (problem.status === 'new') return 'New';
     const days = this.daysUntilReview(problem);
-    if (days < 0) return `${Math.abs(days)}d overdue`;
     if (days === 0) return 'Due today';
     if (days === 1) return 'Tomorrow';
-    return `In ${days} days`;
+    const date = new Date(problem.nextReview + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   nextReviewColor(problem: Problem): string {
@@ -204,6 +210,81 @@ export class ProblemListComponent implements OnInit {
       },
       error: (err) => this.addError = err.error?.detail || 'Failed to add problem'
     });
+  }
+
+  get calendarMonthLabel(): string {
+    return new Date(this.calendarYear, this.calendarMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  startReschedule(problem: Problem, event: Event) {
+    event.stopPropagation();
+    this.reschedulingProblemId = problem.id;
+    this.calendarSelectedDate = problem.nextReview;
+    const d = new Date(problem.nextReview + 'T00:00:00');
+    this.calendarYear = d.getFullYear();
+    this.calendarMonth = d.getMonth();
+    this.buildCalendar();
+  }
+
+  calendarPrevMonth() {
+    this.calendarMonth--;
+    if (this.calendarMonth < 0) { this.calendarMonth = 11; this.calendarYear--; }
+    this.buildCalendar();
+  }
+
+  calendarNextMonth() {
+    this.calendarMonth++;
+    if (this.calendarMonth > 11) { this.calendarMonth = 0; this.calendarYear++; }
+    this.buildCalendar();
+  }
+
+  selectCalendarDay(problem: Problem, date: string) {
+    this.reschedulingProblemId = null;
+    if (date === problem.nextReview) return;
+    this.leetcodeService.reschedule(problem.id, date).subscribe(updated => {
+      const idx = this.problems.findIndex(p => p.id === problem.id);
+      if (idx !== -1) this.problems[idx] = updated;
+    });
+  }
+
+  todayString(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  tomorrowString(): string {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  private buildCalendar() {
+    const firstDay = new Date(this.calendarYear, this.calendarMonth, 1).getDay();
+    const daysInMonth = new Date(this.calendarYear, this.calendarMonth + 1, 0).getDate();
+    const daysInPrev = new Date(this.calendarYear, this.calendarMonth, 0).getDate();
+    const today = this.todayString();
+    const cells: typeof this.calendarDays = [];
+
+    for (let i = 0; i < firstDay; i++) {
+      const day = daysInPrev - firstDay + 1 + i;
+      const m = this.calendarMonth - 1;
+      const y = m < 0 ? this.calendarYear - 1 : this.calendarYear;
+      const date = `${y}-${String((m + 12) % 12 + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      cells.push({ day, date, isToday: date === today, isSelected: date === this.calendarSelectedDate, inMonth: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = `${this.calendarYear}-${String(this.calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      cells.push({ day: d, date, isToday: date === today, isSelected: date === this.calendarSelectedDate, inMonth: true });
+    }
+    const remaining = 7 - (cells.length % 7);
+    if (remaining < 7) {
+      for (let d = 1; d <= remaining; d++) {
+        const m = this.calendarMonth + 1;
+        const y = m > 11 ? this.calendarYear + 1 : this.calendarYear;
+        const date = `${y}-${String(m % 12 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        cells.push({ day: d, date, isToday: date === today, isSelected: date === this.calendarSelectedDate, inMonth: false });
+      }
+    }
+    this.calendarDays = cells;
   }
 
   onReviewSubmitted() {
