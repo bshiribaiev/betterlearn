@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://18.119.161.7",
+    "target": "https://betterlearn.app",
     "secure": false
   }
 }
