@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
 import { QuizConcept, FlashcardTerm } from '../quiz/models/quiz.model';
 import { QuizService } from '../quiz/services/quiz.service';
+import { cachedFetch } from '../../shared/services/cached-fetch';
 
 interface DashboardData {
   dueCount: number;
@@ -199,8 +200,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadData() {
-    this.loading = true;
-    this.http.get<DashboardData>('/api/dashboard').subscribe(data => {
+    cachedFetch('dashboard', this.http.get<DashboardData>('/api/dashboard'), data => {
       this.data = data;
       this.loading = false;
     });

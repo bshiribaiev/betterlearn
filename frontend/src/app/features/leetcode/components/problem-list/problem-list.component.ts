@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LeetcodeService } from '../../services/leetcode.service';
 import { Problem, ReviewEntry } from '../../models/problem.model';
 import { ReviewDialogComponent } from '../review-dialog/review-dialog.component';
+import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-problem-list',
@@ -53,7 +54,7 @@ export class ProblemListComponent implements OnInit {
   }
 
   loadProblems() {
-    this.leetcodeService.findAll().subscribe(problems => {
+    cachedFetch('leetcode-problems', this.leetcodeService.findAll(), problems => {
       this.problems = problems;
       this.loading = false;
     });

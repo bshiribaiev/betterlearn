@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
 import { QuizTopic } from '../../models/quiz.model';
+import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-topic-list',
@@ -36,7 +37,7 @@ export class TopicListComponent implements OnInit {
   }
 
   loadTopics() {
-    this.quizService.findAllTopics().subscribe(topics => {
+    cachedFetch('quiz-topics', this.quizService.findAllTopics(), topics => {
       this.topics = topics;
       this.loading = false;
     });

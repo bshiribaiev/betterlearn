@@ -5,6 +5,7 @@ import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/rout
 import { filter } from 'rxjs';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept, QuizTopic, FlashcardTerm } from '../../models/quiz.model';
+import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-concept-list',
@@ -86,7 +87,7 @@ export class ConceptListComponent implements OnInit {
   }
 
   loadConcepts() {
-    this.quizService.findConcepts(this.topicId).subscribe(concepts => {
+    cachedFetch(`concepts-${this.topicId}`, this.quizService.findConcepts(this.topicId), concepts => {
       this.concepts = concepts;
       this.loading = false;
     });

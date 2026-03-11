@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { VocabularyService } from '../../services/vocabulary.service';
 import { Word, WordGroup } from '../../models/vocabulary.model';
+import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-word-list',
@@ -53,7 +54,7 @@ export class WordListComponent implements OnInit {
   }
 
   loadWords() {
-    this.vocabService.findByTopicGrouped(this.topicId).subscribe(groups => {
+    cachedFetch(`words-${this.topicId}`, this.vocabService.findByTopicGrouped(this.topicId), groups => {
       this.groups = groups;
       this.loading = false;
       this.loaded.emit();
