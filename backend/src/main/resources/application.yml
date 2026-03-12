@@ -9,6 +9,10 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 
   security:
     oauth2:
@@ -29,10 +33,6 @@ app:
   gemini:
     api-key: ${GEMINI_API_KEY:}
     model: gemini-2.5-flash
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
 
 aws:
   access-key-id: ${AWS_ACCESS_KEY_ID:}
