@@ -37,9 +37,10 @@ export const PdfAttachment = Node.create({
       dom.classList.add('pdf-attachment-block');
       dom.contentEditable = 'false';
 
-      // Header bar
+      // Header bar (entire header is drag handle)
       const header = document.createElement('div');
       header.classList.add('pdf-attachment-header');
+      header.dataset['dragHandle'] = '';
 
       const left = document.createElement('div');
       left.style.cssText = 'display:flex;align-items:center;gap:0.5rem;min-width:0';
@@ -47,8 +48,6 @@ export const PdfAttachment = Node.create({
       // Drag handle
       const dragHandle = document.createElement('div');
       dragHandle.classList.add('pdf-attachment-drag');
-      dragHandle.draggable = true;
-      dragHandle.dataset['dragHandle'] = '';
       dragHandle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
         <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
         <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
@@ -163,7 +162,7 @@ export const PdfAttachment = Node.create({
 
       return {
         dom,
-        stopEvent: () => true,
+        stopEvent: (event: Event) => !event.type.startsWith('drag') && event.type !== 'drop',
         ignoreMutation: () => true,
       };
     };

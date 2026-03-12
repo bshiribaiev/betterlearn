@@ -278,6 +278,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
         StarterKit.configure({
           bulletList: false,
           orderedList: false,
+          dropcursor: { color: '#0ea5e9', width: 3 },
         }),
         BulletList.extend({ addInputRules() { return []; } }),
         OrderedList.extend({ addInputRules() { return []; } }),
