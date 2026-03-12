@@ -7,13 +7,20 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class GoogleAuthService {
 
     private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
     private static final String USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
+    private static final Set<String> ALLOWED_ORIGINS = Set.of(
+            "http://localhost:4200",
+            "https://betterlearn.app"
+    );
 
     @Value("${spring.security.oauth2.client.registration.google.client-id:}")
     private String clientId;
@@ -26,14 +33,23 @@ public class GoogleAuthService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String buildAuthorizationUrl() {
+    public String buildAuthorizationUrl(String origin) {
+        String state = (origin != null && ALLOWED_ORIGINS.contains(origin)) ? origin : "";
         return "https://accounts.google.com/o/oauth2/v2/auth"
                 + "?client_id=" + clientId
                 + "&redirect_uri=" + redirectUri
                 + "&response_type=code"
                 + "&scope=email%20profile"
                 + "&access_type=offline"
-                + "&prompt=consent";
+                + "&prompt=consent"
+                + "&state=" + URLEncoder.encode(state, StandardCharsets.UTF_8);
+    }
+
+    public String resolveCallbackUrl(String state, String defaultCallback) {
+        if (state != null && !state.isEmpty() && ALLOWED_ORIGINS.contains(state)) {
+            return state + "/auth/callback";
+        }
+        return defaultCallback;
     }
 
     public GoogleUserInfo exchangeCodeForUserInfo(String code) {

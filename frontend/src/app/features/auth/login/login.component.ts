@@ -19,6 +19,7 @@ export class LoginComponent {
     password: ['', Validators.required]
   });
   error = '';
+  origin = encodeURIComponent(window.location.origin);
 
   submit() {
     if (this.form.invalid) return;

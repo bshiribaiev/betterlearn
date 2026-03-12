@@ -20,6 +20,7 @@ export class RegisterComponent {
     displayName: ['']
   });
   error = '';
+  origin = encodeURIComponent(window.location.origin);
 
   submit() {
     if (this.form.invalid) return;

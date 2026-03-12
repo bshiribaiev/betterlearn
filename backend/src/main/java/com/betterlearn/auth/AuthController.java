@@ -43,14 +43,18 @@ public class AuthController {
     }
 
     @GetMapping("/google")
-    public void redirectToGoogle(HttpServletResponse response) throws IOException {
-        response.sendRedirect(googleAuthService.buildAuthorizationUrl());
+    public void redirectToGoogle(@RequestParam(value = "origin", required = false) String origin,
+                                 HttpServletResponse response) throws IOException {
+        response.sendRedirect(googleAuthService.buildAuthorizationUrl(origin));
     }
 
     @GetMapping("/google/callback")
-    public void googleCallback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+    public void googleCallback(@RequestParam("code") String code,
+                                @RequestParam(value = "state", required = false) String state,
+                                HttpServletResponse response) throws IOException {
         GoogleAuthService.GoogleUserInfo googleUser = googleAuthService.exchangeCodeForUserInfo(code);
         AuthResponse authResponse = authService.loginWithGoogle(googleUser.email(), googleUser.name());
-        response.sendRedirect(frontendCallback + "?token=" + authResponse.token());
+        String callbackUrl = googleAuthService.resolveCallbackUrl(state, frontendCallback);
+        response.sendRedirect(callbackUrl + "?token=" + authResponse.token());
     }
 }
