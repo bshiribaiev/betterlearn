@@ -39,7 +39,7 @@
       </button>
 
       @if (showAddForm) {
-        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
+        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[min(360px,calc(100vw-2rem))]"
              (click)="$event.stopPropagation()">
           @if (addError) {
             <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
@@ -67,9 +67,9 @@
 } @else {
   <div>
     <!-- Table header -->
-    <div class="grid grid-cols-[1fr_100px_120px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+    <div class="grid grid-cols-[1fr_100px_80px] sm:grid-cols-[1fr_100px_120px_80px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
       <span>Topic</span>
-      <span>Confidence</span>
+      <span class="hidden sm:inline">Confidence</span>
       <span>Next Review</span>
       <span></span>
     </div>
@@ -77,7 +77,7 @@
     <!-- Group rows -->
     @for (group of filteredGroups; track group.addedDate; let last = $last) {
       <div (click)="toggleGroup(group)"
-           [class]="'grid grid-cols-[1fr_100px_120px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors cursor-pointer ' + (last || expandedDate === group.addedDate ? '' : 'border-b border-gray-200')">
+           [class]="'grid grid-cols-[1fr_100px_80px] sm:grid-cols-[1fr_100px_120px_80px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors cursor-pointer ' + (last || expandedDate === group.addedDate ? '' : 'border-b border-gray-200')">
         <!-- Date — Label -->
         <div class="flex items-center gap-2.5 min-w-0">
           <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0"
@@ -94,7 +94,7 @@
         </div>
 
         <!-- Confidence (clickable) -->
-        <div class="relative">
+        <div class="relative hidden sm:block">
           <button (click)="toggleConfidenceMenu(group, $event)"
                   [class]="'text-base font-medium cursor-pointer hover:opacity-70 transition-opacity ' + groupConfidenceColor(group)">
             {{ groupConfidenceLabel(group) }}

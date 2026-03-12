@@ -65,7 +65,7 @@ import { AuthService } from '../../core/services/auth.service';
 
       <!-- Features -->
       <section style="padding-bottom:3.5rem" class="max-w-5xl mx-auto px-6">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem" class="responsive-stack">
           <div class="p-5 rounded-xl border border-gray-100">
             <div style="width:2.25rem;height:2.25rem;margin-bottom:0.75rem" class="rounded-lg bg-sky-50 flex items-center justify-center">
               <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

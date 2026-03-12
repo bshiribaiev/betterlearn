@@ -4,6 +4,13 @@ button, a, [role="button"] {
   cursor: pointer;
 }
 
+/* Mobile responsive helpers (for inline .ts templates where Tailwind v4 can't scan classes) */
+@media (max-width: 639px) {
+  .responsive-stack { grid-template-columns: 1fr !important; }
+  .responsive-due-row { grid-template-columns: 1fr 80px !important; }
+  .responsive-due-label { display: none !important; }
+}
+
 /* Tiptap editor styles */
 .ProseMirror {
   outline: none;

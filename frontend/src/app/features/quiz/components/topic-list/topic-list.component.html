@@ -21,7 +21,7 @@
       </button>
 
       @if (showAddForm) {
-        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
+        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[min(360px,calc(100vw-2rem))]"
              (click)="$event.stopPropagation()">
           @if (addError) {
             <div class="mb-3 text-xs text-red-500">{{ addError }}</div>

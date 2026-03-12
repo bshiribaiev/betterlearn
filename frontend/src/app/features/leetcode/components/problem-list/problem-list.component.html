@@ -34,7 +34,7 @@
       </button>
 
       @if (showAddForm) {
-        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[360px]"
+        <div class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-4 w-[min(360px,calc(100vw-2rem))]"
              (click)="$event.stopPropagation()">
           @if (addError) {
             <div class="mb-3 text-xs text-red-500">{{ addError }}</div>
@@ -78,16 +78,16 @@
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <div class="grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Problem</span>
         <span class="hidden sm:inline">Confidence</span>
-        <span>Next Review</span>
+        <span class="hidden sm:inline">Next Review</span>
         <span></span>
       </div>
 
       <!-- Rows -->
       @for (problem of filteredProblems; track problem.id) {
-        <div [class]="'grid grid-cols-[1fr_140px_110px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+        <div [class]="'grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Problem name + link icon -->
           <div class="min-w-0 flex items-center gap-2">
             <button (click)="toggleExpand(problem, $event)"
@@ -122,7 +122,7 @@
           </div>
 
           <!-- Next review -->
-          <div class="relative">
+          <div class="relative hidden sm:block">
             <button (click)="startReschedule(problem, $event)"
                     [class]="'text-base font-medium cursor-pointer hover:underline ' + nextReviewColor(problem)">
               {{ nextReviewLabel(problem) }}
@@ -182,7 +182,7 @@
               Review
             </button>
             <button (click)="deleteProblem(problem)"
-                    class="px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
+                    class="hidden sm:inline-flex px-3 py-1.5 border border-red-200 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:shadow-sm transition-all cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>

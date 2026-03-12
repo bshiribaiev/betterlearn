@@ -31,7 +31,7 @@ interface DashboardData {
         <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
       } @else {
       <!-- Navigation cards -->
-      <div class="grid grid-cols-2 gap-5 mb-8">
+      <div class="grid grid-cols-2 gap-5 mb-8 responsive-stack">
         <a routerLink="/quiz"
            class="flex items-center gap-5 p-6 bg-white border border-gray-100 rounded-xl hover:border-sky-200 hover:shadow-md transition-all group">
           <div class="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
@@ -64,7 +64,7 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode — Needs Review</h2>
           <div class="space-y-2">
             @for (problem of data.dueProblems; track problem.id) {
-              <div class="grid grid-cols-[1fr_100px_80px] gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+              <div class="grid grid-cols-[1fr_100px_80px] responsive-due-row gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
                 <div class="min-w-0">
                   <a [href]="problem.url" target="_blank" rel="noopener"
                      class="flex items-center gap-2 min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
@@ -76,7 +76,7 @@ interface DashboardData {
                     </span>
                   </a>
                 </div>
-                <span [class]="'text-sm ' + dueColor(problem.nextReview)">{{ dueLabel(problem.nextReview) }}</span>
+                <span [class]="'text-sm responsive-due-label ' + dueColor(problem.nextReview)">{{ dueLabel(problem.nextReview) }}</span>
                 <a routerLink="/leetcode"
                    class="justify-self-end px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
                   Review
@@ -93,7 +93,7 @@ interface DashboardData {
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Notes — Needs Review</h2>
           <div class="space-y-2">
             @for (concept of data.dueConcepts; track concept.id) {
-              <div class="grid grid-cols-[1fr_100px_80px] gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+              <div class="grid grid-cols-[1fr_100px_80px] responsive-due-row gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
                 <div class="min-w-0">
                   <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
                      [state]="{ from: 'dashboard', topicName: concept.topicName }"
@@ -102,7 +102,7 @@ interface DashboardData {
                     <span class="text-base text-gray-400 ml-1">{{ concept.name }}</span>
                   </a>
                 </div>
-                <span [class]="'text-sm ' + dueColor(concept.nextReview)">{{ dueLabel(concept.nextReview) }}</span>
+                <span [class]="'text-sm responsive-due-label ' + dueColor(concept.nextReview)">{{ dueLabel(concept.nextReview) }}</span>
                 <button (click)="reviewConcept(concept)"
                         [disabled]="generatingNoteId === concept.id"
                         [class]="'justify-self-end px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
