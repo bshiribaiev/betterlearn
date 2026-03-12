@@ -319,6 +319,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.editor.view.dom.addEventListener('pdf-load', ((e: CustomEvent) => {
       this.loadPdfIntoIframe(e.detail.iframe);
     }) as EventListener);
+    this.editor.view.dom.addEventListener('pdf-fullscreen', () => this.openPdfPreview());
     this.editor.view.dom.addEventListener('pdf-remove', () => this.removePdf());
 
     // Click image to open lightbox

@@ -209,6 +209,25 @@ button, a, [role="button"] {
   background: #f3f4f6;
 }
 
+.pdf-attachment-drag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d1d5db;
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.pdf-attachment-header:hover .pdf-attachment-drag {
+  opacity: 1;
+}
+
+.pdf-attachment-drag:active {
+  cursor: grabbing;
+}
+
 .pdf-attachment-icon {
   width: 1.5rem;
   height: 1.5rem;
@@ -229,7 +248,7 @@ button, a, [role="button"] {
   min-width: 0;
 }
 
-.pdf-attachment-toggle {
+.pdf-attachment-action {
   width: 1.5rem;
   height: 1.5rem;
   display: flex;
@@ -244,7 +263,7 @@ button, a, [role="button"] {
   flex-shrink: 0;
 }
 
-.pdf-attachment-toggle:hover {
+.pdf-attachment-action:hover {
   color: #6b7280;
   background: #e5e7eb;
 }

@@ -11,6 +11,7 @@ declare module '@tiptap/core' {
 export const PdfAttachment = Node.create({
   name: 'pdfAttachment',
   group: 'block',
+  draggable: true,
   atom: true,
 
   addAttributes() {
@@ -43,6 +44,17 @@ export const PdfAttachment = Node.create({
       const left = document.createElement('div');
       left.style.cssText = 'display:flex;align-items:center;gap:0.5rem;min-width:0';
 
+      // Drag handle
+      const dragHandle = document.createElement('div');
+      dragHandle.classList.add('pdf-attachment-drag');
+      dragHandle.draggable = true;
+      dragHandle.dataset['dragHandle'] = '';
+      dragHandle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+        <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+        <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+      </svg>`;
+
       const icon = document.createElement('div');
       icon.classList.add('pdf-attachment-icon');
       icon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -53,20 +65,32 @@ export const PdfAttachment = Node.create({
       name.classList.add('pdf-attachment-name');
       name.textContent = node.attrs['filename'] || 'PDF';
 
+      left.appendChild(dragHandle);
       left.appendChild(icon);
       left.appendChild(name);
 
       const right = document.createElement('div');
       right.style.cssText = 'display:flex;align-items:center;gap:0.25rem;flex-shrink:0';
 
+      // Expand (fullscreen) button
+      const expandBtn = document.createElement('button');
+      expandBtn.classList.add('pdf-attachment-action');
+      expandBtn.title = 'Full screen';
+      expandBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/>
+      </svg>`;
+      expandBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dom.dispatchEvent(new CustomEvent('pdf-fullscreen', { bubbles: true }));
+      });
+
       // Toggle button
       const toggleBtn = document.createElement('button');
-      toggleBtn.classList.add('pdf-attachment-toggle');
+      toggleBtn.classList.add('pdf-attachment-action');
       toggleBtn.title = 'Collapse';
-      const chevronSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
       </svg>`;
-      toggleBtn.innerHTML = chevronSvg;
 
       // Delete button
       const deleteBtn = document.createElement('button');
@@ -82,6 +106,7 @@ export const PdfAttachment = Node.create({
         dom.dispatchEvent(new CustomEvent('pdf-remove', { bubbles: true }));
       });
 
+      right.appendChild(expandBtn);
       right.appendChild(toggleBtn);
       right.appendChild(deleteBtn);
       header.appendChild(left);
