@@ -185,46 +185,68 @@ button, a, [role="button"] {
   pointer-events: none;
 }
 
-/* PDF attachment block */
-.pdf-attachment {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+/* PDF attachment block (inline preview) */
+.pdf-attachment-block {
   margin: 0.75rem 0;
-  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+  background: #fff;
 }
 
-.pdf-attachment:hover {
+.pdf-attachment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pdf-attachment-header:hover {
   background: #f3f4f6;
-  border-color: #d1d5db;
 }
 
 .pdf-attachment-icon {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fef2f2;
-  border-radius: 0.5rem;
   color: #ef4444;
   flex-shrink: 0;
 }
 
 .pdf-attachment-name {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #374151;
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.pdf-attachment-toggle {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: transform 0.2s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.pdf-attachment-toggle:hover {
+  color: #6b7280;
+  background: #e5e7eb;
 }
 
 .pdf-attachment-delete {
@@ -238,20 +260,20 @@ button, a, [role="button"] {
   color: #d1d5db;
   font-size: 1.1rem;
   line-height: 1;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition: color 0.15s;
   flex-shrink: 0;
-}
-
-.pdf-attachment:hover .pdf-attachment-delete {
-  opacity: 1;
 }
 
 .pdf-attachment-delete:hover {
   color: #ef4444;
   background: #fef2f2;
+}
+
+.pdf-attachment-preview {
+  height: 500px;
+  background: #f3f4f6;
 }
 
 /* Editor images */

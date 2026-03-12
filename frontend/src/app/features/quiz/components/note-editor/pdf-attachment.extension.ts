@@ -33,20 +33,40 @@ export const PdfAttachment = Node.create({
   addNodeView() {
     return ({ node, getPos, editor }) => {
       const dom = document.createElement('div');
-      dom.classList.add('pdf-attachment');
+      dom.classList.add('pdf-attachment-block');
       dom.contentEditable = 'false';
 
-      // Icon
+      // Header bar
+      const header = document.createElement('div');
+      header.classList.add('pdf-attachment-header');
+
+      const left = document.createElement('div');
+      left.style.cssText = 'display:flex;align-items:center;gap:0.5rem;min-width:0';
+
       const icon = document.createElement('div');
       icon.classList.add('pdf-attachment-icon');
-      icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      icon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
       </svg>`;
 
-      // Filename
       const name = document.createElement('span');
       name.classList.add('pdf-attachment-name');
       name.textContent = node.attrs['filename'] || 'PDF';
+
+      left.appendChild(icon);
+      left.appendChild(name);
+
+      const right = document.createElement('div');
+      right.style.cssText = 'display:flex;align-items:center;gap:0.25rem;flex-shrink:0';
+
+      // Toggle button
+      const toggleBtn = document.createElement('button');
+      toggleBtn.classList.add('pdf-attachment-toggle');
+      toggleBtn.title = 'Collapse';
+      const chevronSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>`;
+      toggleBtn.innerHTML = chevronSvg;
 
       // Delete button
       const deleteBtn = document.createElement('button');
@@ -59,18 +79,62 @@ export const PdfAttachment = Node.create({
           editor.view.dispatch(editor.view.state.tr.delete(pos, pos + node.nodeSize));
           editor.commands.focus();
         }
-        // Dispatch custom event so the component can clear the PDF from backend
         dom.dispatchEvent(new CustomEvent('pdf-remove', { bubbles: true }));
       });
 
-      // Click to preview
-      dom.addEventListener('click', () => {
-        dom.dispatchEvent(new CustomEvent('pdf-preview', { bubbles: true }));
+      right.appendChild(toggleBtn);
+      right.appendChild(deleteBtn);
+      header.appendChild(left);
+      header.appendChild(right);
+
+      // Preview container (iframe)
+      const preview = document.createElement('div');
+      preview.classList.add('pdf-attachment-preview');
+
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'width:100%;height:100%;border:none';
+      preview.appendChild(iframe);
+
+      dom.appendChild(header);
+      dom.appendChild(preview);
+
+      // State
+      let expanded = true;
+      let loaded = false;
+
+      const collapse = () => {
+        expanded = false;
+        preview.style.display = 'none';
+        toggleBtn.style.transform = 'rotate(-90deg)';
+        toggleBtn.title = 'Expand';
+      };
+
+      const expand = () => {
+        expanded = true;
+        preview.style.display = 'block';
+        toggleBtn.style.transform = 'rotate(0deg)';
+        toggleBtn.title = 'Collapse';
+        if (!loaded) {
+          dom.dispatchEvent(new CustomEvent('pdf-load', { bubbles: true, detail: { iframe } }));
+          loaded = true;
+        }
+      };
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        expanded ? collapse() : expand();
       });
 
-      dom.appendChild(icon);
-      dom.appendChild(name);
-      dom.appendChild(deleteBtn);
+      header.addEventListener('click', (e) => {
+        e.stopPropagation();
+        expanded ? collapse() : expand();
+      });
+
+      // Start expanded — request PDF load
+      requestAnimationFrame(() => {
+        dom.dispatchEvent(new CustomEvent('pdf-load', { bubbles: true, detail: { iframe } }));
+        loaded = true;
+      });
 
       return {
         dom,

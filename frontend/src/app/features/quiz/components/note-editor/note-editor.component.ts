@@ -90,20 +90,14 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
         <div class="ml-auto flex items-center gap-2">
           <!-- PDF upload trigger -->
           <input #pdfInput type="file" accept=".pdf" class="hidden" (change)="onPdfSelected($event)" />
-          @if (uploadingPdf) {
-            <svg class="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          <button (click)="pdfInput.click()"
+                  [disabled]="uploadingPdf"
+                  class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                  [title]="pdfFilename ? 'Replace PDF' : 'Upload PDF'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
             </svg>
-          } @else {
-            <button (click)="pdfInput.click()"
-                    class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-                    [title]="pdfFilename ? 'Replace PDF' : 'Upload PDF'">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-              </svg>
-            </button>
-          }
+          </button>
 
           <div class="relative">
             <button (click)="fontMenuOpen = !fontMenuOpen; $event.stopPropagation()"
@@ -135,6 +129,16 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
              (keydown.enter)="focusEditor()"
              placeholder="Untitled"
              class="w-full text-3xl font-semibold text-gray-900 placeholder-gray-300 border-none outline-none mb-4" />
+
+      @if (uploadingPdf) {
+        <div class="flex items-center gap-3 px-4 py-3 mb-4 bg-sky-50 border border-sky-200 rounded-xl">
+          <svg class="w-5 h-5 animate-spin text-sky-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span class="text-sm font-medium text-sky-700">Uploading PDF...</span>
+        </div>
+      }
 
       <div class="relative tiptap-wrapper">
         @if (draggingOver) {
@@ -312,7 +316,9 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     // Listen for custom events from PDF attachment node
-    this.editor.view.dom.addEventListener('pdf-preview', () => this.openPdfPreview());
+    this.editor.view.dom.addEventListener('pdf-load', ((e: CustomEvent) => {
+      this.loadPdfIntoIframe(e.detail.iframe);
+    }) as EventListener);
     this.editor.view.dom.addEventListener('pdf-remove', () => this.removePdf());
 
     // Click image to open lightbox
@@ -458,6 +464,16 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!blob) return;
       const url = URL.createObjectURL(blob);
       this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    });
+  }
+
+  private loadPdfIntoIframe(iframe: HTMLIFrameElement) {
+    if (!this.conceptId) return;
+    this.quizService.downloadPdf(this.conceptId).subscribe(res => {
+      const blob = res.body;
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      iframe.src = url;
     });
   }
 
