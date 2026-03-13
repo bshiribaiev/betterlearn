@@ -34,6 +34,12 @@ export class ConceptListComponent implements OnInit, OnDestroy {
   private deleteTimer: any = null;
   creatingQuickNote = false;
   private quickNoteCounter = 0;
+  renamingConceptId: number | null = null;
+  renamingName = '';
+  movingConcept: QuizConcept | null = null;
+  moveTopics: QuizTopic[] = [];
+  showNewSubjectInput = false;
+  newSubjectName = '';
 
   ngOnInit() {
     this.topicId = Number(this.route.snapshot.paramMap.get('topicId'));
@@ -327,5 +333,66 @@ export class ConceptListComponent implements OnInit, OnDestroy {
     if (!this.deletedConcept) return;
     this.quizService.deleteConcept(this.deletedConcept.id).subscribe();
     this.deletedConcept = null;
+  }
+
+  // Rename
+  startRename(concept: QuizConcept, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.renamingConceptId = concept.id;
+    this.renamingName = concept.name;
+  }
+
+  submitRename(concept: QuizConcept) {
+    const name = this.renamingName.trim();
+    this.renamingConceptId = null;
+    if (!name || name === concept.name) return;
+    this.quizService.updateConcept(concept.id, { name }).subscribe(updated => {
+      const idx = this.concepts.findIndex(c => c.id === concept.id);
+      if (idx !== -1) this.concepts[idx] = updated;
+    });
+  }
+
+  // Move to subject
+  startMove(concept: QuizConcept, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.movingConcept = concept;
+    this.quizService.findAllTopics().subscribe(topics => {
+      this.moveTopics = topics.filter(t => t.id !== this.topicId);
+    });
+  }
+
+  moveToTopic(topic: QuizTopic) {
+    if (!this.movingConcept) return;
+    const conceptId = this.movingConcept.id;
+    this.quizService.moveConcept(conceptId, topic.id).subscribe(() => {
+      this.concepts = this.concepts.filter(c => c.id !== conceptId);
+    });
+    this.movingConcept = null;
+  }
+
+  cancelMove() {
+    this.movingConcept = null;
+  }
+
+  createAndMove() {
+    this.movingConcept;
+    this.showNewSubjectInput = true;
+    this.newSubjectName = '';
+  }
+
+  submitNewSubjectAndMove(event: Event) {
+    event.preventDefault();
+    const name = this.newSubjectName.trim();
+    if (!name || !this.movingConcept) return;
+    const conceptId = this.movingConcept.id;
+    this.showNewSubjectInput = false;
+    this.quizService.createTopic(name).subscribe(topic => {
+      this.quizService.moveConcept(conceptId, topic.id).subscribe(() => {
+        this.concepts = this.concepts.filter(c => c.id !== conceptId);
+      });
+    });
+    this.movingConcept = null;
   }
 }
