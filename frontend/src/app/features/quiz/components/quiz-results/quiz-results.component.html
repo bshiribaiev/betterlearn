@@ -8,6 +8,9 @@
       }
       <p [class]="'text-5xl font-bold ' + scoreColor()">{{ scorePercent }}%</p>
       <p class="text-base text-gray-400 mt-2">{{ session.correctAnswers }} of {{ session.totalQuestions }} correct</p>
+      @if (session.nextReview) {
+        <p class="text-sm text-gray-400 mt-3">Next review: {{ nextReviewLabel }}</p>
+      }
     </div>
 
     <!-- Questions review -->

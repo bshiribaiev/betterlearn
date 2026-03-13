@@ -54,4 +54,15 @@ export class QuizResultsComponent implements OnInit {
     if (pct >= 40) return 'text-orange-500';
     return 'text-red-500';
   }
+
+  get nextReviewLabel(): string {
+    if (!this.session?.nextReview) return '';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const review = new Date(this.session.nextReview + 'T00:00:00');
+    const days = Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Tomorrow';
+    return review.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
 }

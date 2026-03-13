@@ -48,4 +48,5 @@ export interface QuizSession {
   correctAnswers: number;
   quality: number;
   takenAt: string;
+  nextReview: string | null;
 }
