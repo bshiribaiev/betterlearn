@@ -9,9 +9,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   return next(req).pipe(
     catchError(err => {
-      if (err.status === 401 || err.status === 403) {
+      const isAuthEndpoint = req.url.includes('/api/auth/');
+      if ((err.status === 401 || err.status === 403) && !isAuthEndpoint) {
         auth.logout();
-      } else if (err.status === 0) {
+      } else if (err.status === 0 && !isAuthEndpoint) {
         toast.showError('Network error — check your connection');
       } else if (err.status >= 500) {
         toast.showError(err.error?.detail || 'Something went wrong. Please try again.');

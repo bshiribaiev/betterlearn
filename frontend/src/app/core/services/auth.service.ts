@@ -46,6 +46,7 @@ export class AuthService {
   }
 
   logout() {
+    if (!this.hasToken()) return;
     localStorage.removeItem(this.tokenKey);
     this.loggedIn$.next(false);
     this.router.navigate(['/']);
