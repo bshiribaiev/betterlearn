@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
-import { QuizConcept, FlashcardTerm } from '../quiz/models/quiz.model';
+import { QuizTopic, QuizConcept, FlashcardTerm } from '../quiz/models/quiz.model';
 import { QuizService } from '../quiz/services/quiz.service';
 import { cachedFetch } from '../../shared/services/cached-fetch';
 
@@ -20,130 +20,44 @@ interface DashboardData {
   recentConcepts: QuizConcept[];
 }
 
+interface DueItem {
+  type: 'concept' | 'leetcode';
+  id: number;
+  label: string;
+  sublabel: string;
+  nextReview: string;
+  url?: string;
+  concept?: QuizConcept;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
     <div class="max-w-5xl mx-auto px-6 py-8">
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <button (click)="quickNote()"
-                [disabled]="creatingQuickNote"
-                class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer disabled:opacity-50">
-          @if (creatingQuickNote) {
-            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-          } @else {
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-          }
-          Quick Note
-        </button>
+      <h1 class="text-2xl font-semibold text-gray-900 mb-6">Dashboard</h1>
+
+      <!-- Capture area -->
+      <div (click)="quickNote()"
+           class="mb-8 flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors group">
+        @if (creatingQuickNote) {
+          <svg class="w-5 h-5 text-gray-300 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span class="text-sm text-gray-400">Creating note...</span>
+        } @else {
+          <svg class="w-5 h-5 text-gray-300 group-hover:text-sky-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
+          </svg>
+          <span class="text-sm text-gray-400 group-hover:text-gray-500 transition-colors">New note</span>
+        }
       </div>
 
       @if (loading) {
         <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
       } @else {
-      <!-- Navigation cards -->
-      <div class="grid grid-cols-2 gap-5 mb-8 responsive-stack">
-        <a routerLink="/quiz"
-           class="flex items-center gap-5 p-6 bg-white border border-gray-100 rounded-xl hover:border-sky-200 hover:shadow-md transition-all group">
-          <div class="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
-            <svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-lg font-semibold text-gray-900">Subjects</p>
-            <p class="text-base text-gray-400">Topics, notes & quizzes</p>
-          </div>
-        </a>
-        <a routerLink="/leetcode"
-           class="flex items-center gap-5 p-6 bg-white border border-gray-100 rounded-xl hover:border-amber-200 hover:shadow-md transition-all group">
-          <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-            <svg class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.938 5.938 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.94-.207a1.384 1.384 0 0 0-.207-1.943l-3.5-2.831c-.8-.647-1.766-1.045-2.774-1.202l2.015-2.158A1.384 1.384 0 0 0 13.483 0zm-2.866 12.815a1.38 1.38 0 0 0-1.38 1.382 1.38 1.38 0 0 0 1.38 1.382H20.79a1.38 1.38 0 0 0 1.38-1.382 1.38 1.38 0 0 0-1.38-1.382z"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-lg font-semibold text-gray-900">LeetCode</p>
-            <p class="text-base text-gray-400">Problems & reviews</p>
-          </div>
-        </a>
-      </div>
-
-      <!-- Due problems -->
-      @if (data && data.dueProblems.length > 0) {
-        <div class="mb-8">
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode — Needs Review</h2>
-          <div class="space-y-2">
-            @for (problem of data.dueProblems; track problem.id) {
-              <div class="grid grid-cols-[1fr_100px_80px] responsive-due-row gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
-                <div class="min-w-0">
-                  <a [href]="problem.url" target="_blank" rel="noopener"
-                     class="flex items-center gap-2 min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
-                    <span class="text-base font-medium text-gray-900 truncate">{{ problem.title }}</span>
-                    <span class="flex-shrink-0 text-gray-300">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                      </svg>
-                    </span>
-                  </a>
-                </div>
-                <span [class]="'text-sm responsive-due-label ' + dueColor(problem.nextReview)">{{ dueLabel(problem.nextReview) }}</span>
-                <a routerLink="/leetcode"
-                   class="justify-self-end px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
-                  Review
-                </a>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- Due notes -->
-      @if (data && data.dueConcepts.length > 0) {
-        <div class="mb-8">
-          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Notes — Needs Review</h2>
-          <div class="space-y-2">
-            @for (concept of data.dueConcepts; track concept.id) {
-              <div class="grid grid-cols-[1fr_100px_80px] responsive-due-row gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
-                <div class="min-w-0">
-                  <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
-                     [state]="{ from: 'dashboard', topicName: concept.topicName }"
-                     class="min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
-                    <span class="text-base font-medium text-gray-900">{{ concept.topicName }}:</span>
-                    <span class="text-base text-gray-400 ml-1">{{ concept.name }}</span>
-                  </a>
-                </div>
-                <span [class]="'text-sm responsive-due-label ' + dueColor(concept.nextReview)">{{ dueLabel(concept.nextReview) }}</span>
-                <button (click)="reviewConcept(concept)"
-                        [disabled]="generatingNoteId === concept.id"
-                        [class]="'justify-self-end px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === concept.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
-                  @if (generatingNoteId === concept.id) {
-                    <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                  } @else {
-                    Review
-                  }
-                </button>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @if (data && data.dueProblems.length === 0 && data.dueConcepts.length === 0) {
-        <div class="text-center py-12">
-          <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
-        </div>
-      }
 
       <!-- Recent notes -->
       @if (data && data.recentConcepts && data.recentConcepts.length > 0) {
@@ -165,6 +79,67 @@ interface DashboardData {
           </div>
         </div>
       }
+
+      <!-- Needs Review (combined) -->
+      @if (dueItems.length > 0) {
+        <div class="mb-8">
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Needs Review</h2>
+          <div class="space-y-2">
+            @for (item of dueItems; track item.type + item.id) {
+              <div class="grid grid-cols-[1fr_100px_80px] responsive-due-row gap-4 items-center py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                <div class="min-w-0">
+                  @if (item.type === 'leetcode') {
+                    <a [href]="item.url" target="_blank" rel="noopener"
+                       class="flex items-center gap-2 min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
+                      <span class="text-base font-medium text-gray-900 truncate">
+                        <span class="text-amber-500">LeetCode:</span> {{ item.sublabel }}
+                      </span>
+                      <span class="flex-shrink-0 text-gray-300">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                      </span>
+                    </a>
+                  } @else {
+                    <a [routerLink]="['/quiz', item.concept!.topicId, 'notes', item.id]"
+                       [state]="{ from: 'dashboard', topicName: item.label }"
+                       class="min-w-0 hover:text-sky-600 transition-colors cursor-pointer">
+                      <span class="text-base font-medium text-gray-900">{{ item.label }}:</span>
+                      <span class="text-base text-gray-400 ml-1">{{ item.sublabel }}</span>
+                    </a>
+                  }
+                </div>
+                <span [class]="'text-sm responsive-due-label ' + dueColor(item.nextReview)">{{ dueLabel(item.nextReview) }}</span>
+                @if (item.type === 'leetcode') {
+                  <a routerLink="/leetcode"
+                     class="justify-self-end px-4 py-1.5 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors">
+                    Review
+                  </a>
+                } @else {
+                  <button (click)="reviewConcept(item.concept!)"
+                          [disabled]="generatingNoteId === item.id"
+                          [class]="'justify-self-end px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer ' + (generatingNoteId === item.id ? 'bg-gray-100 text-gray-400' : 'bg-teal-500 text-white hover:bg-teal-600')">
+                    @if (generatingNoteId === item.id) {
+                      <svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                      </svg>
+                    } @else {
+                      Review
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (dueItems.length === 0) {
+        <div class="text-center py-12">
+          <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
+        </div>
+      }
       }
     </div>
   `
@@ -175,12 +150,18 @@ export class DashboardComponent implements OnInit {
   private quizService = inject(QuizService);
 
   data: DashboardData | null = null;
+  dueItems: DueItem[] = [];
   loading = true;
   generatingNoteId: number | null = null;
   creatingQuickNote = false;
+  private quickNotesTopic: QuizTopic | null = null;
+  private quickNoteCounter = 0;
 
   ngOnInit() {
     this.loadData();
+    this.quizService.findOrCreateQuickNotes().subscribe({
+      next: (topic) => this.quickNotesTopic = topic
+    });
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd && event.urlAfterRedirects === '/dashboard') {
         this.loadData();
@@ -189,22 +170,35 @@ export class DashboardComponent implements OnInit {
   }
 
   quickNote() {
+    if (this.creatingQuickNote) return;
     this.creatingQuickNote = true;
-    const name = 'Note ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-    this.quizService.findOrCreateQuickNotes().subscribe({
-      next: (topic) => {
-        this.quizService.createConcept(topic.id, { name }).subscribe({
-          next: (concept) => {
-            this.creatingQuickNote = false;
-            this.router.navigate(['/quiz', topic.id, 'notes', concept.id], {
-              state: { from: 'dashboard', topicName: topic.name }
-            });
-          },
-          error: () => this.creatingQuickNote = false
-        });
-      },
-      error: () => this.creatingQuickNote = false
-    });
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    this.quickNoteCounter++;
+    const name = `Note ${this.quickNoteCounter} - ${today}`;
+
+    const createAndNavigate = (topic: QuizTopic) => {
+      this.quizService.createConcept(topic.id, { name }).subscribe({
+        next: (concept) => {
+          this.creatingQuickNote = false;
+          this.router.navigate(['/quiz', topic.id, 'notes', concept.id], {
+            state: { from: 'dashboard', topicName: topic.name }
+          });
+        },
+        error: () => this.creatingQuickNote = false
+      });
+    };
+
+    if (this.quickNotesTopic) {
+      createAndNavigate(this.quickNotesTopic);
+    } else {
+      this.quizService.findOrCreateQuickNotes().subscribe({
+        next: (topic) => {
+          this.quickNotesTopic = topic;
+          createAndNavigate(topic);
+        },
+        error: () => this.creatingQuickNote = false
+      });
+    }
   }
 
   reviewConcept(concept: QuizConcept) {
@@ -258,9 +252,35 @@ export class DashboardComponent implements OnInit {
     return 'text-gray-400';
   }
 
+  private initQuickNoteCounter() {
+    if (!this.data?.recentConcepts) return;
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    this.quickNoteCounter = this.data.recentConcepts.filter(c =>
+      c.topicName === 'Quick Notes' && c.name.includes(today)
+    ).length;
+  }
+
+  private buildDueItems() {
+    if (!this.data) return;
+
+    const items: DueItem[] = [];
+
+    for (const p of this.data.dueProblems) {
+      items.push({ type: 'leetcode', id: p.id, label: 'LeetCode', sublabel: p.title, nextReview: p.nextReview, url: p.url });
+    }
+    for (const c of this.data.dueConcepts) {
+      items.push({ type: 'concept', id: c.id, label: c.topicName, sublabel: c.name, nextReview: c.nextReview, concept: c });
+    }
+
+    items.sort((a, b) => a.nextReview.localeCompare(b.nextReview));
+    this.dueItems = items;
+  }
+
   private loadData() {
     cachedFetch('dashboard', this.http.get<DashboardData>('/api/dashboard'), data => {
       this.data = data;
+      this.buildDueItems();
+      this.initQuickNoteCounter();
       this.loading = false;
     });
   }
