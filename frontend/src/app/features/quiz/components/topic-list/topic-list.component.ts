@@ -134,9 +134,9 @@ export class TopicListComponent implements OnInit, OnDestroy {
 
   deleteTopic(topic: QuizTopic, event: Event) {
     event.stopPropagation();
+    this.confirmDelete();
     this.topics = this.topics.filter(t => t.id !== topic.id);
     this.deletedTopic = topic;
-    clearTimeout(this.deleteTimer);
     this.deleteTimer = setTimeout(() => this.confirmDelete(), 4000);
   }
 

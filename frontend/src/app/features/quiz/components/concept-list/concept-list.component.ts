@@ -315,9 +315,9 @@ export class ConceptListComponent implements OnInit, OnDestroy {
 
   deleteConcept(concept: QuizConcept, event: Event) {
     event.stopPropagation();
+    this.confirmDelete();
     this.concepts = this.concepts.filter(c => c.id !== concept.id);
     this.deletedConcept = concept;
-    clearTimeout(this.deleteTimer);
     this.deleteTimer = setTimeout(() => this.confirmDelete(), 4000);
   }
 

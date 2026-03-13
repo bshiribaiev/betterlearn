@@ -131,9 +131,9 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   }
 
   deleteProblem(problem: Problem) {
+    this.confirmDelete();
     this.problems = this.problems.filter(p => p.id !== problem.id);
     this.deletedProblem = problem;
-    clearTimeout(this.deleteTimer);
     this.deleteTimer = setTimeout(() => this.confirmDelete(), 4000);
   }
 

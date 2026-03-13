@@ -222,12 +222,12 @@ export class WordListComponent implements OnInit, OnDestroy {
 
   deleteWord(word: Word, event: Event) {
     event.stopPropagation();
+    this.confirmDelete();
     for (const group of this.groups) {
       group.words = group.words.filter(w => w.id !== word.id);
     }
     this.groups = this.groups.filter(g => g.words.length > 0);
     this.deletedWord = word;
-    clearTimeout(this.deleteTimer);
     this.deleteTimer = setTimeout(() => this.confirmDelete(), 4000);
   }
 
