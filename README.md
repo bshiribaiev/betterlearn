@@ -4,7 +4,7 @@ Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and 
 
 **Live at [betterlearn.app](https://betterlearn.app)**
 
-![Walkthrough](walkthrough.mp4)
+![Walkthrough](walkthrough.gif)
 
 ## What it does
 
