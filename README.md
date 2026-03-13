@@ -4,6 +4,8 @@ Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and 
 
 **Live at [betterlearn.app](https://betterlearn.app)**
 
+![Walkthrough](walkthrough.mp4)
+
 ## What it does
 
 - **Notes + Quizzes** — Write notes on any topic. Gemini generates multiple-choice quizzes from your notes. Spaced repetition schedules reviews based on how well you did.
