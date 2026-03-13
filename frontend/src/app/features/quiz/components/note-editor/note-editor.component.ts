@@ -99,6 +99,13 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
             </svg>
           </button>
 
+          <button (click)="openMoveModal()" title="Move to subject"
+                  class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+          </button>
+
           <div class="relative">
             <button (click)="fontMenuOpen = !fontMenuOpen; $event.stopPropagation()"
                     class="w-7 h-7 flex items-center justify-center rounded text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">A</button>
@@ -243,7 +250,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
           <div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
             <button (click)="skipMove()"
                     class="text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
-              Keep in Quick Notes
+              Keep in {{ topicName }}
             </button>
             <button (click)="createAndMove()"
                     class="text-sm font-medium text-sky-500 hover:text-sky-600 transition-colors cursor-pointer">
@@ -839,29 +846,55 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // Move to subject
+  private navigateAfterMove = false;
+
   goBack() {
     if (this.topicName === 'Quick Notes' && this.conceptId) {
-      this.quizService.findAllTopics().subscribe(topics => {
-        this.moveTopics = topics.filter(t => t.name !== 'Quick Notes');
-        this.showMoveModal = true;
-      });
+      this.navigateAfterMove = true;
+      this.fetchAndShowMoveModal();
       return;
     }
     this.router.navigate(this.backRoute);
+  }
+
+  openMoveModal() {
+    if (!this.conceptId) return;
+    this.navigateAfterMove = false;
+    this.fetchAndShowMoveModal();
+  }
+
+  private fetchAndShowMoveModal() {
+    this.quizService.findAllTopics().subscribe(topics => {
+      this.moveTopics = topics.filter(t => t.id !== this.topicId);
+      this.showMoveModal = true;
+    });
+  }
+
+  private afterMove() {
+    if (this.navigateAfterMove) {
+      this.router.navigate(this.backRoute);
+    }
   }
 
   moveToTopic(topic: QuizTopic) {
     this.showMoveModal = false;
     if (!this.conceptId) return;
     this.quizService.moveConcept(this.conceptId, topic.id).subscribe({
-      next: () => this.router.navigate(this.backRoute),
-      error: () => this.router.navigate(this.backRoute)
+      next: (updated) => {
+        this.topicId = topic.id;
+        this.topicName = topic.name;
+        this.backRoute = ['/quiz', String(topic.id), 'concepts'];
+        this.afterMove();
+      },
+      error: () => this.afterMove()
     });
   }
 
   skipMove() {
     this.showMoveModal = false;
-    this.router.navigate(this.backRoute);
+    if (this.navigateAfterMove) {
+      this.router.navigate(this.backRoute);
+    }
   }
 
   createAndMove() {
@@ -878,11 +911,16 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.quizService.createTopic(name).subscribe({
       next: (topic) => {
         this.quizService.moveConcept(this.conceptId!, topic.id).subscribe({
-          next: () => this.router.navigate(this.backRoute),
-          error: () => this.router.navigate(this.backRoute)
+          next: () => {
+            this.topicId = topic.id;
+            this.topicName = topic.name;
+            this.backRoute = ['/quiz', String(topic.id), 'concepts'];
+            this.afterMove();
+          },
+          error: () => this.afterMove()
         });
       },
-      error: () => this.router.navigate(this.backRoute)
+      error: () => this.afterMove()
     });
   }
 
