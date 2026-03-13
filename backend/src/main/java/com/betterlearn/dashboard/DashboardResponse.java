@@ -15,5 +15,6 @@ public record DashboardResponse(
         int topicsTotalCount,
         int masteredTopicItems,
         List<ConceptResponse> dueConcepts,
-        List<DueTermGroupResponse> dueTermGroups
+        List<DueTermGroupResponse> dueTermGroups,
+        List<ConceptResponse> recentConcepts
 ) {}

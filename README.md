@@ -14,26 +14,7 @@ Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and 
 
 ## Architecture
 
-```
-                    ┌──────────────┐
-                    │   nginx      │
-                    │  (SSL/proxy) │
-                    └──────┬───────┘
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-      ┌───────▼───────┐       ┌────────▼────────┐
-      │  Angular SPA  │       │  Spring Boot    │
-      │  (static)     │       │  REST API       │
-      └───────────────┘       └───────┬─────────┘
-                                      │
-                         ┌────────────┼────────────┐
-                         │            │            │
-                  ┌──────▼──-┐  ┌─────▼─────┐ ┌───▼────┐
-                  │ Postgres │  │  Gemini   │ │  S3    │
-                  │  (RDS)   │  │  2.5 Flash│ │ (imgs) │
-                  └──────────┘  └───────────┘ └────────┘
-```
+![System Architecture](system-architecture.png)
 
 ## Tech Stack
 

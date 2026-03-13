@@ -33,6 +33,11 @@ public class QuizController {
         return quizService.findAll(userId);
     }
 
+    @PostMapping("/topics/quick-notes")
+    public TopicResponse findOrCreateQuickNotes(@RequestAttribute Long userId) {
+        return quizService.findOrCreateQuickNotes(userId);
+    }
+
     @GetMapping("/topics/due")
     public List<TopicResponse> findDueTopics(@RequestAttribute Long userId) {
         return quizService.findDue(userId);

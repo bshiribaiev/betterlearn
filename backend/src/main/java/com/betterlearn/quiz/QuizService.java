@@ -353,6 +353,20 @@ public class QuizService {
         }
     }
 
+    public List<ConceptResponse> findRecentConcepts(Long userId) {
+        return conceptRepo.findRecentByUserId(userId, org.springframework.data.domain.PageRequest.of(0, 5)).stream()
+                .map(ConceptResponse::from)
+                .toList();
+    }
+
+    // Quick Notes
+    @Transactional
+    public TopicResponse findOrCreateQuickNotes(Long userId) {
+        return topicRepo.findByUserIdAndName(userId, "Quick Notes")
+                .map(t -> TopicResponse.from(t, earliestDueDate(t.getId())))
+                .orElseGet(() -> create(userId, new TopicCreateRequest("Quick Notes", null, null)));
+    }
+
     // Ownership checks
     public QuizTopic findOwnedTopic(Long userId, Long topicId) {
         QuizTopic topic = topicRepo.findById(topicId)

@@ -17,6 +17,7 @@ interface DashboardData {
   masteredTopicItems: number;
   dueConcepts: QuizConcept[];
   dueTermGroups: any[];
+  recentConcepts: QuizConcept[];
 }
 
 @Component({
@@ -25,7 +26,24 @@ interface DashboardData {
   imports: [CommonModule, RouterLink],
   template: `
     <div class="max-w-5xl mx-auto px-6 py-8">
-      <h1 class="text-2xl font-semibold text-gray-900 mb-8">Dashboard</h1>
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+        <button (click)="quickNote()"
+                [disabled]="creatingQuickNote"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer disabled:opacity-50">
+          @if (creatingQuickNote) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+          }
+          Quick Note
+        </button>
+      </div>
 
       @if (loading) {
         <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
@@ -126,6 +144,27 @@ interface DashboardData {
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>
       }
+
+      <!-- Recent notes -->
+      @if (data && data.recentConcepts && data.recentConcepts.length > 0) {
+        <div class="mb-8">
+          <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Recent Notes</h2>
+          <div class="space-y-2">
+            @for (concept of data.recentConcepts; track concept.id) {
+              <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
+                 [state]="{ from: 'dashboard', topicName: concept.topicName }"
+                 class="flex items-center gap-3 py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-500">{{ concept.topicName }}</span>
+                <span class="text-sm text-gray-300">/</span>
+                <span class="text-sm text-gray-700">{{ concept.name }}</span>
+              </a>
+            }
+          </div>
+        </div>
+      }
       }
     </div>
   `
@@ -138,6 +177,7 @@ export class DashboardComponent implements OnInit {
   data: DashboardData | null = null;
   loading = true;
   generatingNoteId: number | null = null;
+  creatingQuickNote = false;
 
   ngOnInit() {
     this.loadData();
@@ -145,6 +185,25 @@ export class DashboardComponent implements OnInit {
       if (event instanceof NavigationEnd && event.urlAfterRedirects === '/dashboard') {
         this.loadData();
       }
+    });
+  }
+
+  quickNote() {
+    this.creatingQuickNote = true;
+    const name = 'Note ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    this.quizService.findOrCreateQuickNotes().subscribe({
+      next: (topic) => {
+        this.quizService.createConcept(topic.id, { name }).subscribe({
+          next: (concept) => {
+            this.creatingQuickNote = false;
+            this.router.navigate(['/quiz', topic.id, 'notes', concept.id], {
+              state: { from: 'dashboard', topicName: topic.name }
+            });
+          },
+          error: () => this.creatingQuickNote = false
+        });
+      },
+      error: () => this.creatingQuickNote = false
     });
   }
 

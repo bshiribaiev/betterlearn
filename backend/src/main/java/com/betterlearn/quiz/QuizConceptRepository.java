@@ -1,5 +1,6 @@
 package com.betterlearn.quiz;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,6 +20,9 @@ public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> 
 
     @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.nextReview <= CURRENT_DATE AND c.cachedQuestions IS NULL AND (c.content IS NOT NULL OR c.pdfText IS NOT NULL)")
     List<QuizConcept> findDueWithoutCachedQuestions();
+
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId ORDER BY c.updatedAt DESC")
+    List<QuizConcept> findRecentByUserId(Long userId, Pageable pageable);
 
     boolean existsByTopicIdAndName(Long topicId, String name);
 

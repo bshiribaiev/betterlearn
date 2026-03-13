@@ -56,8 +56,10 @@ public class DashboardController {
         int topicsTotalCount = (int) (conceptsTotal + wordsTotal);
         int masteredTopicItems = masteredConcepts + masteredWords;
 
+        List<ConceptResponse> recentConcepts = quizService.findRecentConcepts(userId);
+
         return new DashboardResponse(due.size(), totalCount, masteredProblems, due,
                 topicsDueCount, topicsTotalCount, masteredTopicItems,
-                conceptsDue, termGroups);
+                conceptsDue, termGroups, recentConcepts);
     }
 }

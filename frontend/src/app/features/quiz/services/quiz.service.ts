@@ -27,6 +27,10 @@ export class QuizService {
     return this.http.delete<void>(`/api/quiz/topics/${id}`);
   }
 
+  findOrCreateQuickNotes() {
+    return this.http.post<QuizTopic>('/api/quiz/topics/quick-notes', {});
+  }
+
   // Concepts
   findConcepts(topicId: number) {
     return this.http.get<QuizConcept[]>(`/api/quiz/topics/${topicId}/concepts`);
