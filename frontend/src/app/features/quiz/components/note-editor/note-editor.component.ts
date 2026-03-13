@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { QuizService } from '../../services/quiz.service';
-import { QuizConcept } from '../../models/quiz.model';
+import { QuizConcept, QuizTopic } from '../../models/quiz.model';
 import { Subject, debounceTime } from 'rxjs';
 import { Editor, Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -79,12 +79,12 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
          (drop)="onDrop($event)">
 
       <div class="flex items-center gap-3 mb-8">
-        <a [routerLink]="backRoute"
-           class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors">
+        <button (click)="goBack()"
+           class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-        </a>
+        </button>
         <a [routerLink]="['/quiz', topicId, 'concepts']"
            class="text-sm text-gray-400 hover:text-sky-600 transition-colors">{{ topicName }}</a>
         <div class="ml-auto flex items-center gap-2">
@@ -209,6 +209,72 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
              (click)="$event.stopPropagation()" />
       </div>
     }
+
+    <!-- Delete toast -->
+    @if (deletedAttachment) {
+      <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-lg">
+        <span>Deleted "{{ deletedAttachment.name }}"</span>
+        <button (click)="undoDeleteAttachment()"
+                class="font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
+          Undo
+        </button>
+      </div>
+    }
+
+    <!-- Move to subject modal -->
+    @if (showMoveModal) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="skipMove()">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+             (click)="$event.stopPropagation()">
+          <div class="px-5 pt-5 pb-3">
+            <h3 class="text-lg font-semibold text-gray-900">Move to subject</h3>
+            <p class="text-sm text-gray-400 mt-1">Which subject does this note belong to?</p>
+          </div>
+          <div class="max-h-64 overflow-y-auto px-3 pb-2">
+            @for (topic of moveTopics; track topic.id) {
+              <button (click)="moveToTopic(topic)"
+                      [class]="'w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ' +
+                        (topic.name === 'Quick Notes' ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-700 hover:bg-sky-50 hover:text-sky-700')">
+                {{ topic.name }}
+              </button>
+            }
+          </div>
+          <div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+            <button (click)="skipMove()"
+                    class="text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+              Keep in Quick Notes
+            </button>
+            <button (click)="createAndMove()"
+                    class="text-sm font-medium text-sky-500 hover:text-sky-600 transition-colors cursor-pointer">
+              New subject
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- New subject input modal -->
+    @if (showNewSubjectInput) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="showNewSubjectInput = false; showMoveModal = true">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-5"
+             (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">New subject</h3>
+          <form (submit)="submitNewSubject($event)">
+            <input #newSubjectInput type="text" [(ngModel)]="newSubjectName" name="name"
+                   placeholder="Subject name"
+                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400" />
+            <div class="flex justify-end gap-2 mt-4">
+              <button type="button" (click)="showNewSubjectInput = false; showMoveModal = true"
+                      class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
+              <button type="submit"
+                      class="px-4 py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Create & Move</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
   `
 })
 export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -232,6 +298,14 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   pdfPreviewUrl: SafeResourceUrl | null = null;
   imagePreviewSrc: string | null = null;
   draggingOver = false;
+  deletedAttachment: { type: 'pdf' | 'image'; name: string } | null = null;
+  private deleteTimer: any = null;
+
+  // Move-to-subject modal
+  showMoveModal = false;
+  showNewSubjectInput = false;
+  newSubjectName = '';
+  moveTopics: QuizTopic[] = [];
 
   // Slash menu state (driven by suggestion plugin callbacks)
   slashMenuVisible = false;
@@ -368,6 +442,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
+    clearTimeout(this.deleteTimer);
     this.save$.complete();
     this.persist();
     this.editor.destroy();
@@ -438,11 +513,42 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   removePdf() {
-    if (!this.conceptId) return;
+    if (!this.conceptId || !this.pdfFilename) return;
+    const filename = this.pdfFilename;
     this.removeExistingPdfNode();
-    this.quizService.removePdf(this.conceptId).subscribe(() => {
-      this.pdfFilename = null;
+    this.pdfFilename = null;
+
+    this.showDeleteToast({ type: 'pdf', name: filename }, () => {
+      this.quizService.removePdf(this.conceptId!).subscribe();
+    }, () => {
+      this.pdfFilename = filename;
+      this.editor.chain().focus().insertPdfAttachment(filename).run();
+      // Reload PDF into the new iframe
+      setTimeout(() => {
+        const iframe = this.editor.view.dom.querySelector('.pdf-attachment-preview iframe') as HTMLIFrameElement;
+        if (iframe) this.loadPdfIntoIframe(iframe);
+      }, 100);
     });
+  }
+
+  private showDeleteToast(item: { type: 'pdf' | 'image'; name: string }, onConfirm: () => void, onUndo: () => void) {
+    clearTimeout(this.deleteTimer);
+    this.deletedAttachment = item;
+    this.deleteTimer = setTimeout(() => {
+      this.deletedAttachment = null;
+      onConfirm();
+    }, 4000);
+
+    this._undoAction = onUndo;
+  }
+
+  private _undoAction: (() => void) | null = null;
+
+  undoDeleteAttachment() {
+    clearTimeout(this.deleteTimer);
+    this.deletedAttachment = null;
+    this._undoAction?.();
+    this._undoAction = null;
   }
 
   downloadPdf() {
@@ -730,6 +836,54 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     if (node.text) return node.text;
     if (!node.content) return '';
     return node.content.map((child: any) => this.extractTextFromNode(child)).join('');
+  }
+
+  // Move to subject
+  goBack() {
+    if (this.topicName === 'Quick Notes' && this.conceptId) {
+      this.quizService.findAllTopics().subscribe(topics => {
+        this.moveTopics = topics.filter(t => t.name !== 'Quick Notes');
+        this.showMoveModal = true;
+      });
+      return;
+    }
+    this.router.navigate(this.backRoute);
+  }
+
+  moveToTopic(topic: QuizTopic) {
+    this.showMoveModal = false;
+    if (!this.conceptId) return;
+    this.quizService.moveConcept(this.conceptId, topic.id).subscribe({
+      next: () => this.router.navigate(this.backRoute),
+      error: () => this.router.navigate(this.backRoute)
+    });
+  }
+
+  skipMove() {
+    this.showMoveModal = false;
+    this.router.navigate(this.backRoute);
+  }
+
+  createAndMove() {
+    this.showMoveModal = false;
+    this.showNewSubjectInput = true;
+    this.newSubjectName = '';
+  }
+
+  submitNewSubject(event: Event) {
+    event.preventDefault();
+    const name = this.newSubjectName.trim();
+    if (!name || !this.conceptId) return;
+    this.showNewSubjectInput = false;
+    this.quizService.createTopic(name).subscribe({
+      next: (topic) => {
+        this.quizService.moveConcept(this.conceptId!, topic.id).subscribe({
+          next: () => this.router.navigate(this.backRoute),
+          error: () => this.router.navigate(this.backRoute)
+        });
+      },
+      error: () => this.router.navigate(this.backRoute)
+    });
   }
 
   private persist() {

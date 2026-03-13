@@ -110,10 +110,6 @@ public class QuizService {
     public ConceptResponse createConcept(Long userId, Long topicId, ConceptCreateRequest request) {
         QuizTopic topic = findOwnedTopic(userId, topicId);
 
-        if (conceptRepo.existsByTopicIdAndName(topicId, request.name())) {
-            throw new IllegalArgumentException("Concept already exists: " + request.name());
-        }
-
         QuizConcept concept = new QuizConcept(topic, request.name());
         concept.setContent(request.content());
         concept.setTerms(request.terms());
@@ -134,6 +130,14 @@ public class QuizService {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         concept.setNextReview(nextReview);
         concept.setCachedQuestions(null);
+        return ConceptResponse.from(conceptRepo.save(concept));
+    }
+
+    @Transactional
+    public ConceptResponse moveConcept(Long userId, Long conceptId, Long newTopicId) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        QuizTopic newTopic = findOwnedTopic(userId, newTopicId);
+        concept.setTopic(newTopic);
         return ConceptResponse.from(conceptRepo.save(concept));
     }
 

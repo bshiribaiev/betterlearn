@@ -90,6 +90,7 @@ public class QuizConcept {
 
     public Long getId() { return id; }
     public QuizTopic getTopic() { return topic; }
+    public void setTopic(QuizTopic topic) { this.topic = topic; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getContent() { return content; }

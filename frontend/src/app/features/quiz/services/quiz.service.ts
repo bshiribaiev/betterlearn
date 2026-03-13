@@ -44,6 +44,10 @@ export class QuizService {
     return this.http.put<QuizConcept>(`/api/quiz/concepts/${id}`, body);
   }
 
+  moveConcept(id: number, topicId: number) {
+    return this.http.patch<QuizConcept>(`/api/quiz/concepts/${id}/move`, { topicId });
+  }
+
   deleteConcept(id: number) {
     return this.http.delete<void>(`/api/quiz/concepts/${id}`);
   }
