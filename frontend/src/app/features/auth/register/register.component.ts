@@ -16,8 +16,7 @@ export class RegisterComponent {
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    displayName: ['']
+    password: ['', [Validators.required, Validators.minLength(6)]]
   });
   error = '';
   origin = encodeURIComponent(window.location.origin);
