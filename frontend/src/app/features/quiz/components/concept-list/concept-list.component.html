@@ -1,37 +1,39 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
-  <h1 class="text-2xl font-semibold text-gray-900">{{ topicName || 'Topic' }}</h1>
+  <h1 class="text-2xl font-semibold text-gray-900 mb-3">{{ topicName || 'Topic' }}</h1>
 
-  <!-- Textbook metadata -->
-  @if (editingTextbook) {
-    <div class="mt-2 mb-6 flex flex-wrap items-center gap-2">
-      <input type="text" [(ngModel)]="editTextbookName" placeholder="Textbook name"
-             class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 flex-1 min-w-0" />
-      <input type="text" [(ngModel)]="editTextbookUrl" placeholder="URL (optional)"
-             class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 flex-1 min-w-0" />
-      <button (click)="saveTextbook()"
-              class="px-3 py-1 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Save</button>
-      <button (click)="cancelEditTextbook()"
-              class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
-    </div>
-  } @else {
-    <div class="mt-1 mb-6 group/textbook flex items-center gap-1.5 min-h-[24px]">
-      @if (textbookName) {
-        @if (textbookUrl) {
-          <a [href]="textbookUrl" target="_blank" rel="noopener"
-             class="text-sm text-gray-400 hover:text-sky-500 transition-colors">{{ textbookName }}</a>
+  <!-- Textbook metadata (hidden for Quick Notes) -->
+  @if (topicName !== 'Quick Notes') {
+    @if (editingTextbook) {
+      <div class="mt-2 mb-6 flex flex-wrap items-center gap-2">
+        <input type="text" [(ngModel)]="editTextbookName" placeholder="Textbook name"
+               class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 flex-1 min-w-0" />
+        <input type="text" [(ngModel)]="editTextbookUrl" placeholder="URL (optional)"
+               class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 flex-1 min-w-0" />
+        <button (click)="saveTextbook()"
+                class="px-3 py-1 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Save</button>
+        <button (click)="cancelEditTextbook()"
+                class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
+      </div>
+    } @else {
+      <div class="mt-1 mb-6 group/textbook flex items-center gap-1.5 min-h-[24px]">
+        @if (textbookName) {
+          @if (textbookUrl) {
+            <a [href]="textbookUrl" target="_blank" rel="noopener"
+               class="text-sm text-gray-400 hover:text-sky-500 transition-colors">{{ textbookName }}</a>
+          } @else {
+            <span class="text-sm text-gray-400">{{ textbookName }}</span>
+          }
         } @else {
-          <span class="text-sm text-gray-400">{{ textbookName }}</span>
+          <span class="text-sm text-gray-300 opacity-0 group-hover/textbook:opacity-100 transition-opacity">Add textbook</span>
         }
-      } @else {
-        <span class="text-sm text-gray-300 opacity-0 group-hover/textbook:opacity-100 transition-opacity">Add textbook</span>
-      }
-      <button (click)="startEditTextbook()"
-              class="opacity-0 group-hover/textbook:opacity-100 p-0.5 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-        </svg>
-      </button>
-    </div>
+        <button (click)="startEditTextbook()"
+                class="opacity-0 group-hover/textbook:opacity-100 p-0.5 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+        </button>
+      </div>
+    }
   }
 
   <!-- New note capture -->
@@ -88,12 +90,35 @@
       @for (concept of filteredConcepts; track concept.id) {
         <div [class]="'grid grid-cols-[1fr_80px_auto] sm:grid-cols-[1fr_95px_95px_75px_160px] gap-3 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Note name -->
-          <div class="min-w-0">
-            <a [routerLink]="['/quiz', topicId, 'notes', concept.id]"
-               [state]="{ topicName: topicName, concept: concept }"
-               class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer block">
-              {{ concept.name }}
-            </a>
+          <div class="min-w-0 flex items-center gap-1.5 group/name">
+            @if (renamingConceptId === concept.id) {
+              <input type="text"
+                     [(ngModel)]="renamingName"
+                     (blur)="submitRename(concept)"
+                     (keydown.enter)="submitRename(concept)"
+                     (keydown.escape)="renamingConceptId = null"
+                     (click)="$event.stopPropagation()"
+                     class="text-base font-medium text-gray-900 w-full border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400"
+                     autofocus />
+            } @else {
+              <a [routerLink]="['/quiz', topicId, 'notes', concept.id]"
+                 [state]="{ topicName: topicName, concept: concept }"
+                 class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer">
+                {{ concept.name }}
+              </a>
+              <button (click)="startRename(concept, $event)" title="Rename"
+                      class="opacity-0 group-hover/name:opacity-100 p-1 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+              </button>
+              <button (click)="startMove(concept, $event)" title="Move to subject"
+                      class="opacity-0 group-hover/name:opacity-100 p-1 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+              </button>
+            }
           </div>
 
           <!-- Last review -->
@@ -205,5 +230,59 @@
             class="font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
       Undo
     </button>
+  </div>
+}
+
+<!-- Move to subject modal -->
+@if (movingConcept) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+       (click)="cancelMove()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+         (click)="$event.stopPropagation()">
+      <div class="px-5 pt-5 pb-3">
+        <h3 class="text-lg font-semibold text-gray-900">Move to subject</h3>
+        <p class="text-sm text-gray-400 mt-1">Move "{{ movingConcept.name }}" to:</p>
+      </div>
+      <div class="max-h-64 overflow-y-auto px-3 pb-2">
+        @for (topic of moveTopics; track topic.id) {
+          <button (click)="moveToTopic(topic)"
+                  class="w-full text-left px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer">
+            {{ topic.name }}
+          </button>
+        }
+      </div>
+      <div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+        <button (click)="cancelMove()"
+                class="text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button (click)="createAndMove()"
+                class="text-sm font-medium text-sky-500 hover:text-sky-600 transition-colors cursor-pointer">
+          New subject
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- New subject input modal -->
+@if (showNewSubjectInput) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+       (click)="showNewSubjectInput = false">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-5"
+         (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-semibold text-gray-900 mb-3">New subject</h3>
+      <form (submit)="submitNewSubjectAndMove($event)">
+        <input type="text" [(ngModel)]="newSubjectName" name="name"
+               placeholder="Subject name"
+               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400" autofocus />
+        <div class="flex justify-end gap-2 mt-4">
+          <button type="button" (click)="showNewSubjectInput = false"
+                  class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Create & Move</button>
+        </div>
+      </form>
+    </div>
   </div>
 }
