@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/router';
@@ -13,7 +13,7 @@ import { cachedFetch } from '../../../../shared/services/cached-fetch';
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './concept-list.component.html'
 })
-export class ConceptListComponent implements OnInit {
+export class ConceptListComponent implements OnInit, OnDestroy {
   private quizService = inject(QuizService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -32,6 +32,8 @@ export class ConceptListComponent implements OnInit {
   reschedulingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
   private deleteTimer: any = null;
+  creatingQuickNote = false;
+  private quickNoteCounter = 0;
 
   ngOnInit() {
     this.topicId = Number(this.route.snapshot.paramMap.get('topicId'));
@@ -90,6 +92,30 @@ export class ConceptListComponent implements OnInit {
     cachedFetch(`concepts-${this.topicId}`, this.quizService.findConcepts(this.topicId), concepts => {
       this.concepts = concepts;
       this.loading = false;
+      this.initQuickNoteCounter();
+    });
+  }
+
+  private initQuickNoteCounter() {
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    this.quickNoteCounter = this.concepts.filter(c => c.name.includes(today)).length;
+  }
+
+  quickNote() {
+    if (this.creatingQuickNote) return;
+    this.creatingQuickNote = true;
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    this.quickNoteCounter++;
+    const name = `Note ${this.quickNoteCounter} - ${today}`;
+
+    this.quizService.createConcept(this.topicId, { name }).subscribe({
+      next: (concept) => {
+        this.creatingQuickNote = false;
+        this.router.navigate(['/quiz', this.topicId, 'notes', concept.id], {
+          state: { topicName: this.topicName }
+        });
+      },
+      error: () => this.creatingQuickNote = false
     });
   }
 
@@ -275,6 +301,10 @@ export class ConceptListComponent implements OnInit {
       }
     }
     this.calendarDays = cells;
+  }
+
+  ngOnDestroy() {
+    this.confirmDelete();
   }
 
   deleteConcept(concept: QuizConcept, event: Event) {

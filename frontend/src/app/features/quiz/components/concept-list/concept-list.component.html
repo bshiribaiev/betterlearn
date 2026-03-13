@@ -34,6 +34,23 @@
     </div>
   }
 
+  <!-- New note capture -->
+  <div (click)="quickNote()"
+       class="mb-6 flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors group/capture">
+    @if (creatingQuickNote) {
+      <svg class="w-5 h-5 text-gray-300 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <span class="text-sm text-gray-400">Creating note...</span>
+    } @else {
+      <svg class="w-5 h-5 text-gray-300 group-hover/capture:text-sky-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
+      </svg>
+      <span class="text-sm text-gray-400 group-hover/capture:text-gray-500 transition-colors">New note</span>
+    }
+  </div>
+
   <!-- Toolbar -->
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -48,14 +65,6 @@
         <option value="due">Due</option>
       </select>
     </div>
-    <a [routerLink]="['/quiz', topicId, 'notes', 'new']"
-       [state]="{ topicName: topicName }"
-       class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      Add Note
-    </a>
   </div>
 
   @if (loading) {
