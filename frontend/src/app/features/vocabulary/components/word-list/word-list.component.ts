@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, inject, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, inject, Input, OnInit, OnDestroy, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { cachedFetch } from '../../../../shared/services/cached-fetch';
   imports: [CommonModule, FormsModule],
   templateUrl: './word-list.component.html'
 })
-export class WordListComponent implements OnInit {
+export class WordListComponent implements OnInit, OnDestroy {
   private vocabService = inject(VocabularyService);
   private router = inject(Router);
 
@@ -51,6 +51,10 @@ export class WordListComponent implements OnInit {
 
   ngOnInit() {
     this.loadWords();
+  }
+
+  ngOnDestroy() {
+    this.confirmDelete();
   }
 
   loadWords() {

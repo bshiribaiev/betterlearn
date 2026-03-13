@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { cachedFetch } from '../../../../shared/services/cached-fetch';
   imports: [CommonModule, FormsModule],
   templateUrl: './topic-list.component.html'
 })
-export class TopicListComponent implements OnInit {
+export class TopicListComponent implements OnInit, OnDestroy {
   private quizService = inject(QuizService);
   private router = inject(Router);
 
@@ -88,6 +88,10 @@ export class TopicListComponent implements OnInit {
     this.router.navigate(['/quiz', topic.id, 'concepts'], {
       state: { topicName: topic.name, textbookName: topic.textbookName, textbookUrl: topic.textbookUrl }
     });
+  }
+
+  ngOnDestroy() {
+    this.confirmDelete();
   }
 
   deleteTopic(topic: QuizTopic, event: Event) {

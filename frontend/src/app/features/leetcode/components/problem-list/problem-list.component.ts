@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeetcodeService } from '../../services/leetcode.service';
@@ -12,7 +12,7 @@ import { cachedFetch } from '../../../../shared/services/cached-fetch';
   imports: [CommonModule, FormsModule, ReviewDialogComponent],
   templateUrl: './problem-list.component.html'
 })
-export class ProblemListComponent implements OnInit {
+export class ProblemListComponent implements OnInit, OnDestroy {
   private leetcodeService = inject(LeetcodeService);
 
   problems: Problem[] = [];
@@ -286,6 +286,10 @@ export class ProblemListComponent implements OnInit {
       }
     }
     this.calendarDays = cells;
+  }
+
+  ngOnDestroy() {
+    this.confirmDelete();
   }
 
   onReviewSubmitted() {
