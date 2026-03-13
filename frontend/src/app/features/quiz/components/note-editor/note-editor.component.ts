@@ -849,11 +849,6 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private navigateAfterMove = false;
 
   goBack() {
-    if (this.topicName === 'Quick Notes' && this.conceptId) {
-      this.navigateAfterMove = true;
-      this.fetchAndShowMoveModal();
-      return;
-    }
     this.router.navigate(this.backRoute);
   }
 
