@@ -42,3 +42,5 @@ plan.md
 betterlearn.pem
 deployment.md
 /landing/
+proxy.conf.local.json
+dev.md
