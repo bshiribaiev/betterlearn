@@ -97,12 +97,8 @@ export const PdfAttachment = Node.create({
       deleteBtn.innerHTML = '&times;';
       deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (typeof getPos === 'function') {
-          const pos = getPos();
-          editor.view.dispatch(editor.view.state.tr.delete(pos, pos + node.nodeSize));
-          editor.commands.focus();
-        }
-        dom.dispatchEvent(new CustomEvent('pdf-remove', { bubbles: true }));
+        // Dispatch before removing node — once detached, event won't bubble
+        editor.view.dom.dispatchEvent(new CustomEvent('pdf-remove', { bubbles: true }));
       });
 
       right.appendChild(expandBtn);
