@@ -26,6 +26,9 @@ export class TopicListComponent implements OnInit, OnDestroy {
   private deleteTimer: any = null;
   editingTopicId: number | null = null;
   editingName = '';
+  creatingQuickNote = false;
+  private quickNoteTopic: QuizTopic | null = null;
+  private quickNoteCounter = 0;
 
   @HostListener('document:click')
   closeMenus() {
@@ -41,6 +44,41 @@ export class TopicListComponent implements OnInit, OnDestroy {
       this.topics = topics;
       this.loading = false;
     });
+    this.quizService.findOrCreateQuickNotes().subscribe(topic => {
+      this.quickNoteTopic = topic;
+    });
+  }
+
+  quickNote() {
+    if (this.creatingQuickNote) return;
+    this.creatingQuickNote = true;
+
+    const create = (topic: QuizTopic) => {
+      const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      this.quickNoteCounter++;
+      const name = `Note ${this.quickNoteCounter} - ${today}`;
+      this.quizService.createConcept(topic.id, { name }).subscribe({
+        next: (concept) => {
+          this.creatingQuickNote = false;
+          this.router.navigate(['/quiz', topic.id, 'notes', concept.id], {
+            state: { topicName: topic.name }
+          });
+        },
+        error: () => this.creatingQuickNote = false
+      });
+    };
+
+    if (this.quickNoteTopic) {
+      create(this.quickNoteTopic);
+    } else {
+      this.quizService.findOrCreateQuickNotes().subscribe({
+        next: (topic) => {
+          this.quickNoteTopic = topic;
+          create(topic);
+        },
+        error: () => this.creatingQuickNote = false
+      });
+    }
   }
 
   get filteredTopics(): QuizTopic[] {
