@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { QuizService } from '../../services/quiz.service';
 import { QuizTopic } from '../../models/quiz.model';
+import { SearchInputComponent } from '../../../../shared/components/search-input/search-input.component';
+import { matchesSearch } from '../../../../shared/utils/search-filter';
 import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-topic-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SearchInputComponent],
   templateUrl: './topic-list.component.html'
 })
 export class TopicListComponent implements OnInit, OnDestroy {
@@ -19,6 +21,7 @@ export class TopicListComponent implements OnInit, OnDestroy {
   topics: QuizTopic[] = [];
   loading = true;
   activeTab: 'all' | 'due' = 'all';
+  searchQuery = '';
   showAddForm = false;
   addName = '';
   addError = '';
@@ -82,7 +85,8 @@ export class TopicListComponent implements OnInit, OnDestroy {
   }
 
   get filteredTopics(): QuizTopic[] {
-    const list = this.activeTab === 'due' ? this.topics.filter(t => this.isDue(t)) : this.topics;
+    const tabbed = this.activeTab === 'due' ? this.topics.filter(t => this.isDue(t)) : this.topics;
+    const list = tabbed.filter(t => matchesSearch(this.searchQuery, t.name, t.textbookName));
     return [...list].sort((a, b) => {
       const aDue = this.isDue(a) ? 0 : 1;
       const bDue = this.isDue(b) ? 0 : 1;

@@ -1,41 +1,6 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
   <h1 class="text-2xl font-semibold text-gray-900 mb-3">{{ topicName || 'Topic' }}</h1>
 
-  <!-- Textbook metadata (hidden for Quick Notes) -->
-  @if (topicName !== 'Quick Notes') {
-    @if (editingTextbook) {
-      <div class="mt-2 mb-6 flex flex-wrap items-center gap-2">
-        <input type="text" [(ngModel)]="editTextbookName" placeholder="Textbook name"
-               class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 flex-1 min-w-0" />
-        <input type="text" [(ngModel)]="editTextbookUrl" placeholder="URL (optional)"
-               class="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 flex-1 min-w-0" />
-        <button (click)="saveTextbook()"
-                class="px-3 py-1 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Save</button>
-        <button (click)="cancelEditTextbook()"
-                class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
-      </div>
-    } @else {
-      <div class="mt-1 mb-6 group/textbook flex items-center gap-1.5 min-h-[24px]">
-        @if (textbookName) {
-          @if (textbookUrl) {
-            <a [href]="textbookUrl" target="_blank" rel="noopener"
-               class="text-sm text-gray-400 hover:text-sky-500 transition-colors">{{ textbookName }}</a>
-          } @else {
-            <span class="text-sm text-gray-400">{{ textbookName }}</span>
-          }
-        } @else {
-          <span class="text-sm text-gray-300 opacity-0 group-hover/textbook:opacity-100 transition-opacity">Add textbook</span>
-        }
-        <button (click)="startEditTextbook()"
-                class="opacity-0 group-hover/textbook:opacity-100 p-0.5 rounded text-gray-300 hover:text-gray-500 transition-all cursor-pointer flex-shrink-0">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-          </svg>
-        </button>
-      </div>
-    }
-  }
-
   <!-- New note capture -->
   <div (click)="quickNote()"
        class="mb-6 flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors group/capture">
@@ -54,7 +19,7 @@
   </div>
 
   <!-- Toolbar -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between gap-3 mb-6">
     <div class="flex items-center gap-3">
       <a routerLink="/quiz" class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,6 +32,7 @@
         <option value="due">Due</option>
       </select>
     </div>
+    <app-search-input class="flex-1 max-w-xs" (searchChange)="searchQuery = $event" />
   </div>
 
   @if (loading) {

@@ -5,12 +5,14 @@ import { Router, ActivatedRoute, RouterLink, NavigationEnd } from '@angular/rout
 import { filter } from 'rxjs';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept, QuizTopic, FlashcardTerm } from '../../models/quiz.model';
+import { SearchInputComponent } from '../../../../shared/components/search-input/search-input.component';
+import { matchesSearch } from '../../../../shared/utils/search-filter';
 import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-concept-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, SearchInputComponent],
   templateUrl: './concept-list.component.html'
 })
 export class ConceptListComponent implements OnInit, OnDestroy {
@@ -28,6 +30,7 @@ export class ConceptListComponent implements OnInit, OnDestroy {
   concepts: QuizConcept[] = [];
   loading = true;
   activeTab: 'all' | 'due' = 'all';
+  searchQuery = '';
   generatingConceptId: number | null = null;
   reschedulingConceptId: number | null = null;
   deletedConcept: QuizConcept | null = null;
@@ -126,7 +129,8 @@ export class ConceptListComponent implements OnInit, OnDestroy {
   }
 
   get filteredConcepts(): QuizConcept[] {
-    const list = this.activeTab === 'due' ? this.concepts.filter(c => this.isDue(c)) : this.concepts;
+    const tabbed = this.activeTab === 'due' ? this.concepts.filter(c => this.isDue(c)) : this.concepts;
+    const list = tabbed.filter(c => matchesSearch(this.searchQuery, c.name));
     return [...list].sort((a, b) => {
       const aDue = this.isDue(a) ? 0 : 1;
       const bDue = this.isDue(b) ? 0 : 1;

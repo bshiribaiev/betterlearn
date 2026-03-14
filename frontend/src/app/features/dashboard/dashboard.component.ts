@@ -5,6 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { Problem } from '../leetcode/models/problem.model';
 import { QuizTopic, QuizConcept, FlashcardTerm } from '../quiz/models/quiz.model';
 import { QuizService } from '../quiz/services/quiz.service';
+import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
+import { matchesSearch } from '../../shared/utils/search-filter';
 import { cachedFetch } from '../../shared/services/cached-fetch';
 
 interface DashboardData {
@@ -33,7 +35,7 @@ interface DueItem {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, SearchInputComponent],
   template: `
     <div class="max-w-5xl mx-auto px-6 py-8">
       <h1 class="text-2xl font-semibold text-gray-900 mb-3">Dashboard</h1>
@@ -59,12 +61,14 @@ interface DueItem {
         <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
       } @else {
 
+      <app-search-input class="block mb-6" (searchChange)="searchQuery = $event" />
+
       <!-- Recent notes -->
-      @if (data && data.recentConcepts && data.recentConcepts.length > 0) {
+      @if (filteredRecentConcepts.length > 0) {
         <div class="mb-8">
           <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Recent Notes</h2>
           <div class="space-y-2">
-            @for (concept of data.recentConcepts; track concept.id) {
+            @for (concept of filteredRecentConcepts; track concept.id) {
               <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
                  [state]="{ from: 'dashboard', topicName: concept.topicName }"
                  class="flex items-center gap-3 py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
@@ -81,7 +85,7 @@ interface DueItem {
       }
 
       <!-- Needs Review (collapsible) -->
-      @if (dueItems.length > 0) {
+      @if (filteredDueItems.length > 0) {
         <div class="mb-8">
           <button (click)="reviewExpanded = !reviewExpanded"
                   class="flex items-center gap-2 cursor-pointer group/review">
@@ -90,7 +94,7 @@ interface DueItem {
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
             <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Needs Review</h2>
-            <span class="text-xs font-medium text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">{{ dueItems.length }}</span>
+            <span class="text-xs font-medium text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">{{ filteredDueItems.length }}</span>
           </button>
 
           @if (reviewExpanded) {
@@ -149,7 +153,7 @@ interface DueItem {
         </div>
       }
 
-      @if (dueItems.length === 0) {
+      @if (dueItems.length === 0 && !searchQuery) {
         <div class="text-center py-12">
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>
@@ -168,6 +172,7 @@ export class DashboardComponent implements OnInit {
   loading = true;
   generatingNoteId: number | null = null;
   reviewExpanded = false;
+  searchQuery = '';
   creatingQuickNote = false;
   private quickNotesTopic: QuizTopic | null = null;
   private quickNoteCounter = 0;
@@ -247,12 +252,21 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  get filteredRecentConcepts(): QuizConcept[] {
+    if (!this.data?.recentConcepts) return [];
+    return this.data.recentConcepts.filter(c => matchesSearch(this.searchQuery, c.name, c.topicName));
+  }
+
+  get filteredDueItems(): DueItem[] {
+    return this.dueItems.filter(i => matchesSearch(this.searchQuery, i.label, i.sublabel));
+  }
+
   get dueNotes(): DueItem[] {
-    return this.dueItems.filter(i => i.type === 'concept');
+    return this.filteredDueItems.filter(i => i.type === 'concept');
   }
 
   get dueLeetcode(): DueItem[] {
-    return this.dueItems.filter(i => i.type === 'leetcode');
+    return this.filteredDueItems.filter(i => i.type === 'leetcode');
   }
 
   dueLabel(nextReview: string): string {

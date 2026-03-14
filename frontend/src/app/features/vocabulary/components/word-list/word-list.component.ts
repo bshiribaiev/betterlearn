@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { VocabularyService } from '../../services/vocabulary.service';
 import { Word, WordGroup } from '../../models/vocabulary.model';
+import { SearchInputComponent } from '../../../../shared/components/search-input/search-input.component';
+import { matchesSearch } from '../../../../shared/utils/search-filter';
 import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-word-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SearchInputComponent],
   templateUrl: './word-list.component.html'
 })
 export class WordListComponent implements OnInit, OnDestroy {
@@ -24,6 +26,7 @@ export class WordListComponent implements OnInit, OnDestroy {
   groups: WordGroup[] = [];
   loading = true;
   activeTab: 'due' | 'all' = 'due';
+  searchQuery = '';
   expandedDate: string | null = null;
   generatingLabelDate: string | null = null;
 
@@ -69,12 +72,18 @@ export class WordListComponent implements OnInit, OnDestroy {
   }
 
   get filteredGroups(): WordGroup[] {
-    if (this.activeTab === 'due') {
-      return this.groups
-        .map(g => ({ ...g, words: g.words.filter(w => this.isDue(w)) }))
-        .filter(g => g.words.length > 0);
-    }
-    return this.groups;
+    let groups = this.activeTab === 'due'
+      ? this.groups.map(g => ({ ...g, words: g.words.filter(w => this.isDue(w)) })).filter(g => g.words.length > 0)
+      : this.groups;
+
+    if (!this.searchQuery) return groups;
+
+    return groups
+      .map(g => {
+        if (matchesSearch(this.searchQuery, g.label)) return g;
+        return { ...g, words: g.words.filter(w => matchesSearch(this.searchQuery, w.word, w.definition)) };
+      })
+      .filter(g => g.words.length > 0);
   }
 
   isDue(word: Word): boolean {

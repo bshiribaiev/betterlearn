@@ -2,7 +2,7 @@
   <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
 } @else {
 @if (showToolbar) {
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between gap-3 mb-6">
   <div class="flex gap-1">
     <button (click)="activeTab = 'due'"
             [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' + (activeTab === 'due' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50')">
@@ -13,6 +13,7 @@
       All
     </button>
   </div>
+  <app-search-input class="flex-1 max-w-xs" (searchChange)="searchQuery = $event" />
   <div class="flex items-center gap-3">
     @if (activeTab === 'due' && totalDueCount >= 2) {
       <button (click)="startQuizAll($event)"

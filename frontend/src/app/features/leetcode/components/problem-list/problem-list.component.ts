@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { LeetcodeService } from '../../services/leetcode.service';
 import { Problem, ReviewEntry } from '../../models/problem.model';
 import { ReviewDialogComponent } from '../review-dialog/review-dialog.component';
+import { SearchInputComponent } from '../../../../shared/components/search-input/search-input.component';
+import { matchesSearch } from '../../../../shared/utils/search-filter';
 import { cachedFetch } from '../../../../shared/services/cached-fetch';
 
 @Component({
   selector: 'app-problem-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReviewDialogComponent],
+  imports: [CommonModule, FormsModule, ReviewDialogComponent, SearchInputComponent],
   templateUrl: './problem-list.component.html'
 })
 export class ProblemListComponent implements OnInit, OnDestroy {
@@ -18,6 +20,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   problems: Problem[] = [];
   loading = true;
   activeTab: 'all' | 'due' = 'all';
+  searchQuery = '';
   showAddForm = false;
   reviewingProblem: Problem | null = null;
   confidenceMenuProblem: Problem | null = null;
@@ -61,7 +64,8 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   }
 
   get filteredProblems(): Problem[] {
-    const list = this.activeTab === 'due' ? this.problems.filter(p => this.isDue(p)) : this.problems;
+    const tabbed = this.activeTab === 'due' ? this.problems.filter(p => this.isDue(p)) : this.problems;
+    const list = tabbed.filter(p => matchesSearch(this.searchQuery, p.title, p.notes, p.url));
     return [...list].sort((a, b) => {
       const aDue = this.isDue(a) ? 0 : 1;
       const bDue = this.isDue(b) ? 0 : 1;

@@ -22,12 +22,13 @@
     <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
   } @else {
   <!-- Tabs + Add button -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between gap-3 mb-6">
     <select [(ngModel)]="activeTab"
             class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400 cursor-pointer appearance-none text-center">
       <option value="all">All</option>
       <option value="due">Due</option>
     </select>
+    <app-search-input class="flex-1 max-w-xs" (searchChange)="searchQuery = $event" />
     <div class="relative">
       <button (click)="toggleAddForm($event)"
               class="inline-flex items-center gap-2 px-4 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm">
