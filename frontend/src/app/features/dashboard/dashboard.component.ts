@@ -40,6 +40,12 @@ interface DueItem {
     <div class="max-w-5xl mx-auto px-6 py-8">
       <h1 class="text-2xl font-semibold text-gray-900 mb-3">Dashboard</h1>
 
+      @if (loading) {
+        <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
+      } @else {
+
+      <app-search-input class="block mb-3" (searchChange)="searchQuery = $event" />
+
       <!-- Capture area -->
       <div (click)="quickNote()"
            class="mb-8 flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors group">
@@ -56,12 +62,6 @@ interface DueItem {
           <span class="text-sm text-gray-400 group-hover:text-gray-500 transition-colors">New note</span>
         }
       </div>
-
-      @if (loading) {
-        <div class="text-center py-16"><span class="text-gray-400 text-sm">Loading...</span></div>
-      } @else {
-
-      <app-search-input class="block mb-6" (searchChange)="searchQuery = $event" />
 
       <!-- Recent notes -->
       @if (filteredRecentConcepts.length > 0) {
