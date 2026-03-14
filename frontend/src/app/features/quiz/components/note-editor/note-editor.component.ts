@@ -807,9 +807,12 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     const json = this.editor.getJSON();
     if (!json.content) return terms;
 
-    for (const node of json.content) {
-      // Bullet list items with "term: definition" or "term - definition"
-      if (node.type === 'bulletList' && node.content) {
+    const nodes = json.content;
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+
+      // Only extract from bullet lists preceded by a bold "Definitions" header
+      if (node.type === 'bulletList' && node.content && this.isDefinitionsHeader(nodes[i - 1])) {
         for (const li of node.content) {
           const text = this.extractTextFromNode(li);
           const colonIdx = text.indexOf(':');
@@ -837,6 +840,13 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     return terms;
+  }
+
+  private isDefinitionsHeader(node: any): boolean {
+    if (!node || node.type !== 'paragraph') return false;
+    const text = this.extractTextFromNode(node).trim().toLowerCase();
+    if (text !== 'definitions') return false;
+    return node.content?.[0]?.marks?.some((m: any) => m.type === 'bold') ?? false;
   }
 
   private extractTextFromNode(node: any): string {
