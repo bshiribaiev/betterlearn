@@ -129,6 +129,8 @@ public class QuizService {
     public ConceptResponse rescheduleConcept(Long userId, Long conceptId, LocalDate nextReview) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         concept.setNextReview(nextReview);
+        int gap = (int) java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), nextReview);
+        if (gap > 0) concept.setIntervalDays(gap);
         concept.setCachedQuestions(null);
         return ConceptResponse.from(conceptRepo.save(concept));
     }

@@ -83,6 +83,8 @@ public class LeetcodeService {
     public ProblemResponse reschedule(Long userId, Long problemId, java.time.LocalDate nextReview) {
         LeetcodeProblem problem = findOwnedProblem(userId, problemId);
         problem.setNextReview(nextReview);
+        int gap = (int) java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), nextReview);
+        if (gap > 0) problem.setIntervalDays(gap);
         return ProblemResponse.from(problemRepo.save(problem));
     }
 

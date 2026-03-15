@@ -104,6 +104,7 @@ public class QuizConcept {
     public double getEasinessFactor() { return easinessFactor; }
     public int getRepetition() { return repetition; }
     public int getIntervalDays() { return intervalDays; }
+    public void setIntervalDays(int intervalDays) { this.intervalDays = intervalDays; }
     public LocalDate getNextReview() { return nextReview; }
     public void setNextReview(LocalDate nextReview) { this.nextReview = nextReview; }
     public String getStatus() { return status; }
