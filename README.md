@@ -1,6 +1,7 @@
 [![Contributors](https://img.shields.io/github/contributors/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/graphs/contributors)
 [![Stars](https://img.shields.io/github/stars/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/stargazers)
 [![Issues](https://img.shields.io/github/issues/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/issues)
+[![License](https://img.shields.io/github/license/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/blob/main/LICENSE)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/shiribaiev/)
 
 <div align="center">
