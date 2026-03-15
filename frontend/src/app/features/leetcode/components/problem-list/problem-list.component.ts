@@ -66,10 +66,11 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   get filteredProblems(): Problem[] {
     const tabbed = this.activeTab === 'due' ? this.problems.filter(p => this.isDue(p)) : this.problems;
     const list = tabbed.filter(p => matchesSearch(this.searchQuery, p.title, p.notes, p.url));
+    const confRank: Record<string, number> = { 'none': 0, 'low': 1, 'average': 2, 'high': 3 };
     return [...list].sort((a, b) => {
-      const aDue = this.isDue(a) ? 0 : 1;
-      const bDue = this.isDue(b) ? 0 : 1;
-      return aDue - bDue;
+      const dateCmp = a.nextReview.localeCompare(b.nextReview);
+      if (dateCmp !== 0) return dateCmp;
+      return (confRank[a.confidence] ?? 0) - (confRank[b.confidence] ?? 0);
     });
   }
 
