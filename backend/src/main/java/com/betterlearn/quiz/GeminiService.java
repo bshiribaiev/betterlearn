@@ -171,6 +171,74 @@ public class GeminiService {
         return parseQuestions(json);
     }
 
+    public QuizQuestionDto generateOneQuestion(String topicName, String noteName,
+                                                String content, String pdfText,
+                                                List<String> previousQuestions) {
+        StringBuilder context = new StringBuilder();
+        if (content != null && !content.isBlank()) {
+            context.append("\n=== NOTES ===\n").append(content).append("\n=== END NOTES ===\n");
+        }
+        if (pdfText != null && !pdfText.isBlank()) {
+            context.append("\n=== PDF CONTENT ===\n").append(pdfText).append("\n=== END PDF ===\n");
+        }
+
+        String avoidClause = "";
+        if (previousQuestions != null && !previousQuestions.isEmpty()) {
+            avoidClause = "\n\nDo NOT repeat or rephrase any of these previous questions:\n"
+                    + String.join("\n", previousQuestions.stream().map(q -> "- " + q).toList());
+        }
+
+        String prompt;
+        if (context.length() > 0) {
+            prompt = """
+                    Generate exactly 1 multiple-choice question based on the following material about "%s — %s".
+                    %s
+                    Return a JSON array with exactly 1 element that has:
+                    - "question": the question text
+                    - "options": array of exactly 4 answer choices
+                    - "correctIndex": 0-based index of the correct option
+                    - "explanation": brief explanation of why the correct answer is right
+
+                    Requirements:
+                    - Question must be derived from the provided material
+                    - Question should test understanding, not just memorization
+                    - All 4 options should be plausible%s
+                    """.formatted(topicName, noteName, context, avoidClause);
+        } else {
+            prompt = """
+                    Generate exactly 1 multiple-choice question about "%s — %s".
+                    Return a JSON array with exactly 1 element that has:
+                    - "question": the question text
+                    - "options": array of exactly 4 answer choices
+                    - "correctIndex": 0-based index of the correct option
+                    - "explanation": brief explanation of why the correct answer is right
+
+                    Requirements:
+                    - Question should test understanding, not just memorization
+                    - All 4 options should be plausible%s
+                    """.formatted(topicName, noteName, avoidClause);
+        }
+
+        String url = String.format(API_URL, config.getModel(), config.getApiKey());
+
+        Map<String, Object> request = Map.of(
+                "contents", List.of(Map.of(
+                        "parts", List.of(Map.of("text", prompt))
+                )),
+                "generationConfig", Map.of(
+                        "responseMimeType", "application/json",
+                        "responseSchema", quizArraySchema(),
+                        "temperature", 0.7
+                )
+        );
+
+        JsonNode response = restTemplate.postForObject(url, request, JsonNode.class);
+        String json = extractText(response);
+        List<QuizQuestionDto> questions = parseQuestions(json);
+        if (questions.isEmpty()) throw new IllegalStateException("Gemini returned no questions");
+        return questions.get(0);
+    }
+
     public ChatAskResponse answerQuestion(String question) {
         String prompt = """
                 Answer this learning question concisely in 1-3 sentences: "%s"

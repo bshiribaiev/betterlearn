@@ -1,6 +1,7 @@
 package com.betterlearn.quiz.dto;
 
 import com.betterlearn.quiz.QuizConcept;
+import com.betterlearn.quiz.QuizService;
 
 import java.time.LocalDate;
 
@@ -13,6 +14,7 @@ public record ConceptResponse(
         String terms,
         String pdfFilename,
         boolean hasCachedQuestions,
+        int questionCount,
         LocalDate lastReviewed,
         LocalDate nextReview,
         int intervalDays,
@@ -26,6 +28,7 @@ public record ConceptResponse(
                 c.getId(), c.getTopic().getId(), c.getTopic().getName(),
                 c.getName(), c.getContent(), c.getTerms(), c.getPdfFilename(),
                 c.getCachedQuestions() != null,
+                QuizService.calculateQuestionCount(c.getContent(), c.getPdfText()),
                 c.getLastReviewed(), c.getNextReview(), c.getIntervalDays(),
                 c.getEasinessFactor(), c.getRepetition(),
                 c.getStatus(), c.getTotalReviews()

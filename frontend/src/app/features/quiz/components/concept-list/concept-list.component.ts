@@ -193,15 +193,8 @@ export class ConceptListComponent implements OnInit, OnDestroy {
 
   generateQuiz(concept: QuizConcept, event: Event) {
     event.stopPropagation();
-    this.generatingConceptId = concept.id;
-    this.quizService.generate(concept.id).subscribe({
-      next: (res) => {
-        this.generatingConceptId = null;
-        this.router.navigate(['/quiz', 'concepts', concept.id, 'session'], {
-          state: { questions: res.questions, topicName: this.topicName, conceptName: concept.name, topicId: this.topicId }
-        });
-      },
-      error: () => this.generatingConceptId = null
+    this.router.navigate(['/quiz', 'concepts', concept.id, 'session'], {
+      state: { questionCount: concept.questionCount || 5, topicName: this.topicName, conceptName: concept.name, topicId: this.topicId }
     });
   }
 

@@ -82,6 +82,12 @@ export class QuizService {
     );
   }
 
+  generateOne(conceptId: number, previousQuestions: string[]) {
+    return this.http.post<QuizQuestion>(
+      `/api/quiz/concepts/${conceptId}/generate-one`, { previousQuestions }
+    );
+  }
+
   submit(conceptId: number, questions: QuizQuestion[], answers: number[]) {
     return this.http.post<QuizSession>(
       `/api/quiz/concepts/${conceptId}/submit`, { questions, answers }

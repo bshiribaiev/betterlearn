@@ -253,6 +253,14 @@ public class QuizController {
         return vocabularyService.submitTermQuiz(userId, topicId, date, request.questions(), request.answers());
     }
 
+    @PostMapping("/concepts/{id}/generate-one")
+    public QuizQuestionDto generateOne(@RequestAttribute Long userId,
+                                       @PathVariable Long id,
+                                       @RequestBody GenerateOneRequest request) {
+        return quizService.generateOneForConcept(userId, id,
+                request.previousQuestions() != null ? request.previousQuestions() : List.of());
+    }
+
     // Chat
     @PostMapping("/chat/ask")
     public ChatAskResponse chatAsk(@RequestAttribute Long userId,

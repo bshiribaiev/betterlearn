@@ -446,6 +446,16 @@ public class QuizService {
         conceptRepo.save(concept);
     }
 
+    // Single question generation
+    public QuizQuestionDto generateOneForConcept(Long userId, Long conceptId, List<String> previousQuestions) {
+        QuizConcept concept = findOwnedConcept(userId, conceptId);
+        String topicName = concept.getTopic().getName();
+        return geminiService.generateOneQuestion(
+                topicName, concept.getName(), concept.getContent(), concept.getPdfText(),
+                previousQuestions != null ? previousQuestions : List.of()
+        );
+    }
+
     // Chat
     public ChatAskResponse askQuestion(Long userId, String question) {
         return geminiService.answerQuestion(question);
@@ -490,7 +500,7 @@ public class QuizService {
         }
     }
 
-    static int calculateQuestionCount(String content, String pdfText) {
+    public static int calculateQuestionCount(String content, String pdfText) {
         int length = 0;
         if (content != null) length += content.length();
         if (pdfText != null) length += pdfText.length();

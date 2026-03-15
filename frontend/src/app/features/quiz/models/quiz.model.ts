@@ -28,6 +28,7 @@ export interface QuizConcept {
   totalReviews: number;
   pdfFilename: string | null;
   hasCachedQuestions: boolean;
+  questionCount: number;
 }
 
 export interface FlashcardTerm {

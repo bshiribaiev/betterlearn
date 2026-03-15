@@ -6,38 +6,68 @@
         <p class="text-sm text-gray-400 mt-1">{{ subtitle }}</p>
       }
     </div>
-    <span class="text-sm text-gray-400">{{ answeredCount }} / {{ questions.length }} answered</span>
+    <span class="text-sm text-gray-400">{{ currentIndex + 1 }} / {{ questionCount }}</span>
   </div>
 
-  <div class="space-y-8">
-    @for (q of questions; track $index; let i = $index) {
-      <div class="pb-8 border-b border-gray-100 last:border-b-0">
-        <p class="text-base font-medium text-gray-900 mb-4">
-          <span class="text-gray-400 mr-2">{{ i + 1 }}.</span>{{ q.question }}
-        </p>
-        <div class="space-y-2.5">
-          @for (option of q.options; track $index; let j = $index) {
-            <button (click)="selectAnswer(i, j)"
-                    [class]="'w-full text-left px-4 py-3.5 text-base rounded-lg border transition-all ' +
-                      (answers[i] === j
-                        ? 'bg-sky-50 border-sky-300 text-sky-700 font-medium'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50')">
-              <span class="text-gray-400 mr-2">{{ ['A', 'B', 'C', 'D'][j] }}.</span>{{ option }}
-            </button>
-          }
-        </div>
+  @if (!currentQuestion) {
+    <!-- Loading first question -->
+    <div class="text-center py-16">
+      <svg class="w-6 h-6 text-gray-300 animate-spin mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <p class="text-sm text-gray-400">Generating question...</p>
+    </div>
+  } @else {
+    <!-- Current question -->
+    <div>
+      <p class="text-base font-medium text-gray-900 mb-6">
+        <span class="text-gray-400 mr-2">{{ currentIndex + 1 }}.</span>{{ currentQuestion.question }}
+      </p>
+      <div class="space-y-2.5">
+        @for (option of currentQuestion.options; track $index; let j = $index) {
+          <button (click)="selectAnswer(j)"
+                  [class]="'w-full text-left px-4 py-3.5 text-base rounded-lg border transition-all cursor-pointer ' +
+                    (answers[currentIndex] === j
+                      ? 'bg-sky-50 border-sky-300 text-sky-700 font-medium'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50')">
+            <span class="text-gray-400 mr-2">{{ ['A', 'B', 'C', 'D'][j] }}.</span>{{ option }}
+          </button>
+        }
       </div>
-    }
-  </div>
+    </div>
 
-  <div class="mt-8 flex justify-end">
-    <button (click)="submitQuiz()"
-            [disabled]="!allAnswered || submitting"
-            [class]="'px-6 py-2.5 text-base font-medium rounded-lg transition-all ' +
-              (allAnswered && !submitting
-                ? 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed')">
-      {{ submitting ? 'Submitting...' : 'Submit Answers' }}
-    </button>
-  </div>
+    <!-- Navigation -->
+    <div class="mt-8 flex justify-end">
+      @if (isLastQuestion) {
+        <button (click)="submitQuiz()"
+                [disabled]="!allAnswered || submitting"
+                [class]="'px-6 py-2.5 text-base font-medium rounded-lg transition-all ' +
+                  (allAnswered && !submitting
+                    ? 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md cursor-pointer'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed')">
+          {{ submitting ? 'Submitting...' : 'Submit' }}
+        </button>
+      } @else {
+        <button (click)="next()"
+                [disabled]="!currentAnswered || !nextReady"
+                [class]="'px-6 py-2.5 text-base font-medium rounded-lg transition-all ' +
+                  (currentAnswered && nextReady
+                    ? 'bg-sky-500 text-white hover:bg-sky-600 hover:shadow-md cursor-pointer'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed')">
+          @if (currentAnswered && !nextReady) {
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              Loading...
+            </span>
+          } @else {
+            Next
+          }
+        </button>
+      }
+    </div>
+  }
 </div>

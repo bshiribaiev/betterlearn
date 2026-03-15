@@ -230,15 +230,8 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.generatingNoteId = concept.id;
-    this.quizService.generate(concept.id).subscribe({
-      next: (res) => {
-        this.generatingNoteId = null;
-        this.router.navigate(['/quiz', 'concepts', concept.id, 'session'], {
-          state: { questions: res.questions, conceptName: concept.name }
-        });
-      },
-      error: () => this.generatingNoteId = null
+    this.router.navigate(['/quiz', 'concepts', concept.id, 'session'], {
+      state: { questionCount: concept.questionCount || 5, conceptName: concept.name, topicName: concept.topicName, topicId: concept.topicId }
     });
   }
 
