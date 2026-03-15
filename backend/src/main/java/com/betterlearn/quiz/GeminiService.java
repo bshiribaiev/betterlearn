@@ -1,6 +1,7 @@
 package com.betterlearn.quiz;
 
 import com.betterlearn.config.GeminiConfig;
+import com.betterlearn.quiz.dto.ChatAskResponse;
 import com.betterlearn.quiz.dto.QuizQuestionDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -168,6 +169,48 @@ public class GeminiService {
         JsonNode response = restTemplate.postForObject(url, request, JsonNode.class);
         String json = extractText(response);
         return parseQuestions(json);
+    }
+
+    public ChatAskResponse answerQuestion(String question) {
+        String prompt = """
+                Answer this learning question concisely in 1-3 sentences: "%s"
+
+                Return JSON with:
+                - "term": a 2-5 word label for the key concept
+                - "definition": your concise answer
+                """.formatted(question);
+
+        String url = String.format(API_URL, config.getModel(), config.getApiKey());
+
+        Map<String, Object> request = Map.of(
+                "contents", List.of(Map.of(
+                        "parts", List.of(Map.of("text", prompt))
+                )),
+                "generationConfig", Map.of(
+                        "responseMimeType", "application/json",
+                        "responseSchema", Map.of(
+                                "type", "OBJECT",
+                                "properties", Map.of(
+                                        "term", Map.of("type", "STRING"),
+                                        "definition", Map.of("type", "STRING")
+                                ),
+                                "required", List.of("term", "definition")
+                        ),
+                        "temperature", 0.3
+                )
+        );
+
+        JsonNode response = restTemplate.postForObject(url, request, JsonNode.class);
+        String json = extractText(response);
+        try {
+            JsonNode parsed = objectMapper.readTree(json);
+            return new ChatAskResponse(
+                    parsed.path("term").asText(),
+                    parsed.path("definition").asText()
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to parse chat response: " + e.getMessage());
+        }
     }
 
     private Map<String, Object> quizArraySchema() {

@@ -252,4 +252,18 @@ public class QuizController {
         quizService.findOwnedTopic(userId, topicId);
         return vocabularyService.submitTermQuiz(userId, topicId, date, request.questions(), request.answers());
     }
+
+    // Chat
+    @PostMapping("/chat/ask")
+    public ChatAskResponse chatAsk(@RequestAttribute Long userId,
+                                   @Valid @RequestBody ChatAskRequest request) {
+        return quizService.askQuestion(userId, request.question());
+    }
+
+    @PostMapping("/chat/save")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void chatSave(@RequestAttribute Long userId,
+                         @Valid @RequestBody ChatSaveRequest request) {
+        quizService.saveTerms(userId, request.conceptId(), request.topicId(), request.terms());
+    }
 }

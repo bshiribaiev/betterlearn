@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> {
 
@@ -23,6 +24,8 @@ public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> 
 
     @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId ORDER BY c.updatedAt DESC")
     List<QuizConcept> findRecentByUserId(Long userId, Pageable pageable);
+
+    Optional<QuizConcept> findByTopicIdAndName(Long topicId, String name);
 
     boolean existsByTopicIdAndName(Long topicId, String name);
 

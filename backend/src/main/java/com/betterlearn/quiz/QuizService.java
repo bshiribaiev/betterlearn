@@ -446,6 +446,50 @@ public class QuizService {
         conceptRepo.save(concept);
     }
 
+    // Chat
+    public ChatAskResponse askQuestion(Long userId, String question) {
+        return geminiService.answerQuestion(question);
+    }
+
+    @Transactional
+    public void saveTerms(Long userId, Long conceptId, Long topicId, List<TermDto> terms) {
+        QuizConcept concept;
+        if (conceptId != null) {
+            concept = findOwnedConcept(userId, conceptId);
+        } else {
+            Long resolvedTopicId = topicId;
+            if (resolvedTopicId == null) {
+                TopicResponse quickNotes = findOrCreateQuickNotes(userId);
+                resolvedTopicId = quickNotes.id();
+            }
+            concept = findOrCreateQAConcept(resolvedTopicId);
+        }
+        appendTerms(concept, terms);
+    }
+
+    private QuizConcept findOrCreateQAConcept(Long topicId) {
+        return conceptRepo.findByTopicIdAndName(topicId, "Q&A")
+                .orElseGet(() -> {
+                    QuizTopic topic = topicRepo.findById(topicId).orElseThrow();
+                    return conceptRepo.save(new QuizConcept(topic, "Q&A"));
+                });
+    }
+
+    private void appendTerms(QuizConcept concept, List<TermDto> newTerms) {
+        try {
+            List<Map<String, String>> existing = concept.getTerms() != null
+                    ? objectMapper.readValue(concept.getTerms(), new com.fasterxml.jackson.core.type.TypeReference<>() {})
+                    : new java.util.ArrayList<>();
+            for (TermDto t : newTerms) {
+                existing.add(Map.of("term", t.term(), "definition", t.definition()));
+            }
+            concept.setTerms(objectMapper.writeValueAsString(existing));
+            conceptRepo.save(concept);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to append terms: " + e.getMessage());
+        }
+    }
+
     static int calculateQuestionCount(String content, String pdfText) {
         int length = 0;
         if (content != null) length += content.length();
