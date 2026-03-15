@@ -25,7 +25,7 @@
   - [Built With](#built-with)
   - [Architecture](#architecture)
   - [Getting Started](#getting-started)
-  - [API](#api)
+  - [License](#license)
 </details>
 
 ## About the Project
@@ -85,16 +85,6 @@ BetterLearn is a full-stack spaced repetition app that helps you retain what you
    ```
 5. Open [http://localhost:4200](http://localhost:4200)
 
-## API
-
-| Module | Endpoints |
-|--------|-----------|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/auth/google` |
-| LeetCode | `GET/POST /api/leetcode`, `POST /api/leetcode/:id/review`, `PATCH /api/leetcode/:id/reschedule` |
-| Quiz | `GET/POST /api/quiz/topics`, `GET/POST /api/quiz/concepts`, `POST /api/quiz/topics/:id/generate`, `POST /api/quiz/topics/:id/submit` |
-| Vocabulary | `GET/POST /api/vocabulary/topics/:id/words`, `POST /api/vocabulary/words/:id/review` |
-| Dashboard | `GET /api/dashboard` |
-
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the Apache 2.0 License. See `LICENSE` for more information.
