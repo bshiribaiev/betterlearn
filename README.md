@@ -1,10 +1,33 @@
-# BetterLearn
+[![Contributors](https://img.shields.io/github/contributors/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/graphs/contributors)
+[![Stars](https://img.shields.io/github/stars/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/stargazers)
+[![Issues](https://img.shields.io/github/issues/bshiribaiev/betterlearn.svg?style=for-the-badge)](https://github.com/bshiribaiev/betterlearn/issues)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/bshiribaiev)
 
-Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and LeetCode tracking. Built to actually retain what you study.
+<div align="center">
+  <h3>BetterLearn</h3>
+  <p>Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and LeetCode tracking.<br/>Built to actually retain what you study.</p>
+  <a href="https://betterlearn.app">Visit</a> ·
+  <a href="https://github.com/bshiribaiev/betterlearn/issues">Report Bug</a> ·
+  <a href="https://github.com/bshiribaiev/betterlearn/issues">Request Feature</a>
+</div>
 
-**Live at [betterlearn.app](https://betterlearn.app)**
+<br/>
 
-![Walkthrough](walkthrough.gif)
+<div align="center">
+  <img src="walkthrough.gif" alt="Walkthrough" width="700"/>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+
+  - [What it does](#what-it-does)
+  - [Tech Stack](#tech-stack)
+  - [Architecture](#architecture)
+  - [Key Design Decisions](#key-design-decisions)
+  - [Project Structure](#project-structure)
+  - [Local Development](#local-development)
+  - [API](#api)
+</details>
 
 ## What it does
 
@@ -13,10 +36,6 @@ Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and 
 - **LeetCode Tracker** — Paste a LeetCode URL, rate your recall after each review. SM-2 handles the scheduling so you never forget a problem.
 - **Vocabulary** — Add words, get AI-generated definitions, review with spaced repetition.
 - **Dashboard** — See everything that's due today across all modules in one place.
-
-## Architecture
-
-![System Architecture](system-architecture.png)
 
 ## Tech Stack
 
@@ -29,6 +48,10 @@ Spaced repetition learning app with notes, AI-generated quizzes/flashcards, and 
 | Storage | AWS S3 (image uploads) |
 | Auth | JWT + Google OAuth 2.0 |
 | Infra | AWS EC2, RDS, S3, nginx, Let's Encrypt SSL |
+
+## Architecture
+
+![System Architecture](system-architecture.png)
 
 ## Key Design Decisions
 
