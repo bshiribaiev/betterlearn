@@ -5,7 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { QuizService } from '../../services/quiz.service';
 import { QuizConcept, QuizTopic } from '../../models/quiz.model';
-import { Subject, debounceTime } from 'rxjs';
+import { ChatService } from '../../../../shared/services/chat.service';
+import { Subject, Subscription, debounceTime } from 'rxjs';
 import { Editor, Extension } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import BulletList from '@tiptap/extension-bullet-list';
@@ -291,6 +292,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
 })
 export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   private quizService = inject(QuizService);
+  private chatService = inject(ChatService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
@@ -340,6 +342,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   editor!: Editor;
   private save$ = new Subject<void>();
   private created = false;
+  private insertTermsSub?: Subscription;
 
   ngOnInit() {
     const stored = localStorage.getItem(NoteEditorComponent.FONT_SIZE_KEY);
@@ -445,6 +448,10 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.save$.pipe(debounceTime(600)).subscribe(() => this.persist());
+
+    this.insertTermsSub = this.chatService.insertTermsInNote$.subscribe(terms => {
+      this.insertDefinitionsFromChat(terms);
+    });
   }
 
   ngAfterViewInit() {
@@ -458,6 +465,7 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     clearTimeout(this.deleteTimer);
     this.save$.complete();
+    this.insertTermsSub?.unsubscribe();
     this.persist();
     this.editor.destroy();
   }
@@ -699,6 +707,21 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.editor.commands.setContent(content);
   }
 
+  private insertDefinitionsFromChat(terms: { term: string; definition: string }[]) {
+    if (terms.length === 0) return;
+    this.editor.chain().focus('end').insertContent([
+      { type: 'paragraph', content: [{ type: 'text', text: 'Definitions', marks: [{ type: 'bold' }] }] },
+      {
+        type: 'bulletList',
+        content: terms.map(t => ({
+          type: 'listItem',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: `${t.term}: ${t.definition}` }] }]
+        }))
+      },
+    ]).run();
+    this.save$.next();
+  }
+
   private createTabIndentExtension(): Extension {
     return Extension.create({
       name: 'tabIndent',
@@ -726,6 +749,13 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private createSlashCommandExtension(): Extension {
     const component = this;
+    const allCommands: SlashCommandItem[] = [
+      ...SLASH_COMMANDS,
+      {
+        label: 'Chat', icon: '✦',
+        action: () => component.chatService.requestOpen()
+      },
+    ];
 
     return Extension.create({
       name: 'slashCommands',
@@ -735,9 +765,9 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
             editor: this.editor,
             char: '/',
             items: ({ query }) => {
-              if (!query) return SLASH_COMMANDS;
+              if (!query) return allCommands;
               const q = query.toLowerCase();
-              return SLASH_COMMANDS.filter(c => c.label.toLowerCase().includes(q));
+              return allCommands.filter(c => c.label.toLowerCase().includes(q));
             },
             command: ({ editor, range, props }: { editor: Editor; range: any; props: any }) => {
               editor.chain().focus().deleteRange(range).run();

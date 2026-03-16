@@ -196,17 +196,24 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   conceptId: number | null = null;
 
+  private openSub?: Subscription;
+
   ngOnInit() {
     this.authSub = this.authService.isLoggedIn$.subscribe(v => this.isLoggedIn = v);
     this.routerSub = this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe(() => this.updateContext());
     this.updateContext();
+    this.openSub = this.chatService.openChat$.subscribe(() => {
+      this.open = true;
+      this.showSaveModal = false;
+    });
   }
 
   ngOnDestroy() {
     this.routerSub?.unsubscribe();
     this.authSub?.unsubscribe();
+    this.openSub?.unsubscribe();
   }
 
   get contextLabel(): string {
@@ -262,8 +269,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     let conceptId: number | null = null;
     let topicId: number | null = null;
 
-    if (this.saveTarget === 'note') conceptId = this.conceptId;
-    else if (this.saveTarget === 'subject') topicId = this.selectedTopicId;
+    if (this.saveTarget === 'note') {
+      conceptId = this.conceptId;
+      this.chatService.emitTermsForNote(terms);
+    } else if (this.saveTarget === 'subject') {
+      topicId = this.selectedTopicId;
+    }
 
     this.chatService.saveTerms(conceptId, topicId, terms).subscribe({
       next: () => {
