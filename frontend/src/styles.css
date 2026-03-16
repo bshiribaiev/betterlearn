@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 button, a, [role="button"] {
   cursor: pointer;
@@ -335,4 +336,54 @@ button, a, [role="button"] {
 
 .editor-image-wrapper:hover .editor-image-zoom {
   opacity: 1;
+}
+
+/* Math block */
+.math-block {
+  margin: 0.75rem 0;
+  background: #f9fafb;
+  border-left: 3px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.math-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.math-sigma {
+  color: #9ca3af;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.math-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  color: #374151;
+  outline: none;
+  padding: 0;
+}
+
+.math-input::placeholder {
+  color: #d1d5db;
+}
+
+.math-preview {
+  overflow-x: auto;
+}
+
+.math-preview .katex-display {
+  margin: 0.25rem 0;
+}
+
+.math-empty {
+  color: #d1d5db;
+  font-size: 0.875rem;
 }

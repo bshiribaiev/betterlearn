@@ -17,6 +17,7 @@ import { TiptapEditorDirective } from 'ngx-tiptap';
 import Suggestion, { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
 import { TermBlock } from './term-block.extension';
 import { PdfAttachment } from './pdf-attachment.extension';
+import { MathBlock } from './math-block.extension';
 
 interface SlashCommandItem {
   label: string;
@@ -65,6 +66,10 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
         { type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }] },
       ]).run();
     }
+  },
+  {
+    label: 'Math', icon: '∑',
+    action: (editor) => editor.commands.insertContent({ type: 'mathBlock', attrs: { formula: '' } })
   },
 ];
 
@@ -391,7 +396,9 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           },
         }),
         TermBlock,
+        MathBlock,
         PdfAttachment,
+        this.createTabIndentExtension(),
         this.createSlashCommandExtension(),
         this.createImagePasteExtension(),
       ],
@@ -692,6 +699,31 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
     this.editor.commands.setContent(content);
   }
 
+  private createTabIndentExtension(): Extension {
+    return Extension.create({
+      name: 'tabIndent',
+      addKeyboardShortcuts() {
+        return {
+          Tab: () => {
+            if (this.editor.isActive('listItem')) {
+              return this.editor.commands.sinkListItem('listItem');
+            }
+            if (this.editor.isActive('codeBlock')) {
+              return false;
+            }
+            return this.editor.chain().insertContent('    ').run();
+          },
+          'Shift-Tab': () => {
+            if (this.editor.isActive('listItem')) {
+              return this.editor.commands.liftListItem('listItem');
+            }
+            return false;
+          },
+        };
+      },
+    });
+  }
+
   private createSlashCommandExtension(): Extension {
     const component = this;
 
@@ -702,7 +734,6 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
           Suggestion<SlashCommandItem>({
             editor: this.editor,
             char: '/',
-            startOfLine: true,
             items: ({ query }) => {
               if (!query) return SLASH_COMMANDS;
               const q = query.toLowerCase();
