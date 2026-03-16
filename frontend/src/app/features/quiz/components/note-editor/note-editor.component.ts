@@ -742,6 +742,19 @@ export class NoteEditorComponent implements OnInit, OnDestroy, AfterViewInit {
             }
             return false;
           },
+          Backspace: () => {
+            if (this.editor.isActive('listItem') || this.editor.isActive('codeBlock')) {
+              return false;
+            }
+            const { state } = this.editor;
+            const { from, empty } = state.selection;
+            if (!empty) return false;
+            const textBefore = state.doc.textBetween(Math.max(0, from - 4), from);
+            if (textBefore === '    ') {
+              return this.editor.chain().deleteRange({ from: from - 4, to: from }).run();
+            }
+            return false;
+          },
         };
       },
     });
