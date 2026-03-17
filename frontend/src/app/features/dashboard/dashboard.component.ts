@@ -267,7 +267,7 @@ export class DashboardComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
     const review = new Date(nextReview + 'T00:00:00');
     const days = Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (days === 0) return 'Due today';
+    if (days === 0) return 'Today';
     if (days === 1) return 'Due tomorrow';
     const dateStr = review.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     return 'Due ' + dateStr;

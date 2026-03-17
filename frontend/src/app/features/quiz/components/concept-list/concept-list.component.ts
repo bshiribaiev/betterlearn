@@ -162,7 +162,7 @@ export class ConceptListComponent implements OnInit, OnDestroy {
 
   nextReviewLabel(concept: QuizConcept): string {
     const days = this.daysUntilReview(concept);
-    if (days === 0) return 'Due today';
+    if (days === 0) return 'Today';
     if (days === 1) return 'Tomorrow';
     const date = new Date(concept.nextReview + 'T00:00:00');
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

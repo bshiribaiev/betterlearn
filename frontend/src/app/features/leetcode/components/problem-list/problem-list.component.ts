@@ -92,7 +92,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   nextReviewLabel(problem: Problem): string {
     if (problem.status === 'new') return 'New';
     const days = this.daysUntilReview(problem);
-    if (days === 0) return 'Due today';
+    if (days === 0) return 'Today';
     if (days === 1) return 'Tomorrow';
     const date = new Date(problem.nextReview + 'T00:00:00');
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

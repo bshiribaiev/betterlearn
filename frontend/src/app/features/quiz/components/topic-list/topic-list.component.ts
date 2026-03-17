@@ -114,7 +114,7 @@ export class TopicListComponent implements OnInit, OnDestroy {
     if (!topic.earliestDueDate) return 'Empty';
     const days = this.daysUntilReview(topic);
     if (days < 0) return `${Math.abs(days)}d overdue`;
-    if (days === 0) return 'Due today';
+    if (days === 0) return 'Today';
     if (days === 1) return 'Tomorrow';
     return `In ${days} days`;
   }
