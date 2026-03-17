@@ -447,6 +447,7 @@ public class QuizService {
     }
 
     // Single question generation
+    @Transactional(readOnly = true)
     public QuizQuestionDto generateOneForConcept(Long userId, Long conceptId, List<String> previousQuestions) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         String topicName = concept.getTopic().getName();
