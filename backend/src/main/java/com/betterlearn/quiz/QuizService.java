@@ -93,6 +93,13 @@ public class QuizService {
     }
 
     // Concept CRUD
+    @Transactional(readOnly = true)
+    public List<ConceptResponse> findAllConcepts(Long userId) {
+        return conceptRepo.findAllByUserId(userId).stream()
+                .map(ConceptResponse::from)
+                .toList();
+    }
+
     public List<ConceptResponse> findConceptsByTopic(Long userId, Long topicId) {
         findOwnedTopic(userId, topicId);
         return conceptRepo.findByTopicId(topicId).stream()

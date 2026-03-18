@@ -25,6 +25,9 @@ public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> 
     @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId ORDER BY c.updatedAt DESC")
     List<QuizConcept> findRecentByUserId(Long userId, Pageable pageable);
 
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId ORDER BY c.updatedAt DESC")
+    List<QuizConcept> findAllByUserId(Long userId);
+
     Optional<QuizConcept> findByTopicIdAndName(Long topicId, String name);
 
     boolean existsByTopicIdAndName(Long topicId, String name);

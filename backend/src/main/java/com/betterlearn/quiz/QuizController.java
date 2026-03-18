@@ -64,6 +64,11 @@ public class QuizController {
     }
 
     // Concepts
+    @GetMapping("/concepts")
+    public List<ConceptResponse> findAllConcepts(@RequestAttribute Long userId) {
+        return quizService.findAllConcepts(userId);
+    }
+
     @GetMapping("/topics/{topicId}/concepts")
     public List<ConceptResponse> findConcepts(@RequestAttribute Long userId,
                                               @PathVariable Long topicId) {

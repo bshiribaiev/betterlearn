@@ -32,6 +32,10 @@ export class QuizService {
   }
 
   // Concepts
+  findAllConcepts() {
+    return this.http.get<QuizConcept[]>('/api/quiz/concepts');
+  }
+
   findConcepts(topicId: number) {
     return this.http.get<QuizConcept[]>(`/api/quiz/topics/${topicId}/concepts`);
   }

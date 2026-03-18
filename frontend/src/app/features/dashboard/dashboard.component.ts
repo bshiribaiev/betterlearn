@@ -46,6 +46,7 @@ interface DueItem {
 
       <app-search-input class="block mb-3" (searchChange)="searchQuery = $event" />
 
+      @if (!searchQuery) {
       <!-- Capture area -->
       <div (click)="quickNote()"
            class="mb-8 flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors group">
@@ -153,10 +154,59 @@ interface DueItem {
         </div>
       }
 
-      @if (dueItems.length === 0 && !searchQuery) {
+      @if (dueItems.length === 0) {
         <div class="text-center py-12">
           <p class="text-gray-400 text-sm">Nothing due today. Nice work!</p>
         </div>
+      }
+      }
+
+      <!-- Search results (when searching) -->
+      @if (searchQuery) {
+        @if (searchResultNotes.length > 0) {
+          <div class="mb-6">
+            <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Notes</h2>
+            <div class="space-y-2">
+              @for (concept of searchResultNotes; track concept.id) {
+                <a [routerLink]="['/quiz', concept.topicId, 'notes', concept.id]"
+                   [state]="{ from: 'dashboard', topicName: concept.topicName }"
+                   class="flex items-center gap-3 py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                  <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                  </svg>
+                  <span class="text-sm font-medium text-gray-500">{{ concept.topicName }}</span>
+                  <span class="text-sm text-gray-300">/</span>
+                  <span class="text-sm text-gray-700">{{ concept.name }}</span>
+                  <span [class]="'ml-auto text-xs ' + dueColor(concept.nextReview)">{{ dueLabel(concept.nextReview) }}</span>
+                </a>
+              }
+            </div>
+          </div>
+        }
+
+        @if (searchResultProblems.length > 0) {
+          <div class="mb-6">
+            <h2 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">LeetCode</h2>
+            <div class="space-y-2">
+              @for (problem of searchResultProblems; track problem.id) {
+                <a [href]="problem.url" target="_blank" rel="noopener"
+                   class="flex items-center gap-3 py-3 px-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all">
+                  <span class="text-sm text-gray-700">{{ problem.title }}</span>
+                  <svg class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  <span [class]="'ml-auto text-xs ' + dueColor(problem.nextReview)">{{ dueLabel(problem.nextReview) }}</span>
+                </a>
+              }
+            </div>
+          </div>
+        }
+
+        @if (searchResultNotes.length === 0 && searchResultProblems.length === 0) {
+          <div class="text-center py-12">
+            <p class="text-gray-400 text-sm">No results</p>
+          </div>
+        }
       }
       }
     </div>
@@ -177,14 +227,20 @@ export class DashboardComponent implements OnInit {
   private quickNotesTopic: QuizTopic | null = null;
   private quickNoteCounter = 0;
 
+  // All items for search
+  allConcepts: QuizConcept[] = [];
+  allProblems: Problem[] = [];
+
   ngOnInit() {
     this.loadData();
+    this.loadSearchData();
     this.quizService.findOrCreateQuickNotes().subscribe({
       next: (topic) => this.quickNotesTopic = topic
     });
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd && event.urlAfterRedirects === '/dashboard') {
         this.loadData();
+        this.loadSearchData();
       }
     });
   }
@@ -247,11 +303,11 @@ export class DashboardComponent implements OnInit {
 
   get filteredRecentConcepts(): QuizConcept[] {
     if (!this.data?.recentConcepts) return [];
-    return this.data.recentConcepts.filter(c => matchesSearch(this.searchQuery, c.name, c.topicName));
+    return this.data.recentConcepts;
   }
 
   get filteredDueItems(): DueItem[] {
-    return this.dueItems.filter(i => matchesSearch(this.searchQuery, i.label, i.sublabel));
+    return this.dueItems;
   }
 
   get dueNotes(): DueItem[] {
@@ -260,6 +316,16 @@ export class DashboardComponent implements OnInit {
 
   get dueLeetcode(): DueItem[] {
     return this.filteredDueItems.filter(i => i.type === 'leetcode');
+  }
+
+  get searchResultNotes(): QuizConcept[] {
+    if (!this.searchQuery) return [];
+    return this.allConcepts.filter(c => matchesSearch(this.searchQuery, c.name, c.topicName));
+  }
+
+  get searchResultProblems(): Problem[] {
+    if (!this.searchQuery) return [];
+    return this.allProblems.filter(p => matchesSearch(this.searchQuery, p.title));
   }
 
   dueLabel(nextReview: string): string {
@@ -313,5 +379,10 @@ export class DashboardComponent implements OnInit {
       this.initQuickNoteCounter();
       this.loading = false;
     });
+  }
+
+  private loadSearchData() {
+    this.quizService.findAllConcepts().subscribe(c => this.allConcepts = c);
+    this.http.get<Problem[]>('/api/leetcode').subscribe(p => this.allProblems = p);
   }
 }
