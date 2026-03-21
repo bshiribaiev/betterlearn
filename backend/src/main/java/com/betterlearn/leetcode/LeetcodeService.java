@@ -113,6 +113,7 @@ public class LeetcodeService {
                 result.status()
         );
         problem.setConfidence(deriveConfidence(quality));
+        problem.setLastReviewed(java.time.LocalDate.now());
 
         reviewRepo.save(new LeetcodeReview(problem, quality));
         return ProblemResponse.from(problemRepo.save(problem));

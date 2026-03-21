@@ -79,16 +79,17 @@
   } @else {
     <div>
       <!-- Table header -->
-      <div class="grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+      <div class="grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_120px_120px_120px_110px] gap-4 items-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
         <span>Problem</span>
         <span class="hidden sm:inline">Confidence</span>
+        <span class="hidden sm:inline">Last Review</span>
         <span class="hidden sm:inline">Next Review</span>
         <span></span>
       </div>
 
       <!-- Rows -->
       @for (problem of filteredProblems; track problem.id) {
-        <div [class]="'grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_140px_140px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
+        <div [class]="'grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_120px_120px_120px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
           <!-- Problem name + link icon -->
           <div class="min-w-0 flex items-center gap-2">
             <button (click)="toggleExpand(problem, $event)"
@@ -120,6 +121,11 @@
                 }
               </div>
             }
+          </div>
+
+          <!-- Last review -->
+          <div class="hidden sm:block">
+            <span class="text-base text-gray-400">{{ lastReviewLabel(problem) }}</span>
           </div>
 
           <!-- Next review -->

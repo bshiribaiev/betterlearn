@@ -98,6 +98,11 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
+  lastReviewLabel(problem: Problem): string {
+    const date = new Date(problem.lastReviewed + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
   nextReviewColor(problem: Problem): string {
     if (problem.status === 'new') return 'text-gray-400';
     const days = this.daysUntilReview(problem);

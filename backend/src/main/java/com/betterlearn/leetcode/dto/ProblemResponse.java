@@ -11,6 +11,7 @@ public record ProblemResponse(
         String notes,
         LocalDate firstAttempted,
         LocalDate nextReview,
+        LocalDate lastReviewed,
         int intervalDays,
         double easinessFactor,
         int repetition,
@@ -20,9 +21,9 @@ public record ProblemResponse(
     public static ProblemResponse from(LeetcodeProblem p) {
         return new ProblemResponse(
                 p.getId(), p.getUrl(), p.getTitle(), p.getNotes(),
-                p.getFirstAttempted(), p.getNextReview(), p.getIntervalDays(),
-                p.getEasinessFactor(), p.getRepetition(), p.getStatus(),
-                p.getConfidence()
+                p.getFirstAttempted(), p.getNextReview(), p.getLastReviewed(),
+                p.getIntervalDays(), p.getEasinessFactor(), p.getRepetition(),
+                p.getStatus(), p.getConfidence()
         );
     }
 }

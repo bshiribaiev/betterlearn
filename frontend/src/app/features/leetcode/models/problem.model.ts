@@ -5,6 +5,7 @@ export interface Problem {
   notes: string | null;
   firstAttempted: string;
   nextReview: string;
+  lastReviewed: string;
   intervalDays: number;
   easinessFactor: number;
   repetition: number;
