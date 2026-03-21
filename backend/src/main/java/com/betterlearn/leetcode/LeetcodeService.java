@@ -75,6 +75,7 @@ public class LeetcodeService {
 
         if (request.title() != null) problem.setTitle(request.title());
         if (request.notes() != null) problem.setNotes(request.notes());
+        if (request.lastReviewed() != null) problem.setLastReviewed(request.lastReviewed());
 
         return ProblemResponse.from(problemRepo.save(problem));
     }

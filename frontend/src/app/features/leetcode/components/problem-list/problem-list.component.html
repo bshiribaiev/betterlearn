@@ -124,8 +124,51 @@
           </div>
 
           <!-- Last review -->
-          <div class="hidden sm:block">
-            <span class="text-base text-gray-400">{{ lastReviewLabel(problem) }}</span>
+          <div class="relative hidden sm:block">
+            <button (click)="startLastReviewReschedule(problem, $event)"
+                    class="text-base text-gray-400 cursor-pointer hover:underline">
+              {{ lastReviewLabel(problem) }}
+            </button>
+            @if (reschedulingLastReviewId === problem.id) {
+              <div class="absolute top-8 left-0 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 w-[280px]"
+                   (click)="$event.stopPropagation()">
+                <div class="flex justify-between mb-2 pb-2 border-b border-gray-100">
+                  <button (click)="selectLastReviewDay(problem, todayString())" class="text-sm font-medium text-sky-500 hover:text-sky-600 cursor-pointer">Today</button>
+                </div>
+                <div class="flex items-center justify-between mb-3">
+                  <button (click)="calendarPrevMonth()" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                  </button>
+                  <span class="text-sm font-semibold text-gray-800">{{ calendarMonthLabel }}</span>
+                  <button (click)="calendarNextMonth()" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  </button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 mb-1">
+                  @for (day of ['Su','Mo','Tu','We','Th','Fr','Sa']; track day) {
+                    <span class="text-xs font-medium text-gray-400 text-center py-1">{{ day }}</span>
+                  }
+                </div>
+                <div class="grid grid-cols-7 gap-1">
+                  @for (cell of calendarDays; track $index) {
+                    @if (cell) {
+                      <button (click)="selectLastReviewDay(problem, cell.date)"
+                              [class]="'text-sm rounded-xl py-1.5 cursor-pointer transition-colors ' +
+                                (cell.isSelected ? 'bg-sky-500 text-white font-semibold' :
+                                 cell.isToday ? 'bg-sky-50 text-sky-600 font-semibold hover:bg-sky-100' :
+                                 cell.inMonth ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-300')">
+                        {{ cell.day }}
+                      </button>
+                    } @else {
+                      <span></span>
+                    }
+                  }
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100 text-right">
+                  <button (click)="reschedulingLastReviewId = null" class="text-xs font-medium text-gray-400 hover:text-gray-600 cursor-pointer">Cancel</button>
+                </div>
+              </div>
+            }
           </div>
 
           <!-- Next review -->

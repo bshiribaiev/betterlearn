@@ -19,7 +19,7 @@ export class LeetcodeService {
     return this.http.post<Problem>(this.base, request);
   }
 
-  update(id: number, data: { title?: string; notes?: string }) {
+  update(id: number, data: { title?: string; notes?: string; lastReviewed?: string }) {
     return this.http.put<Problem>(`${this.base}/${id}`, data);
   }
 

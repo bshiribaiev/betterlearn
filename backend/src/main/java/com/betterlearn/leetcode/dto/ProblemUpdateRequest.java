@@ -1,6 +1,9 @@
 package com.betterlearn.leetcode.dto;
 
+import java.time.LocalDate;
+
 public record ProblemUpdateRequest(
         String title,
-        String notes
+        String notes,
+        LocalDate lastReviewed
 ) {}

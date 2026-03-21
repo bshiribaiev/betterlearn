@@ -34,6 +34,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
   deletedProblem: Problem | null = null;
   private deleteTimer: any = null;
   reschedulingProblemId: number | null = null;
+  reschedulingLastReviewId: number | null = null;
   calendarYear = 0;
   calendarMonth = 0;
   calendarSelectedDate = '';
@@ -50,6 +51,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     this.confidenceMenuProblem = null;
     this.showAddForm = false;
     this.reschedulingProblemId = null;
+    this.reschedulingLastReviewId = null;
   }
 
   ngOnInit() {
@@ -227,9 +229,30 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     return new Date(this.calendarYear, this.calendarMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }
 
+  startLastReviewReschedule(problem: Problem, event: Event) {
+    event.stopPropagation();
+    this.reschedulingLastReviewId = problem.id;
+    this.reschedulingProblemId = null;
+    this.calendarSelectedDate = problem.lastReviewed;
+    const d = new Date(problem.lastReviewed + 'T00:00:00');
+    this.calendarYear = d.getFullYear();
+    this.calendarMonth = d.getMonth();
+    this.buildCalendar();
+  }
+
+  selectLastReviewDay(problem: Problem, date: string) {
+    this.reschedulingLastReviewId = null;
+    if (date === problem.lastReviewed) return;
+    this.leetcodeService.update(problem.id, { lastReviewed: date }).subscribe(updated => {
+      const idx = this.problems.findIndex(p => p.id === problem.id);
+      if (idx !== -1) this.problems[idx] = updated;
+    });
+  }
+
   startReschedule(problem: Problem, event: Event) {
     event.stopPropagation();
     this.reschedulingProblemId = problem.id;
+    this.reschedulingLastReviewId = null;
     this.calendarSelectedDate = problem.nextReview;
     const d = new Date(problem.nextReview + 'T00:00:00');
     this.calendarYear = d.getFullYear();
