@@ -29,7 +29,7 @@ app:
     frontend-callback: ${env.GOOGLE_FRONTEND_CALLBACK:${GOOGLE_FRONTEND_CALLBACK:http://localhost:4200/auth/callback}}
   jwt:
     secret: ${env.JWT_SECRET:${JWT_SECRET:dev-secret-key-change-in-production-must-be-at-least-256-bits-long}}
-    expiration-ms: 604800000  # 7 days
+    expiration-ms: 2592000000  # 30 days
   gemini:
     api-key: ${env.GEMINI_API_KEY:${GEMINI_API_KEY:}}
     model: gemini-2.5-flash
