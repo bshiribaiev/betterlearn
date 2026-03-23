@@ -80,9 +80,9 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     const list = tabbed.filter(p => matchesSearch(this.searchQuery, p.title, p.notes, p.url));
     const confRank: Record<string, number> = { 'none': 0, 'low': 1, 'average': 2, 'high': 3 };
     return [...list].sort((a, b) => {
-      const dateCmp = a.nextReview.localeCompare(b.nextReview);
-      if (dateCmp !== 0) return dateCmp;
-      return (confRank[a.confidence] ?? 0) - (confRank[b.confidence] ?? 0);
+      const confCmp = (confRank[a.confidence] ?? 0) - (confRank[b.confidence] ?? 0);
+      if (confCmp !== 0) return confCmp;
+      return a.nextReview.localeCompare(b.nextReview);
     });
   }
 

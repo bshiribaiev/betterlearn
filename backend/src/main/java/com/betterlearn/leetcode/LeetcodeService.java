@@ -8,27 +8,37 @@ import com.betterlearn.spacedrepetition.Sm2Result;
 import com.betterlearn.spacedrepetition.Sm2Service;
 import com.betterlearn.user.User;
 import com.betterlearn.user.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class LeetcodeService {
+
+    private static final Logger log = LoggerFactory.getLogger(LeetcodeService.class);
 
     private final LeetcodeRepository problemRepo;
     private final LeetcodeReviewRepository reviewRepo;
     private final UserRepository userRepo;
     private final Sm2Service sm2Service;
+    private final RestTemplate restTemplate;
 
     public LeetcodeService(LeetcodeRepository problemRepo,
                            LeetcodeReviewRepository reviewRepo,
                            UserRepository userRepo,
-                           Sm2Service sm2Service) {
+                           Sm2Service sm2Service,
+                           RestTemplate restTemplate) {
         this.problemRepo = problemRepo;
         this.reviewRepo = reviewRepo;
         this.userRepo = userRepo;
         this.sm2Service = sm2Service;
+        this.restTemplate = restTemplate;
     }
 
     public List<ProblemResponse> findAll(Long userId) {
@@ -56,7 +66,16 @@ public class LeetcodeService {
 
         String confidence = request.confidence() != null ? request.confidence() : "none";
         LeetcodeProblem problem = new LeetcodeProblem(user, request.url(), title, request.notes(), confidence);
-        if (request.difficulty() != null) problem.setDifficulty(request.difficulty());
+
+        if (request.difficulty() != null) {
+            problem.setDifficulty(request.difficulty());
+        } else {
+            String slug = parseSlugFromUrl(request.url());
+            if (slug != null) {
+                String fetched = fetchDifficultyFromLeetCode(slug);
+                if (fetched != null) problem.setDifficulty(fetched);
+            }
+        }
 
         if (!"none".equals(confidence)) {
             int quality = confidenceToQuality(confidence);
@@ -170,6 +189,29 @@ public class LeetcodeService {
         // Fallback: use last path segment
         String slug = path.substring(path.lastIndexOf('/') + 1);
         return slugToTitle(slug);
+    }
+
+    static String parseSlugFromUrl(String url) {
+        String path = url.replaceAll("\\?.*", "").replaceAll("/$", "");
+        int idx = path.indexOf("/problems/");
+        if (idx < 0) return null;
+        String after = path.substring(idx + "/problems/".length());
+        return after.contains("/") ? after.substring(0, after.indexOf('/')) : after;
+    }
+
+    private String fetchDifficultyFromLeetCode(String slug) {
+        try {
+            String query = "query { question(titleSlug: \"" + slug + "\") { difficulty } }";
+            Map<String, Object> body = Map.of("query", query);
+            JsonNode response = restTemplate.postForObject("https://leetcode.com/graphql", body, JsonNode.class);
+            if (response == null) return null;
+            String difficulty = response.path("data").path("question").path("difficulty").asText(null);
+            if (difficulty == null) return null;
+            return difficulty.toLowerCase();
+        } catch (Exception e) {
+            log.debug("Failed to fetch LeetCode difficulty for {}: {}", slug, e.getMessage());
+            return null;
+        }
     }
 
     private static String slugToTitle(String slug) {
