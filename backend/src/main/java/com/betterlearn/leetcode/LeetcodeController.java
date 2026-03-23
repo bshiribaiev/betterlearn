@@ -70,4 +70,9 @@ public class LeetcodeController {
                                            @PathVariable Long id) {
         return leetcodeService.getHistory(userId, id);
     }
+
+    @PostMapping("/backfill-difficulty")
+    public Map<String, Integer> backfillDifficulty() {
+        return Map.of("updated", leetcodeService.backfillDifficulties());
+    }
 }

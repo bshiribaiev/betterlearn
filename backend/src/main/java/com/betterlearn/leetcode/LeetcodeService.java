@@ -191,6 +191,24 @@ public class LeetcodeService {
         return slugToTitle(slug);
     }
 
+    @Transactional
+    public int backfillDifficulties() {
+        List<LeetcodeProblem> problems = problemRepo.findAllWithoutDifficulty();
+        int updated = 0;
+        for (LeetcodeProblem p : problems) {
+            String slug = parseSlugFromUrl(p.getUrl());
+            if (slug == null) continue;
+            String difficulty = fetchDifficultyFromLeetCode(slug);
+            if (difficulty != null) {
+                p.setDifficulty(difficulty);
+                problemRepo.save(p);
+                updated++;
+            }
+        }
+        log.info("Backfilled difficulty for {} / {} problems", updated, problems.size());
+        return updated;
+    }
+
     static String parseSlugFromUrl(String url) {
         String path = url.replaceAll("\\?.*", "").replaceAll("/$", "");
         int idx = path.indexOf("/problems/");

@@ -18,4 +18,7 @@ public interface LeetcodeRepository extends JpaRepository<LeetcodeProblem, Long>
     boolean existsByUserIdAndUrl(Long userId, String url);
 
     long countByUserIdAndStatus(Long userId, String status);
+
+    @Query("SELECT p FROM LeetcodeProblem p WHERE p.difficulty IS NULL")
+    List<LeetcodeProblem> findAllWithoutDifficulty();
 }
