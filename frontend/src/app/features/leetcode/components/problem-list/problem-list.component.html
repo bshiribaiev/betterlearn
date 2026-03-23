@@ -287,9 +287,11 @@
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
-                <input [(ngModel)]="editNotes" (blur)="saveEdit(problem)"
+                <textarea [(ngModel)]="editNotes" (blur)="saveEdit(problem)"
+                       (input)="autoResize($event)"
                        placeholder="Add notes..."
-                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400" />
+                       rows="1"
+                       class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 resize-none overflow-hidden"></textarea>
               </div>
             </div>
 

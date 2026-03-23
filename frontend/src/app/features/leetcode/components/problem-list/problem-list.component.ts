@@ -196,6 +196,12 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     this.deletedProblem = null;
   }
 
+  autoResize(event: Event) {
+    const el = event.target as HTMLTextAreaElement;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
   toggleExpand(problem: Problem, event: Event) {
     event.stopPropagation();
     if (this.expandedProblemId === problem.id) {
