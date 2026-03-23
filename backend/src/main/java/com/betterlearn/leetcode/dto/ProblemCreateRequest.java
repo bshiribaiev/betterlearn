@@ -6,5 +6,6 @@ public record ProblemCreateRequest(
         @NotBlank String url,
         String title,
         String notes,
-        String confidence
+        String confidence,
+        String difficulty
 ) {}

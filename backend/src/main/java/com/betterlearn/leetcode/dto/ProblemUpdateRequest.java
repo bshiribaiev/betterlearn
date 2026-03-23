@@ -5,5 +5,6 @@ import java.time.LocalDate;
 public record ProblemUpdateRequest(
         String title,
         String notes,
-        LocalDate lastReviewed
+        LocalDate lastReviewed,
+        String difficulty
 ) {}

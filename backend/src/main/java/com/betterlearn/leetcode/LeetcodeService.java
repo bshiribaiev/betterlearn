@@ -56,6 +56,7 @@ public class LeetcodeService {
 
         String confidence = request.confidence() != null ? request.confidence() : "none";
         LeetcodeProblem problem = new LeetcodeProblem(user, request.url(), title, request.notes(), confidence);
+        if (request.difficulty() != null) problem.setDifficulty(request.difficulty());
 
         if (!"none".equals(confidence)) {
             int quality = confidenceToQuality(confidence);
@@ -76,6 +77,7 @@ public class LeetcodeService {
         if (request.title() != null) problem.setTitle(request.title());
         if (request.notes() != null) problem.setNotes(request.notes());
         if (request.lastReviewed() != null) problem.setLastReviewed(request.lastReviewed());
+        if (request.difficulty() != null) problem.setDifficulty(request.difficulty());
 
         return ProblemResponse.from(problemRepo.save(problem));
     }

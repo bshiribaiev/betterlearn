@@ -16,14 +16,15 @@ public record ProblemResponse(
         double easinessFactor,
         int repetition,
         String status,
-        String confidence
+        String confidence,
+        String difficulty
 ) {
     public static ProblemResponse from(LeetcodeProblem p) {
         return new ProblemResponse(
                 p.getId(), p.getUrl(), p.getTitle(), p.getNotes(),
                 p.getFirstAttempted(), p.getNextReview(), p.getLastReviewed(),
                 p.getIntervalDays(), p.getEasinessFactor(), p.getRepetition(),
-                p.getStatus(), p.getConfidence()
+                p.getStatus(), p.getConfidence(), p.getDifficulty()
         );
     }
 }

@@ -61,6 +61,23 @@
                 </button>
               </div>
             </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1.5">Difficulty</label>
+              <div class="flex gap-2">
+                <button type="button" (click)="addDifficulty = 'easy'"
+                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addDifficulty === 'easy' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
+                  Easy
+                </button>
+                <button type="button" (click)="addDifficulty = 'medium'"
+                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addDifficulty === 'medium' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
+                  Medium
+                </button>
+                <button type="button" (click)="addDifficulty = 'hard'"
+                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addDifficulty === 'hard' ? 'bg-red-50 border-red-300 text-red-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
+                  Hard
+                </button>
+              </div>
+            </div>
             <button type="submit"
                     class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
               Add Problem
@@ -90,12 +107,28 @@
       <!-- Rows -->
       @for (problem of filteredProblems; track problem.id) {
         <div [class]="'grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_120px_120px_120px_110px] gap-4 items-center py-4 hover:bg-gray-50/50 transition-colors ' + ($last ? '' : 'border-b border-gray-200')">
-          <!-- Problem name + link icon -->
+          <!-- Problem name + difficulty + link icon -->
           <div class="min-w-0 flex items-center gap-2">
             <button (click)="toggleExpand(problem, $event)"
                     class="text-base font-medium text-gray-900 truncate hover:text-sky-600 transition-colors cursor-pointer text-left">
               {{ problem.title }}
             </button>
+            <div class="relative flex-shrink-0">
+              <button (click)="toggleDifficultyMenu(problem)"
+                      [class]="'text-sm font-bold cursor-pointer hover:opacity-70 ' + difficultyColor(problem)">
+                {{ difficultyLetter(problem) || '·' }}
+              </button>
+              @if (difficultyMenuProblem?.id === problem.id) {
+                <div class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 min-w-[100px]">
+                  @for (opt of difficultyOptions; track opt.value) {
+                    <button (click)="setDifficulty(problem, opt.value)"
+                            [class]="'w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ' + opt.color">
+                      {{ opt.label }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
             <a [href]="problem.url" target="_blank" rel="noopener"
                class="flex-shrink-0 text-gray-300 hover:text-blue-500 transition-colors">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

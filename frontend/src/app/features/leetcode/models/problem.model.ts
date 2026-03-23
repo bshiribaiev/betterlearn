@@ -11,6 +11,7 @@ export interface Problem {
   repetition: number;
   status: 'new' | 'learning' | 'review' | 'mastered';
   confidence: 'none' | 'low' | 'average' | 'high';
+  difficulty: 'easy' | 'medium' | 'hard' | null;
 }
 
 export interface ProblemCreate {
@@ -18,6 +19,7 @@ export interface ProblemCreate {
   title?: string;
   notes?: string;
   confidence?: string;
+  difficulty?: string;
 }
 
 export interface ReviewEntry {

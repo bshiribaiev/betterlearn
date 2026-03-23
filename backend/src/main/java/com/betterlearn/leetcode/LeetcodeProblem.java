@@ -47,6 +47,9 @@ public class LeetcodeProblem {
     @Column(nullable = false, length = 10)
     private String confidence = "none";
 
+    @Column(length = 10)
+    private String difficulty;
+
     @Column(name = "last_reviewed", nullable = false)
     private LocalDate lastReviewed = LocalDate.now();
 
@@ -92,6 +95,9 @@ public class LeetcodeProblem {
 
     public String getConfidence() { return confidence; }
     public void setConfidence(String confidence) { this.confidence = confidence; }
+
+    public String getDifficulty() { return difficulty; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
 
     public LocalDate getLastReviewed() { return lastReviewed; }
     public void setLastReviewed(LocalDate lastReviewed) { this.lastReviewed = lastReviewed; }

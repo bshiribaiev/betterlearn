@@ -46,9 +46,19 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     { label: 'Great', quality: 5, color: 'text-emerald-500' },
   ];
 
+  difficultyMenuProblem: Problem | null = null;
+  addDifficulty = '';
+
+  difficultyOptions = [
+    { label: 'Easy', value: 'easy', letter: 'E', color: 'text-emerald-500' },
+    { label: 'Medium', value: 'medium', letter: 'M', color: 'text-amber-500' },
+    { label: 'Hard', value: 'hard', letter: 'H', color: 'text-red-500' },
+  ];
+
   @HostListener('document:click')
   closeMenus() {
     this.confidenceMenuProblem = null;
+    this.difficultyMenuProblem = null;
     this.showAddForm = false;
     this.reschedulingProblemId = null;
     this.reschedulingLastReviewId = null;
@@ -98,6 +108,29 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     if (days === 1) return 'Tomorrow';
     const date = new Date(problem.nextReview + 'T00:00:00');
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  difficultyLetter(problem: Problem): string {
+    const map: Record<string, string> = { easy: 'E', medium: 'M', hard: 'H' };
+    return problem.difficulty ? map[problem.difficulty] ?? '' : '';
+  }
+
+  difficultyColor(problem: Problem): string {
+    const map: Record<string, string> = { easy: 'text-emerald-500', medium: 'text-amber-500', hard: 'text-red-500' };
+    return problem.difficulty ? map[problem.difficulty] ?? 'text-gray-300' : 'text-gray-300';
+  }
+
+  toggleDifficultyMenu(problem: Problem) {
+    event?.stopPropagation();
+    this.difficultyMenuProblem = this.difficultyMenuProblem?.id === problem.id ? null : problem;
+  }
+
+  setDifficulty(problem: Problem, value: string) {
+    this.difficultyMenuProblem = null;
+    this.leetcodeService.update(problem.id, { difficulty: value }).subscribe(updated => {
+      const idx = this.problems.findIndex(p => p.id === problem.id);
+      if (idx !== -1) this.problems[idx] = updated;
+    });
   }
 
   lastReviewLabel(problem: Problem): string {
@@ -207,6 +240,7 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     this.showAddForm = !this.showAddForm;
     this.addUrl = '';
     this.addConfidence = 'average';
+    this.addDifficulty = '';
     this.addError = '';
   }
 
@@ -215,7 +249,9 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     if (!this.addUrl.trim()) return;
     this.addError = '';
 
-    this.leetcodeService.create({ url: this.addUrl.trim(), confidence: this.addConfidence }).subscribe({
+    const req: any = { url: this.addUrl.trim(), confidence: this.addConfidence };
+    if (this.addDifficulty) req.difficulty = this.addDifficulty;
+    this.leetcodeService.create(req).subscribe({
       next: () => {
         this.showAddForm = false;
         this.addUrl = '';
