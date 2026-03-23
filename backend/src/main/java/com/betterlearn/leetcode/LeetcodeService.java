@@ -9,8 +9,12 @@ import com.betterlearn.spacedrepetition.Sm2Service;
 import com.betterlearn.user.User;
 import com.betterlearn.user.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -39,6 +43,11 @@ public class LeetcodeService {
         this.userRepo = userRepo;
         this.sm2Service = sm2Service;
         this.restTemplate = restTemplate;
+    }
+
+    @PostConstruct
+    void onStartup() {
+        backfillDifficulties();
     }
 
     public List<ProblemResponse> findAll(Long userId) {
@@ -221,13 +230,19 @@ public class LeetcodeService {
         try {
             String query = "query { question(titleSlug: \"" + slug + "\") { difficulty } }";
             Map<String, Object> body = Map.of("query", query);
-            JsonNode response = restTemplate.postForObject("https://leetcode.com/graphql", body, JsonNode.class);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Referer", "https://leetcode.com");
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            JsonNode response = restTemplate.postForObject("https://leetcode.com/graphql", request, JsonNode.class);
             if (response == null) return null;
             String difficulty = response.path("data").path("question").path("difficulty").asText(null);
             if (difficulty == null) return null;
             return difficulty.toLowerCase();
         } catch (Exception e) {
-            log.debug("Failed to fetch LeetCode difficulty for {}: {}", slug, e.getMessage());
+            log.warn("Failed to fetch LeetCode difficulty for {}: {}", slug, e.getMessage());
             return null;
         }
     }
