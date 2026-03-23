@@ -215,6 +215,10 @@ export class ProblemListComponent implements OnInit, OnDestroy {
     this.leetcodeService.getHistory(problem.id).subscribe(history => {
       this.reviewHistory = history;
     });
+    setTimeout(() => {
+      const ta = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Add notes..."]');
+      if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+    });
   }
 
   saveEdit(problem: Problem) {
