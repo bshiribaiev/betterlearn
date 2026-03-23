@@ -61,23 +61,6 @@
                 </button>
               </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-400 mb-1.5">Difficulty</label>
-              <div class="flex gap-2">
-                <button type="button" (click)="addDifficulty = 'easy'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addDifficulty === 'easy' ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Easy
-                </button>
-                <button type="button" (click)="addDifficulty = 'medium'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addDifficulty === 'medium' ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Medium
-                </button>
-                <button type="button" (click)="addDifficulty = 'hard'"
-                        [class]="'flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ' + (addDifficulty === 'hard' ? 'bg-red-50 border-red-300 text-red-600' : 'border-gray-200 text-gray-400 hover:border-gray-300')">
-                  Hard
-                </button>
-              </div>
-            </div>
             <button type="submit"
                     class="w-full py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors">
               Add Problem
