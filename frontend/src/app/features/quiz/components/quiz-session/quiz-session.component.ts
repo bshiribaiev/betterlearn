@@ -52,11 +52,23 @@ export class QuizSessionComponent implements OnInit {
   }
 
   private startPipeline() {
-    this.generateNext(0, []);
+    // Try batch first — returns cached questions instantly, or one Gemini call for all
+    this.quizService.generate(this.conceptId, this.questionCount).subscribe({
+      next: (res) => {
+        this.questions = res.questions;
+        this.questionCount = this.questions.length;
+        this.answers = new Array(this.questionCount).fill(-1);
+        this.generating = false;
+      },
+      error: () => {
+        // Fallback to one-by-one pipeline
+        this.fetchQuestion([]);
+      }
+    });
   }
 
-  private generateNext(index: number, previousQuestions: string[]) {
-    if (index >= this.questionCount) {
+  private fetchQuestion(previousQuestions: string[]) {
+    if (this.questions.length >= this.questionCount) {
       this.generating = false;
       return;
     }
@@ -65,14 +77,13 @@ export class QuizSessionComponent implements OnInit {
       next: (question) => {
         this.questions.push(question);
         this.answers.push(-1);
-        if (index + 1 >= this.questionCount) {
+        if (this.questions.length >= this.questionCount) {
           this.generating = false;
         } else {
-          this.generateNext(index + 1, [...previousQuestions, question.question]);
+          this.fetchQuestion([...previousQuestions, question.question]);
         }
       },
       error: () => {
-        // Stop pipeline on error, work with what we have
         this.questionCount = this.questions.length;
         this.generating = false;
       }
