@@ -10,11 +10,11 @@ import java.util.Optional;
 
 public interface QuizConceptRepository extends JpaRepository<QuizConcept, Long> {
 
-    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.id = :topicId ORDER BY CASE WHEN c.nextReview <= CURRENT_DATE THEN 0 ELSE 1 END, c.nextReview ASC")
-    List<QuizConcept> findByTopicId(Long topicId);
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.id = :topicId ORDER BY CASE WHEN c.nextReview <= :today THEN 0 ELSE 1 END, c.nextReview ASC")
+    List<QuizConcept> findByTopicId(Long topicId, LocalDate today);
 
-    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId AND c.nextReview <= CURRENT_DATE ORDER BY c.nextReview ASC")
-    List<QuizConcept> findDueByUserId(Long userId);
+    @Query("SELECT c FROM QuizConcept c JOIN FETCH c.topic WHERE c.topic.user.id = :userId AND c.nextReview <= :today ORDER BY c.nextReview ASC")
+    List<QuizConcept> findDueByUserId(Long userId, LocalDate today);
 
     @Query("SELECT MIN(c.nextReview) FROM QuizConcept c WHERE c.topic.id = :topicId")
     LocalDate findEarliestNextReviewByTopicId(Long topicId);

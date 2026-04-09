@@ -3,6 +3,8 @@ package com.betterlearn.leetcode;
 import com.betterlearn.user.User;
 import jakarta.persistence.*;
 
+import com.betterlearn.common.UserClock;
+
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -27,7 +29,7 @@ public class LeetcodeProblem {
     private String notes;
 
     @Column(name = "first_attempted", nullable = false)
-    private LocalDate firstAttempted = LocalDate.now();
+    private LocalDate firstAttempted = UserClock.today();
 
     @Column(name = "easiness_factor", nullable = false)
     private double easinessFactor = 2.5;
@@ -39,7 +41,7 @@ public class LeetcodeProblem {
     private int intervalDays = 0;
 
     @Column(name = "next_review", nullable = false)
-    private LocalDate nextReview = LocalDate.now().plusDays(1);
+    private LocalDate nextReview = UserClock.today().plusDays(1);
 
     @Column(nullable = false, length = 20)
     private String status = "new";
@@ -51,7 +53,7 @@ public class LeetcodeProblem {
     private String difficulty;
 
     @Column(name = "last_reviewed", nullable = false)
-    private LocalDate lastReviewed = LocalDate.now();
+    private LocalDate lastReviewed = UserClock.today();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();

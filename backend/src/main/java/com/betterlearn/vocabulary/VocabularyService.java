@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class VocabularyService {
     }
 
     public List<WordResponse> findByTopic(Long topicId) {
-        return wordRepo.findAllByTopicId(topicId).stream()
+        return wordRepo.findAllByTopicId(topicId, com.betterlearn.common.UserClock.today()).stream()
                 .map(WordResponse::from)
                 .toList();
     }
@@ -104,10 +103,10 @@ public class VocabularyService {
     // Grouped view
     @Transactional(readOnly = true)
     public List<WordGroupResponse> findByTopicGrouped(Long topicId) {
-        List<VocabularyWord> allWords = wordRepo.findAllByTopicId(topicId);
+        List<VocabularyWord> allWords = wordRepo.findAllByTopicId(topicId, com.betterlearn.common.UserClock.today());
         Map<LocalDate, List<VocabularyWord>> byDate = allWords.stream()
                 .collect(Collectors.groupingBy(
-                        w -> w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate(),
+                        w -> w.getCreatedAt().atZone(com.betterlearn.common.UserClock.zone()).toLocalDate(),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
@@ -119,7 +118,7 @@ public class VocabularyService {
         for (var entry : byDate.entrySet()) {
             LocalDate date = entry.getKey();
             List<VocabularyWord> words = entry.getValue();
-            long dueCount = words.stream().filter(w -> !w.getNextReview().isAfter(LocalDate.now())).count();
+            long dueCount = words.stream().filter(w -> !w.getNextReview().isAfter(com.betterlearn.common.UserClock.today())).count();
             groups.add(new WordGroupResponse(
                     date,
                     labels.get(date),
@@ -138,8 +137,8 @@ public class VocabularyService {
         Optional<VocabDateLabel> existing = labelRepo.findByTopicIdAndAddedDate(topic.getId(), date);
         if (existing.isPresent()) return existing.get().getLabel();
 
-        List<VocabularyWord> words = wordRepo.findAllByTopicId(topic.getId()).stream()
-                .filter(w -> w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate().equals(date))
+        List<VocabularyWord> words = wordRepo.findAllByTopicId(topic.getId(), com.betterlearn.common.UserClock.today()).stream()
+                .filter(w -> w.getCreatedAt().atZone(com.betterlearn.common.UserClock.zone()).toLocalDate().equals(date))
                 .toList();
 
         if (words.isEmpty()) throw new IllegalArgumentException("No words for this date");
@@ -155,8 +154,8 @@ public class VocabularyService {
     // Term quiz
     @Transactional(readOnly = true)
     public List<QuizQuestionDto> generateTermQuiz(Long topicId, LocalDate date, Integer count) {
-        List<VocabularyWord> words = wordRepo.findAllByTopicId(topicId).stream()
-                .filter(w -> date == null || w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate().equals(date))
+        List<VocabularyWord> words = wordRepo.findAllByTopicId(topicId, com.betterlearn.common.UserClock.today()).stream()
+                .filter(w -> date == null || w.getCreatedAt().atZone(com.betterlearn.common.UserClock.zone()).toLocalDate().equals(date))
                 .toList();
 
         if (words.isEmpty()) throw new IllegalArgumentException("No words found");
@@ -170,8 +169,8 @@ public class VocabularyService {
     @Transactional
     public TermQuizResultResponse submitTermQuiz(Long userId, Long topicId, LocalDate date,
                                                   List<QuizQuestionDto> questions, List<Integer> answers) {
-        List<VocabularyWord> words = wordRepo.findAllByTopicId(topicId).stream()
-                .filter(w -> date == null || w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate().equals(date))
+        List<VocabularyWord> words = wordRepo.findAllByTopicId(topicId, com.betterlearn.common.UserClock.today()).stream()
+                .filter(w -> date == null || w.getCreatedAt().atZone(com.betterlearn.common.UserClock.zone()).toLocalDate().equals(date))
                 .filter(w -> w.getTopic().getUser().getId().equals(userId))
                 .toList();
 
@@ -208,23 +207,23 @@ public class VocabularyService {
 
     // Dashboard queries
     public List<WordResponse> findDueForUser(Long userId) {
-        return wordRepo.findDueByTopicUserId(userId).stream()
+        return wordRepo.findDueByTopicUserId(userId, com.betterlearn.common.UserClock.today()).stream()
                 .map(WordResponse::from)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<DueTermGroupResponse> findDueGroupedForUser(Long userId) {
-        List<VocabularyWord> dueWords = wordRepo.findDueByTopicUserId(userId);
+        List<VocabularyWord> dueWords = wordRepo.findDueByTopicUserId(userId, com.betterlearn.common.UserClock.today());
         Map<String, List<VocabularyWord>> grouped = dueWords.stream()
                 .collect(Collectors.groupingBy(w -> w.getTopic().getId() + "|" +
-                        w.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate()));
+                        w.getCreatedAt().atZone(com.betterlearn.common.UserClock.zone()).toLocalDate()));
 
         return grouped.entrySet().stream().map(entry -> {
             VocabularyWord first = entry.getValue().getFirst();
             Long topicId = first.getTopic().getId();
             String topicName = first.getTopic().getName();
-            LocalDate addedDate = first.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate addedDate = first.getCreatedAt().atZone(com.betterlearn.common.UserClock.zone()).toLocalDate();
             String label = labelRepo.findByTopicIdAndAddedDate(topicId, addedDate)
                     .map(VocabDateLabel::getLabel).orElse(null);
             return new DueTermGroupResponse(topicId, topicName, addedDate, label, entry.getValue().size());

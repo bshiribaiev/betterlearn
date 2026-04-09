@@ -2,6 +2,8 @@ package com.betterlearn.spacedrepetition;
 
 import org.springframework.stereotype.Service;
 
+import com.betterlearn.common.UserClock;
+
 import java.time.LocalDate;
 
 @Service
@@ -31,7 +33,7 @@ public class Sm2Service {
             };
         }
 
-        LocalDate nextReview = LocalDate.now().plusDays(newInterval);
+        LocalDate nextReview = UserClock.today().plusDays(newInterval);
         String status = deriveStatus(newRepetition, newInterval);
 
         return new Sm2Result(newEf, newRepetition, newInterval, nextReview, status);

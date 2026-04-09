@@ -49,13 +49,13 @@ public class QuizService {
 
     // Topic CRUD
     public List<TopicResponse> findAll(Long userId) {
-        return topicRepo.findAllByUserId(userId).stream()
+        return topicRepo.findAllByUserId(userId, com.betterlearn.common.UserClock.today()).stream()
                 .map(t -> TopicResponse.from(t, earliestDueDate(t.getId())))
                 .toList();
     }
 
     public List<TopicResponse> findDue(Long userId) {
-        return topicRepo.findDueByUserId(userId).stream()
+        return topicRepo.findDueByUserId(userId, com.betterlearn.common.UserClock.today()).stream()
                 .map(t -> TopicResponse.from(t, earliestDueDate(t.getId())))
                 .toList();
     }
@@ -102,13 +102,13 @@ public class QuizService {
 
     public List<ConceptResponse> findConceptsByTopic(Long userId, Long topicId) {
         findOwnedTopic(userId, topicId);
-        return conceptRepo.findByTopicId(topicId).stream()
+        return conceptRepo.findByTopicId(topicId, com.betterlearn.common.UserClock.today()).stream()
                 .map(ConceptResponse::from)
                 .toList();
     }
 
     public List<ConceptResponse> findDueConcepts(Long userId) {
-        return conceptRepo.findDueByUserId(userId).stream()
+        return conceptRepo.findDueByUserId(userId, com.betterlearn.common.UserClock.today()).stream()
                 .map(ConceptResponse::from)
                 .toList();
     }
@@ -136,7 +136,7 @@ public class QuizService {
     public ConceptResponse rescheduleConcept(Long userId, Long conceptId, LocalDate nextReview) {
         QuizConcept concept = findOwnedConcept(userId, conceptId);
         concept.setNextReview(nextReview);
-        int gap = (int) java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), nextReview);
+        int gap = (int) java.time.temporal.ChronoUnit.DAYS.between(com.betterlearn.common.UserClock.today(), nextReview);
         if (gap > 0) concept.setIntervalDays(gap);
         concept.setCachedQuestions(null);
         return ConceptResponse.from(conceptRepo.save(concept));

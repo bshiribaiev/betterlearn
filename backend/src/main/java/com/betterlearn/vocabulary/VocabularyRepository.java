@@ -8,19 +8,19 @@ import java.util.List;
 
 public interface VocabularyRepository extends JpaRepository<VocabularyWord, Long> {
 
-    @Query("SELECT w FROM VocabularyWord w WHERE w.topic.id = :topicId ORDER BY CASE WHEN w.nextReview <= CURRENT_DATE THEN 0 ELSE 1 END, w.nextReview ASC")
-    List<VocabularyWord> findAllByTopicId(Long topicId);
+    @Query("SELECT w FROM VocabularyWord w WHERE w.topic.id = :topicId ORDER BY CASE WHEN w.nextReview <= :today THEN 0 ELSE 1 END, w.nextReview ASC")
+    List<VocabularyWord> findAllByTopicId(Long topicId, LocalDate today);
 
-    @Query("SELECT w FROM VocabularyWord w WHERE w.topic.id = :topicId AND w.nextReview <= CURRENT_DATE ORDER BY w.nextReview ASC")
-    List<VocabularyWord> findDueByTopicId(Long topicId);
+    @Query("SELECT w FROM VocabularyWord w WHERE w.topic.id = :topicId AND w.nextReview <= :today ORDER BY w.nextReview ASC")
+    List<VocabularyWord> findDueByTopicId(Long topicId, LocalDate today);
 
     @Query("SELECT MIN(w.nextReview) FROM VocabularyWord w WHERE w.topic.id = :topicId")
     LocalDate findEarliestNextReviewByTopicId(Long topicId);
 
     boolean existsByTopicIdAndWord(Long topicId, String word);
 
-    @Query("SELECT w FROM VocabularyWord w JOIN FETCH w.topic WHERE w.topic.user.id = :userId AND w.nextReview <= CURRENT_DATE ORDER BY w.nextReview ASC")
-    List<VocabularyWord> findDueByTopicUserId(Long userId);
+    @Query("SELECT w FROM VocabularyWord w JOIN FETCH w.topic WHERE w.topic.user.id = :userId AND w.nextReview <= :today ORDER BY w.nextReview ASC")
+    List<VocabularyWord> findDueByTopicUserId(Long userId, LocalDate today);
 
     long countByTopicUserId(Long userId);
 

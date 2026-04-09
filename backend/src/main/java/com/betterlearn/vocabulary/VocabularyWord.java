@@ -3,6 +3,8 @@ package com.betterlearn.vocabulary;
 import com.betterlearn.quiz.QuizTopic;
 import jakarta.persistence.*;
 
+import com.betterlearn.common.UserClock;
+
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -34,7 +36,7 @@ public class VocabularyWord {
     private int intervalDays = 0;
 
     @Column(name = "next_review", nullable = false)
-    private LocalDate nextReview = LocalDate.now().plusDays(1);
+    private LocalDate nextReview = UserClock.today().plusDays(1);
 
     @Column(nullable = false, length = 20)
     private String status = "new";

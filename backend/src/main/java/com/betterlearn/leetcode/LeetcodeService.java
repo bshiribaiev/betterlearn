@@ -51,13 +51,13 @@ public class LeetcodeService {
     }
 
     public List<ProblemResponse> findAll(Long userId) {
-        return problemRepo.findAllByUserId(userId).stream()
+        return problemRepo.findAllByUserId(userId, com.betterlearn.common.UserClock.today()).stream()
                 .map(ProblemResponse::from)
                 .toList();
     }
 
     public List<ProblemResponse> findDue(Long userId) {
-        return problemRepo.findDueByUserId(userId).stream()
+        return problemRepo.findDueByUserId(userId, com.betterlearn.common.UserClock.today()).stream()
                 .map(ProblemResponse::from)
                 .toList();
     }
@@ -114,7 +114,7 @@ public class LeetcodeService {
     public ProblemResponse reschedule(Long userId, Long problemId, java.time.LocalDate nextReview) {
         LeetcodeProblem problem = findOwnedProblem(userId, problemId);
         problem.setNextReview(nextReview);
-        int gap = (int) java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), nextReview);
+        int gap = (int) java.time.temporal.ChronoUnit.DAYS.between(com.betterlearn.common.UserClock.today(), nextReview);
         if (gap > 0) problem.setIntervalDays(gap);
         return ProblemResponse.from(problemRepo.save(problem));
     }
@@ -144,7 +144,7 @@ public class LeetcodeService {
                 result.status()
         );
         problem.setConfidence(deriveConfidence(quality));
-        problem.setLastReviewed(java.time.LocalDate.now());
+        problem.setLastReviewed(com.betterlearn.common.UserClock.today());
 
         reviewRepo.save(new LeetcodeReview(problem, quality));
         return ProblemResponse.from(problemRepo.save(problem));
