@@ -1,0 +1,209 @@
+    <div class="max-w-3xl mx-auto px-6 py-8"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave($event)"
+         (drop)="onDrop($event)">
+
+      <div class="flex items-center gap-3 mb-8">
+        <button (click)="goBack()"
+           class="p-2 rounded-lg text-gray-300 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <a [routerLink]="['/quiz', topicId, 'concepts']"
+           class="text-sm text-gray-400 hover:text-sky-600 transition-colors">{{ topicName }}</a>
+        <div class="ml-auto flex items-center gap-2">
+          <!-- PDF upload trigger -->
+          <input #pdfInput type="file" accept=".pdf" class="hidden" (change)="onPdfSelected($event)" />
+          <button (click)="pdfInput.click()"
+                  [disabled]="uploadingPdf"
+                  class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                  [title]="pdfFilename ? 'Replace PDF' : 'Upload PDF'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+            </svg>
+          </button>
+
+          <button (click)="openMoveModal()" title="Move to subject"
+                  class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+          </button>
+
+          <div class="relative">
+            <button (click)="fontMenuOpen = !fontMenuOpen; $event.stopPropagation()"
+                    class="w-7 h-7 flex items-center justify-center rounded text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">A</button>
+            @if (fontMenuOpen) {
+              <div class="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50"
+                   (click)="$event.stopPropagation()">
+                <label class="text-xs text-gray-500 mb-2 block">Font size</label>
+                <input #fontInput type="number" min="9" max="15" step="1"
+                       [placeholder]="fontSizeDisplay"
+                       (change)="onFontSizeInput($event); fontMenuOpen = false"
+                       (keydown.enter)="onFontSizeInput($event); fontMenuOpen = false"
+                       class="w-16 text-center text-sm text-gray-700 border border-gray-200 rounded-md px-2 py-1 focus:border-sky-400 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+              </div>
+            }
+          </div>
+          @if (saving) {
+            <span class="text-xs text-gray-400">Saving...</span>
+          } @else if (saved) {
+            <span class="text-xs text-gray-400">Saved</span>
+          }
+        </div>
+      </div>
+
+      <input #titleInput
+             type="text"
+             [(ngModel)]="title"
+             (ngModelChange)="onTitleChange()"
+             (keydown.enter)="focusEditor()"
+             placeholder="Untitled"
+             class="w-full text-3xl font-semibold text-gray-900 placeholder-gray-300 border-none outline-none mb-4" />
+
+      @if (uploadingPdf) {
+        <div class="flex items-center gap-3 px-4 py-3 mb-4 bg-sky-50 border border-sky-200 rounded-xl">
+          <svg class="w-5 h-5 animate-spin text-sky-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span class="text-sm font-medium text-sky-700">Uploading PDF...</span>
+        </div>
+      }
+
+      <div class="relative tiptap-wrapper">
+        @if (draggingOver) {
+          <div class="absolute inset-0 z-40 bg-sky-50/80 border-2 border-dashed border-sky-400 rounded-2xl flex items-center justify-center pointer-events-none">
+            <div class="text-center">
+              <svg class="w-10 h-10 text-sky-400 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1"/>
+              </svg>
+              <span class="text-sm font-medium text-sky-600">Drop file to attach</span>
+            </div>
+          </div>
+        }
+        <tiptap-editor [editor]="editor" (ngModelChange)="onContentChange()" [(ngModel)]="editorContent" outputFormat="html"></tiptap-editor>
+
+        @if (slashMenuVisible && filteredCommands.length > 0) {
+          <div class="absolute z-50 bg-white border border-gray-200 rounded-xl shadow-lg py-1 w-56"
+               [style.top.px]="slashMenuTop"
+               [style.left.px]="slashMenuLeft"
+               (mousedown)="$event.preventDefault()">
+            @for (cmd of filteredCommands; track cmd.label; let i = $index) {
+              <button (click)="executeSlashCommand(i)"
+                      [class]="'w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors ' + (i === slashSelectedIndex ? 'bg-sky-50 text-sky-700' : 'text-gray-700 hover:bg-gray-50')">
+                <span [class]="'w-7 h-7 flex items-center justify-center rounded-md text-xs font-semibold ' + (i === slashSelectedIndex ? 'bg-sky-100 text-sky-600' : 'bg-gray-100 text-gray-500')">
+                  {{ cmd.icon }}
+                </span>
+                <span>{{ cmd.label }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- PDF preview modal -->
+    @if (pdfPreviewUrl) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="closePdfPreview()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[90vw] h-[90vh] max-w-5xl flex flex-col overflow-hidden"
+             (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            <span class="text-sm font-medium text-gray-700 truncate">{{ pdfFilename }}</span>
+            <div class="flex items-center gap-2">
+              <button (click)="downloadPdf()"
+                      class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                Download
+              </button>
+              <button (click)="closePdfPreview()"
+                      class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <iframe [src]="pdfPreviewUrl" class="w-full h-full border-none"></iframe>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Image lightbox -->
+    @if (imagePreviewSrc) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="imagePreviewSrc = null">
+        <img [src]="imagePreviewSrc"
+             class="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+             (click)="$event.stopPropagation()" />
+      </div>
+    }
+
+    <!-- Delete toast -->
+    @if (deletedAttachment) {
+      <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-lg">
+        <span>Deleted "{{ deletedAttachment.name }}"</span>
+        <button (click)="undoDeleteAttachment()"
+                class="font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
+          Undo
+        </button>
+      </div>
+    }
+
+    <!-- Move to subject modal -->
+    @if (showMoveModal) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="skipMove()">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+             (click)="$event.stopPropagation()">
+          <div class="px-5 pt-5 pb-3">
+            <h3 class="text-lg font-semibold text-gray-900">Move to subject</h3>
+            <p class="text-sm text-gray-400 mt-1">Which subject does this note belong to?</p>
+          </div>
+          <div class="max-h-64 overflow-y-auto px-3 pb-2">
+            @for (topic of moveTopics; track topic.id) {
+              <button (click)="moveToTopic(topic)"
+                      [class]="'w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ' +
+                        (topic.name === 'Quick Notes' ? 'text-gray-400 hover:bg-gray-50' : 'text-gray-700 hover:bg-sky-50 hover:text-sky-700')">
+                {{ topic.name }}
+              </button>
+            }
+          </div>
+          <div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+            <button (click)="skipMove()"
+                    class="text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+              Keep in {{ topicName }}
+            </button>
+            <button (click)="createAndMove()"
+                    class="text-sm font-medium text-sky-500 hover:text-sky-600 transition-colors cursor-pointer">
+              New subject
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- New subject input modal -->
+    @if (showNewSubjectInput) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+           (click)="showNewSubjectInput = false; showMoveModal = true">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-5"
+             (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">New subject</h3>
+          <form (submit)="submitNewSubject($event)">
+            <input #newSubjectInput type="text" [(ngModel)]="newSubjectName" name="name"
+                   placeholder="Subject name"
+                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-sky-400" />
+            <div class="flex justify-end gap-2 mt-4">
+              <button type="button" (click)="showNewSubjectInput = false; showMoveModal = true"
+                      class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer">Cancel</button>
+              <button type="submit"
+                      class="px-4 py-2 text-sm font-medium bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer">Create & Move</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }

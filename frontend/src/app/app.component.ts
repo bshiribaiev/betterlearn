@@ -8,11 +8,6 @@ import { ChatWidgetComponent } from './shared/components/chat-widget/chat-widget
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, NavbarComponent, ToastComponent, ChatWidgetComponent],
-  template: `
-    <app-navbar />
-    <router-outlet />
-    <app-toast />
-    <app-chat-widget />
-  `
+  templateUrl: './app.component.html'
 })
 export class AppComponent {}

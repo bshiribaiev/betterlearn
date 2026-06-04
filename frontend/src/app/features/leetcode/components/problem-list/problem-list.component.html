@@ -1,6 +1,9 @@
 <div class="max-w-5xl mx-auto px-6 py-8">
   <!-- Header -->
-  <h1 class="text-2xl font-semibold text-gray-900 mb-8">LeetCode</h1>
+  <div class="flex items-center gap-3 mb-8">
+    <h1 class="text-2xl font-semibold text-gray-900">LeetCode</h1>
+    <span class="text-sm text-gray-400">{{ problems.length }}</span>
+  </div>
 
   <!-- Review dialog overlay (only for Review button) -->
   @if (reviewingProblem) {
