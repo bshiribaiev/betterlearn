@@ -15,10 +15,10 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client(
-            @Value("${aws.access-key-id}") String accessKeyId,
-            @Value("${aws.secret-access-key}") String secretAccessKey,
-            @Value("${aws.region}") String region,
-            @Value("${aws.s3.endpoint:}") String endpoint) {
+            @Value("${storage.access-key-id}") String accessKeyId,
+            @Value("${storage.secret-access-key}") String secretAccessKey,
+            @Value("${storage.region}") String region,
+            @Value("${storage.endpoint:}") String endpoint) {
         var builder = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(

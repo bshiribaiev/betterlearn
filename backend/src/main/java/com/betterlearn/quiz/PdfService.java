@@ -20,7 +20,7 @@ public class PdfService {
     private final S3Client s3;
     private final String bucket;
 
-    public PdfService(S3Client s3, @Value("${aws.s3.bucket}") String bucket) {
+    public PdfService(S3Client s3, @Value("${storage.bucket}") String bucket) {
         this.s3 = s3;
         this.bucket = bucket;
     }
