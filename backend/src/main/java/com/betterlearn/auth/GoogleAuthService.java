@@ -17,10 +17,9 @@ public class GoogleAuthService {
 
     private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
     private static final String USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
-    private static final Set<String> ALLOWED_ORIGINS = Set.of(
-            "http://localhost:4200",
-            "https://betterlearn.app"
-    );
+
+    @Value("${app.google.allowed-origins}")
+    private Set<String> allowedOrigins;
 
     @Value("${spring.security.oauth2.client.registration.google.client-id:}")
     private String clientId;
@@ -34,7 +33,7 @@ public class GoogleAuthService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String buildAuthorizationUrl(String origin) {
-        String state = (origin != null && ALLOWED_ORIGINS.contains(origin)) ? origin : "";
+        String state = (origin != null && allowedOrigins.contains(origin)) ? origin : "";
         return "https://accounts.google.com/o/oauth2/v2/auth"
                 + "?client_id=" + clientId
                 + "&redirect_uri=" + redirectUri
@@ -46,7 +45,7 @@ public class GoogleAuthService {
     }
 
     public String resolveCallbackUrl(String state, String defaultCallback) {
-        if (state != null && !state.isEmpty() && ALLOWED_ORIGINS.contains(state)) {
+        if (state != null && !state.isEmpty() && allowedOrigins.contains(state)) {
             return state + "/auth/callback";
         }
         return defaultCallback;

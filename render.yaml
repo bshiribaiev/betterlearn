@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: betterlearn
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter            # ~$7/mo, always-on (no cold starts)
+    region: ohio             # match Supabase project region for low latency
+    healthCheckPath: /       # SPA index.html returns 200
+    autoDeploy: true
+    envVars:
+      # Non-secret config (single-origin on betterlearn.app)
+      - key: GOOGLE_REDIRECT_URI
+        value: https://betterlearn.app/api/auth/google/callback
+      - key: GOOGLE_FRONTEND_CALLBACK
+        value: https://betterlearn.app/auth/callback
+      - key: APP_CORS_ALLOWED_ORIGINS
+        value: https://betterlearn.app
+      - key: APP_GOOGLE_ALLOWED_ORIGINS
+        value: https://betterlearn.app
+      # Supabase Postgres
+      - key: DATABASE_URL
+        sync: false          # jdbc:postgresql://<host>:5432/postgres?sslmode=require
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      # Supabase Storage (S3-compatible)
+      - key: AWS_S3_ENDPOINT
+        sync: false          # https://<ref>.storage.supabase.co/storage/v1/s3
+      - key: AWS_S3_BUCKET
+        sync: false
+      - key: AWS_REGION
+        sync: false          # Supabase project region, e.g. us-east-1
+      - key: AWS_ACCESS_KEY_ID
+        sync: false          # Supabase Storage S3 access key
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      # Secrets
+      - key: JWT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

@@ -8,6 +8,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+import java.net.URI;
+
 @Configuration
 public class S3Config {
 
@@ -15,11 +17,19 @@ public class S3Config {
     public S3Client s3Client(
             @Value("${aws.access-key-id}") String accessKeyId,
             @Value("${aws.secret-access-key}") String secretAccessKey,
-            @Value("${aws.region}") String region) {
-        return S3Client.builder()
+            @Value("${aws.region}") String region,
+            @Value("${aws.s3.endpoint:}") String endpoint) {
+        var builder = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
-                .build();
+                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)));
+
+        // Custom endpoint (e.g. Supabase Storage's S3-compatible API) needs path-style URLs.
+        // Empty endpoint = real AWS S3 with default virtual-hosted addressing.
+        if (!endpoint.isBlank()) {
+            builder.endpointOverride(URI.create(endpoint))
+                    .forcePathStyle(true);
+        }
+        return builder.build();
     }
 }
