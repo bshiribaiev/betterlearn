@@ -23,4 +23,6 @@ FROM eclipse-temurin:24-jre-alpine
 WORKDIR /app
 COPY --from=backend /app/target/*.jar app.jar
 # Render injects PORT; application.yml binds server.port to it.
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# MaxRAMPercentage uses most of the 512MB Starter instance for heap
+# (JVM default is only 25%, which OOMs on this app).
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
