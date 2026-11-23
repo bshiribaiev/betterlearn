@@ -25,15 +25,15 @@ services:
       - key: DATABASE_PASSWORD
         sync: false
       # Supabase Storage (S3-compatible)
-      - key: AWS_S3_ENDPOINT
+      - key: STORAGE_ENDPOINT
         sync: false          # https://<ref>.storage.supabase.co/storage/v1/s3
-      - key: AWS_S3_BUCKET
+      - key: STORAGE_BUCKET
         sync: false
-      - key: AWS_REGION
+      - key: STORAGE_REGION
         sync: false          # Supabase project region, e.g. us-east-1
-      - key: AWS_ACCESS_KEY_ID
+      - key: STORAGE_ACCESS_KEY_ID
         sync: false          # Supabase Storage S3 access key
-      - key: AWS_SECRET_ACCESS_KEY
+      - key: STORAGE_SECRET_ACCESS_KEY
         sync: false
       # Secrets
       - key: JWT_SECRET
